@@ -27,6 +27,7 @@ RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk
     sed -i '$d' /etc/apk/repositories && \
     rm -rf /tmp/* /var/cache/apk/*
 
+ADD THIRD_PARTY /opt/instana/agent
 ADD org.ops4j.pax.logging.cfg /root/
 ADD org.ops4j.pax.url.mvn.cfg /root/
 ADD configuration.yaml /root/
