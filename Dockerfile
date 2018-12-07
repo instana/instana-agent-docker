@@ -19,7 +19,7 @@ RUN apt-get update && \
     echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
     apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
     apt-get update && \
-    apt-get install -y instana-agent-dynamic inotify-tools gomplate && \
+    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker.io && \
     apt-get purge -y gnupg2 && \
     apt-get autoremove -y && \
     rm -rf /etc/apt/sources.list.d/instana-agent.list && \
