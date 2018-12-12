@@ -17,9 +17,11 @@ ENV LANG=C.UTF-8 \
 RUN apt-get update && \
     apt-get install -y gnupg2 ca-certificates && \
     echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
+    echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" > /etc/apt/sources.list.d/docker.list && \
     apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
+    apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
-    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker.io && \
+    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker-ce-cli python-pip && \
     apt-get purge -y gnupg2 && \
     apt-get autoremove -y && \
     rm -rf /etc/apt/sources.list.d/instana-agent.list && \
