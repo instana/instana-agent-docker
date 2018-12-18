@@ -1,28 +1,36 @@
 #!/bin/bash
 
-if [[ "${INSTANA_KEY}" == "" ]] && [[ "${INSTANA_AGENT_KEY}" == "" ]]; then
-  echo "Please add the INSTANA_AGENT_KEY environment variable and provide your Agent Key!"
-  exit 1
+if [ ! -f /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg ]; then
+  if [[ "${INSTANA_KEY}" == "" ]] && [[ "${INSTANA_AGENT_KEY}" == "" ]]; then
+    echo "Please add the INSTANA_AGENT_KEY environment variable and provide your Agent Key!"
+    exit 1
+  fi
+
+  if [[ "${INSTANA_HOST}" == "" ]] && [[ "${INSTANA_AGENT_ENDPOINT}" == "" ]]; then
+    echo "Please add the INSTANA_AGENT_ENDPOINT environment variable to let the agent know where to connect to!"
+    exit 1
+  fi
+
+  if [[ "${INSTANA_PORT}" == "" ]] && [[ "${INSTANA_AGENT_ENDPOINT_PORT}" == "" ]]; then
+    echo "Please add the INSTANA_AGENT_ENDPOINT_PORT environment variable to let the agent know where to connect to!"
+    exit 1
+  fi
+
+  [ -z "${INSTANA_AGENT_KEY}" ] && [ -n "${INSTANA_KEY}" ] && \
+    INSTANA_AGENT_KEY="${INSTANA_KEY}"
+
+  [ -z "${INSTANA_AGENT_ENDPOINT}" ] && [ -n "${INSTANA_HOST}" ] && \
+    INSTANA_AGENT_ENDPOINT="${INSTANA_HOST}"
+
+  [ -z "${INSTANA_AGENT_ENDPOINT_PORT}" ] && [ -n "${INSTANA_PORT}" ] && \
+    INSTANA_AGENT_ENDPOINT_PORT="$INSTANA_PORT"
+
+  cat /root/com.instana.agent.main.sender.Backend.cfg.tmpl | gomplate > \
+    /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg
+else
+  echo "Found '/opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg' file in the Docker image; skipping the look up of 'INSTANA_AGENT_KEY', 'INSTANA_AGENT_ENDPOINT' and 'INSTANA_AGENT_ENDPOINT_PORT'"
+  echo "IMPORTANT: no validation of the existing '/opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg' file will be performed!"
 fi
-
-if [[ "${INSTANA_HOST}" == "" ]] && [[ "${INSTANA_AGENT_ENDPOINT}" == "" ]]; then
-  echo "Please add the INSTANA_AGENT_ENDPOINT environment variable to let the agent know where to connect to!"
-  exit 1
-fi
-
-if [[ "${INSTANA_PORT}" == "" ]] && [[ "${INSTANA_AGENT_ENDPOINT_PORT}" == "" ]]; then
-  echo "Please add the INSTANA_AGENT_ENDPOINT_PORT environment variable to let the agent know where to connect to!"
-  exit 1
-fi
-
-[ -z "${INSTANA_AGENT_KEY}" ] && [ -n "${INSTANA_KEY}" ] && \
-  INSTANA_AGENT_KEY="${INSTANA_KEY}"
-
-[ -z "${INSTANA_AGENT_ENDPOINT}" ] && [ -n "${INSTANA_HOST}" ] && \
-  INSTANA_AGENT_ENDPOINT="${INSTANA_HOST}"
-
-[ -z "${INSTANA_AGENT_ENDPOINT_PORT}" ] && [ -n "${INSTANA_PORT}" ] && \
-  INSTANA_AGENT_ENDPOINT_PORT="$INSTANA_PORT"
 
 [ -z "${INSTANA_TAGS}" ] && [ -n "${INSTANA_AGENT_TAGS}" ] && \
   INSTANA_TAGS="${INSTANA_AGENT_TAGS}" && export INSTANA_TAGS
@@ -50,8 +58,6 @@ cp /root/org.ops4j.pax.url.mvn.cfg /opt/instana/agent/etc
 cp /root/configuration.yaml /opt/instana/agent/etc/instana
 cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.template /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 cat /root/mvn-settings.xml.tmpl | gomplate > /opt/instana/agent/etc/mvn-settings.xml
-cat /root/com.instana.agent.main.sender.Backend.cfg.tmpl | gomplate > \
-  /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg
 
 echo "origin = public_docker" >> /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 
