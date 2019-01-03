@@ -21,7 +21,7 @@ RUN apt-get update && \
     apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
-    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker-ce-cli python-pip && \
+    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker-ce-cli containerd python-pip && \
     apt-get purge -y gnupg2 && \
     apt-get autoremove -y && \
     rm -rf /etc/apt/sources.list.d/instana-agent.list && \
