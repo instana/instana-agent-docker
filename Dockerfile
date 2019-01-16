@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM ubuntu:18.04
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
@@ -14,18 +14,19 @@ ENV LANG=C.UTF-8 \
     INSTANA_AGENT_PROXY_PASSWORD="" \
     INSTANA_AGENT_PROXY_USE_DNS=""
 
-RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-    apk update && \
-    apk upgrade && \
-    apk add --update-cache --update gomplate@edge bash ca-certificates curl docker@edge inotify-tools && \
-    curl -sSL https://packages.instana.io/Instana.rsa -o /etc/apk/keys/instana.rsa.pub && \
-    echo "https://_:${FTP_PROXY}@packages.instana.io/agent/apk/generic" >> /etc/apk/repositories && \ 
-    apk update && \
-    apk add instana-agent-dynamic && \
-    ( /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true ) && \
-    echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh && \
-    sed -i '$d' /etc/apk/repositories && \
-    rm -rf /tmp/* /var/cache/apk/*
+RUN apt-get update && \
+    apt-get install -y gnupg2 ca-certificates && \
+    echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
+    echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" > /etc/apt/sources.list.d/docker.list && \
+    apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
+    apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
+    apt-get update && \
+    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker-ce-cli containerd python-pip && \
+    apt-get purge -y gnupg2 && \
+    apt-get autoremove -y && \
+    rm -rf /etc/apt/sources.list.d/instana-agent.list && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 
 ADD THIRD_PARTY /opt/instana/agent
 ADD org.ops4j.pax.logging.cfg /root/
