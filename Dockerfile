@@ -28,7 +28,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
-ADD THIRD_PARTY /opt/instana/agent
 ADD org.ops4j.pax.logging.cfg /root/
 ADD org.ops4j.pax.url.mvn.cfg /root/
 ADD configuration.yaml /root/
