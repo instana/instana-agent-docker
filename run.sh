@@ -41,6 +41,10 @@ if [ -n "${INSTANA_AGENT_PROXY_USE_DNS}" ]; then
   esac
 fi
 
+if [ -z "${INSTANA_DOWNLOAD_KEY}" ]; then
+  INSTANA_DOWNLOAD_KEY="${INSTANA_AGENT_KEY}"
+fi
+
 rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
   /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg  \
   /opt/instana/agent/etc/instana/configuration.yaml
@@ -55,8 +59,12 @@ cat /root/com.instana.agent.main.sender.Backend.cfg.tmpl | gomplate > \
 
 echo "origin = public_docker" >> /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 
-if [[ "${INSTANA_AGENT_HTTP_LISTEN}" != "" ]]; then
+if [ -z "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
   echo -e "\nhttp.listen = ${INSTANA_AGENT_HTTP_LISTEN}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
+fi
+
+if [ -z "${INSTANA_AGENT_MODE}" ]; then
+  echo -e "\nmode = ${INSTANA_AGENT_MODE}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 fi
 
 if [ -d /host/proc ]; then
