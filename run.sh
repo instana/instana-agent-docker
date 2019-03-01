@@ -59,11 +59,11 @@ cat /root/com.instana.agent.main.sender.Backend.cfg.tmpl | gomplate > \
 
 echo "origin = public_docker" >> /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 
-if [ -z "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
+if [ ! -z "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
   echo -e "\nhttp.listen = ${INSTANA_AGENT_HTTP_LISTEN}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 fi
 
-if [ -z "${INSTANA_AGENT_MODE}" ]; then
+if [ ! -z "${INSTANA_AGENT_MODE}" ]; then
   if [ "${INSTANA_AGENT_MODE}" = "AWS" ]; then
     local aws_region=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document --connect-timeout 2 | awk -F\" '/region/ {print $4}')
     export INSTANA_AWS_REGION_CONFIG=$aws_region
