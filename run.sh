@@ -64,7 +64,12 @@ if [ -z "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
 fi
 
 if [ -z "${INSTANA_AGENT_MODE}" ]; then
-  echo -e "\nmode = ${INSTANA_AGENT_MODE}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
+  if [ "${INSTANA_AGENT_MODE}" = "AWS" ]; then
+    local aws_region=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document --connect-timeout 2 | awk -F\" '/region/ {print $4}')
+    export INSTANA_AWS_REGION_CONFIG=$aws_region
+  else
+    echo -e "\nmode = ${INSTANA_AGENT_MODE}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
+  fi
 fi
 
 if [ -d /host/proc ]; then
