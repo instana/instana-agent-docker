@@ -67,6 +67,8 @@ if [ ! -z "${INSTANA_AGENT_MODE}" ]; then
   if [ "${INSTANA_AGENT_MODE}" = "AWS" ]; then
     local aws_region=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document --connect-timeout 2 | awk -F\" '/region/ {print $4}')
     export INSTANA_AWS_REGION_CONFIG=$aws_region
+
+    echo -e "\nmode = INFRASTRUCTURE" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
   else
     echo -e "\nmode = ${INSTANA_AGENT_MODE}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
   fi
