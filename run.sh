@@ -65,8 +65,28 @@ fi
 
 if [ ! -z "${INSTANA_AGENT_MODE}" ]; then
   if [ "${INSTANA_AGENT_MODE}" = "AWS" ]; then
-    local aws_region=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document --connect-timeout 2 | awk -F\" '/region/ {print $4}')
-    export INSTANA_AWS_REGION_CONFIG=$aws_region
+
+    INSTANA_AWS_REGION_CONFIG=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document --connect-timeout 2 | awk -F\" '/region/ {print $4}')
+    
+    if [ $? != 0 ]; then
+      log_error "Error querying AWS metadata."
+      exit 1
+    fi
+
+    export INSTANA_AWS_REGION_CONFIG
+
+    ROLES_FOUND=false
+
+    if ! curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/ --connect-timeout 2 | grep 404&> /dev/null; then
+      ROLES_FOUND=true
+    fi
+
+    if [ "$ROLES_FOUND" = "false" ]; then
+      if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+        echo "AWS_ACCESS_KEY_ID and/or AWS_SECRET_ACCESS_KEY not exported, and no IAM instance role detected to allow AWS API access."
+        exit 1
+      fi
+    fi
 
     echo -e "\nmode = INFRASTRUCTURE" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
   else
