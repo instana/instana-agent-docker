@@ -2,11 +2,13 @@ FROM ubuntu:18.04
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
+    INSTANA_DOWNLOAD_KEY="" \
     INSTANA_AGENT_ENDPOINT="" \
     INSTANA_AGENT_ENDPOINT_PORT="" \
     INSTANA_AGENT_ZONE="" \
     INSTANA_AGENT_TAGS="" \
     INSTANA_AGENT_HTTP_LISTEN="" \
+    INSTANA_AGENT_MODE="APM" \
     INSTANA_AGENT_PROXY_HOST="" \
     INSTANA_AGENT_PROXY_PORT="" \
     INSTANA_AGENT_PROXY_PROTOCOL="" \
@@ -15,7 +17,7 @@ ENV LANG=C.UTF-8 \
     INSTANA_AGENT_PROXY_USE_DNS=""
 
 RUN apt-get update && \
-    apt-get install -y gnupg2 ca-certificates && \
+    apt-get install -y gnupg2 ca-certificates curl && \
     echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
     echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" > /etc/apt/sources.list.d/docker.list && \
     apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
