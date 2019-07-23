@@ -8,6 +8,8 @@ ENV LANG=C.UTF-8 \
     INSTANA_AGENT_ZONE="" \
     INSTANA_AGENT_TAGS="" \
     INSTANA_AGENT_HTTP_LISTEN="" \
+    INSTANA_AGENT_UPDATES_DYNAMIC_FREQUENCY="" \
+    INSTANA_AGENT_UPDATES_DYNAMIC_TIME="" \
     INSTANA_AGENT_MODE="APM" \
     INSTANA_AGENT_PROXY_HOST="" \
     INSTANA_AGENT_PROXY_PORT="" \
@@ -35,6 +37,7 @@ ADD org.ops4j.pax.logging.cfg /root/
 ADD org.ops4j.pax.url.mvn.cfg /root/
 ADD configuration.yaml /root/
 ADD com.instana.agent.main.sender.Backend.cfg.tmpl /root/
+ADD com.instana.agent.main.config.UpdateManager.cfg.tmpl /root/
 ADD mvn-settings.xml.tmpl /root/
 ADD run.sh /opt/instana/agent/bin
 
