@@ -47,7 +47,9 @@ fi
 
 rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
   /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg  \
-  /opt/instana/agent/etc/instana/configuration.yaml
+  /opt/instana/agent/etc/instana/configuration.yaml \
+  /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg
+
 
 cp /root/org.ops4j.pax.logging.cfg /opt/instana/agent/etc
 cp /root/org.ops4j.pax.url.mvn.cfg /opt/instana/agent/etc
@@ -56,6 +58,8 @@ cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.templa
 cat /root/mvn-settings.xml.tmpl | gomplate > /opt/instana/agent/etc/mvn-settings.xml
 cat /root/com.instana.agent.main.sender.Backend.cfg.tmpl | gomplate > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg
+cat /root/com.instana.agent.main.config.UpdateManager.cfg.tmpl | gomplate > \
+  /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg
 
 echo "origin = public_docker" >> /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 
