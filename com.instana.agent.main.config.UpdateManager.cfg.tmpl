@@ -1,0 +1,7 @@
+# Instana Update Manager configuration.
+# AUTO for automatic updates with given schedule. OFF for no automatic updates.
+mode = AUTO
+# DAY for daily, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+every = {{ getenv "INSTANA_AGENT_UPDATES_FREQUENCY" "DAY" }}
+# Time is hh:mm in 24 hours format.
+at = {{ getenv "INSTANA_AGENT_UPDATES_TIME" "4:30" }}
