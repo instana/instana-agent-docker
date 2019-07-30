@@ -1,0 +1,80 @@
+.TH instana/agent
+.PP
+This is the official docker image for the agent of Instana, Inc.
+
+\[la]https://www.instana.com\[ra]
+
+.SH Installation
+.PP
+Please notice, that the container needs to run in a privileged mode, allowing it to see host\-specific metrics.
+
+.PP
+The Instana agent can be executed as a privileged container via the following command:
+
+.PP
+.RS
+
+.nf
+sudo docker run \\
+  \-\-name instana\-agent \\
+  \-\-volume /var/run/docker.sock:/var/run/docker.sock \\
+  \-\-volume /dev:/dev \\
+  \-\-volume /sys:/sys \\
+  \-\-volume /var/log:/var/log \\
+  \-\-privileged \\
+  \-\-net=host \\
+  \-\-pid=host \\
+  \-\-ipc=host \\
+  \-\-env="INSTANA\_AGENT\_KEY={{ put your Instana agent key here }}" \\
+  \-\-env="INSTANA\_AGENT\_ENDPOINT={{ the monitoring ingress endpoint }}" \\
+  \-\-env="INSTANA\_AGENT\_ENDPOINT\_PORT={{ the monitoring ingress endpoint port }}" \\
+  \-\-env="INSTANA\_AGENT\_ZONE={{ (optional) the name of the zone of the host }}" \\
+  \-\-env="INSTANA\_AGENT\_TAGS={{ (optional) comma separated list of host tags }}" \\
+  \-\-env="INSTANA\_AGENT\_PROXY\_HOST={{ (optional) hostname/address of a proxy }}" \\
+  \-\-env="INSTANA\_AGENT\_PROXY\_PORT={{ (optional) port of a proxy }}" \\
+  \-\-env="INSTANA\_AGENT\_PROXY\_PROTOCOL={{ (optional) proxy protocol (e.g. http }}" \\
+  \-\-env="INSTANA\_AGENT\_PROXY\_USER={{ (optional) username of the proxy auth }}" \\
+  \-\-env="INSTANA\_AGENT\_PROXY\_PASSWORD={{ (optional) password of the proxy auth }}" \\
+  \-\-env="INSTANA\_AGENT\_PROXY\_USE\_DNS={{ (optional) boolean if proxy also does DNS }}" \\
+  instana/agent
+
+.fi
+.RE
+
+.PP
+Please adapt the INSTANA\_AGENT\_ENDPOINT\_PORT, INSTANA\_AGENT\_ENDPOINT and INSTANA\_AGENT\_KEY variables to your setup.
+For our \fBSaaS Customers\fP INSTANA\_AGENT\_ENDPOINT depends on the region your environment is in. Feel free to ask our Team for advice.
+
+.PP
+|Region   |DNS Name   |Destination Port   |
+|\-\-\-|\-\-\-|\-\-\-|
+|Europe   |saas\-eu\-west\-1.instana.io   | tcp/443  |
+|United States  |saas\-us\-west\-2.instana.io   | tcp/443  |
+|Rest of the world  |saas\-us\-west\-2.instana.io   | tcp/443  |
+
+.PP
+Our \fBon\-prem Customers\fP configured the settings during the Installation.
+
+.PP
+When in doubt, download an agent from the portal and copy the options from the file /instana\-agent/etc/instana/com.instana.agent.main.sender.Backend.cfg.
+Once running, the agent log will be available via \fB\fCdocker logs instana\-agent\fR\&.
+
+.PP
+It is possible to swap out agent configuration files via the Docker volume feature. For instance, to change the artifact repository endpoint, add the following parameter
+
+.PP
+.RS
+
+.nf
+\-\-volume /instana\-agent/etc/org.ops4j.pax.url.mvn.cfg:/root/org.ops4j.pax.url.mvn.cfg
+
+.fi
+.RE
+
+.PP
+After the agent tarball was unpacked, the (eventually mounted) files are being put in place from the /root directory.
+
+.SH Documentation
+.PP
+Agent and general documentation is available at 
+\[la]https://docs.instana.com\[ra]
