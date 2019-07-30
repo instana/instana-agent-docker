@@ -24,7 +24,9 @@ ENV LANG=C.UTF-8 \
 RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${FTP_PROXY}@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1gpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf install instana-agent-dynamic && \
+    microdnf install instana-agent-dynamic iptables-services && \
+    systemctl disable firewalld && \
+    systemctl mask --now firewalld && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/Docker.repo && \
     microdnf clean all
 
