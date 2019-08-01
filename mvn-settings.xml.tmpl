@@ -32,22 +32,22 @@
        uncomment the proxies section and insert proxy details. -->
   <!-- https://maven.apache.org/guides/mini/guide-proxies.html -->
 
-{{if (getenv "INSTANA_AGENT_PROXY_HOST") not eq "" }}
+{{if (getenv "INSTANA_REPOSITORY_PROXY_HOST" (getenv "INSTANA_AGENT_PROXY_HOST")) not eq "" }}
   <proxies>
     <proxy>
       <active>true</active>
-      <host>{{ getenv "INSTANA_AGENT_PROXY_HOST" }}</host>
-  {{ if (getenv "INSTANA_AGENT_PROXY_PORT") not eq "" }}
-      <port>{{ getenv "INSTANA_AGENT_PROXY_PORT" }}</port>
+  {{ if (getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL" (getenv "INSTANA_AGENT_PROXY_PROTOCOL")) not eq "" }}
+      <protocol>{{ getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL" (getenv "INSTANA_AGENT_PROXY_PROTOCOL") }}</protocol>
   {{end}}
-  {{ if (getenv "INSTANA_AGENT_PROXY_USER") not eq "" }}
-      <username>{{ getenv "INSTANA_AGENT_PROXY_USER" }}</username>
+      <host>{{ getenv "INSTANA_REPOSITORY_PROXY_HOST" (getenv "INSTANA_AGENT_PROXY_HOST") }}</host>
+  {{ if (getenv "INSTANA_REPOSITORY_PROXY_PORT" (getenv "INSTANA_AGENT_PROXY_PORT")) not eq "" }}
+      <port>{{ getenv "INSTANA_REPOSITORY_PROXY_PORT" (getenv "INSTANA_AGENT_PROXY_PORT") }}</port>
   {{end}}
-  {{ if (getenv "INSTANA_AGENT_PROXY_PROTOCOL") not eq "" }}
-      <protocol>{{ getenv "INSTANA_AGENT_PROXY_PROTOCOL" }}</protocol>
+  {{ if (getenv "INSTANA_REPOSITORY_PROXY_USER" (getenv "INSTANA_AGENT_PROXY_USER")) not eq "" }}
+      <username>{{ getenv "INSTANA_REPOSITORY_PROXY_USER" (getenv "INSTANA_AGENT_PROXY_USER") }}</username>
   {{end}}
-  {{ if (getenv "INSTANA_AGENT_PROXY_PASSWORD") not eq "" }}
-      <password>{{ getenv "INSTANA_AGENT_PROXY_PASSWORD" }}</password>
+  {{ if (getenv "INSTANA_REPOSITORY_PROXY_PASSWORD" (getenv "INSTANA_AGENT_PROXY_PASSWORD")) not eq "" }}
+      <password>{{ getenv "INSTANA_REPOSITORY_PROXY_PASSWORD" (getenv "INSTANA_AGENT_PROXY_PASSWORD") }}</password>
   {{end}}
     </proxy>
   </proxies>
