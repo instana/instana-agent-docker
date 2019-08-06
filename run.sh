@@ -58,6 +58,8 @@ cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.templa
 cat /root/mvn-settings.xml.tmpl | gomplate > /opt/instana/agent/etc/mvn-settings.xml
 cat /root/com.instana.agent.main.sender.Backend.cfg.tmpl | gomplate > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg
+cat /root/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl | gomplate > \
+  /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 cat /root/com.instana.agent.main.config.UpdateManager.cfg.tmpl | gomplate > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg
 

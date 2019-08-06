@@ -1,0 +1,3 @@
+{{if (getenv "INSTANA_AGENT_UPDATES_VERSION") not eq "" }}
+version = {{ getenv "INSTANA_AGENT_UPDATES_VERSION" }}
+{{end}}
