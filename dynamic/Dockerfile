@@ -13,10 +13,10 @@ ENV LANG=C.UTF-8 \
     INSTANA_AGENT_UPDATES_TIME="" \
     INSTANA_AGENT_MODE="APM" \
     INSTANA_AGENT_PROXY_HOST="" \
+    INSTANA_AGENT_PROXY_PASSWORD="" \
     INSTANA_AGENT_PROXY_PORT="" \
     INSTANA_AGENT_PROXY_PROTOCOL="" \
     INSTANA_AGENT_PROXY_USER="" \
-    INSTANA_AGENT_PROXY_PASSWORD="" \
     INSTANA_AGENT_PROXY_USE_DNS=""
 
 RUN apt-get update && \
@@ -26,7 +26,7 @@ RUN apt-get update && \
     apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
-    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker-ce-cli containerd.io python-pip && \
+    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker-ce-cli containerd.io python-pip iptables && \
     apt-get purge -y gnupg2 && \
     apt-get autoremove -y && \
     rm -rf /etc/apt/sources.list.d/instana-agent.list && \
