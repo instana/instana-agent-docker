@@ -9,17 +9,29 @@ LABEL name="instana-agent" \
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
+    INSTANA_DOWNLOAD_KEY="" \
     INSTANA_AGENT_ENDPOINT="" \
     INSTANA_AGENT_ENDPOINT_PORT="" \
     INSTANA_AGENT_ZONE="" \
     INSTANA_AGENT_TAGS="" \
     INSTANA_AGENT_HTTP_LISTEN="" \
+    INSTANA_AGENT_UPDATES_VERSION="" \
+    INSTANA_AGENT_UPDATES_FREQUENCY="" \
+    INSTANA_AGENT_UPDATES_TIME="" \
+    INSTANA_AGENT_MODE="APM" \
     INSTANA_AGENT_PROXY_HOST="" \
+    INSTANA_AGENT_PROXY_PASSWORD="" \
     INSTANA_AGENT_PROXY_PORT="" \
     INSTANA_AGENT_PROXY_PROTOCOL="" \
     INSTANA_AGENT_PROXY_USER="" \
-    INSTANA_AGENT_PROXY_PASSWORD="" \
-    INSTANA_AGENT_PROXY_USE_DNS=""
+    INSTANA_AGENT_PROXY_USE_DNS="" \
+    INSTANA_REPOSITORY_PROXY_ENABLED="false" \
+    INSTANA_REPOSITORY_PROXY_HOST="" \
+    INSTANA_REPOSITORY_PROXY_PORT="" \
+    INSTANA_REPOSITORY_PROXY_PROTOCOL="" \
+    INSTANA_REPOSITORY_PROXY_USER="" \
+    INSTANA_REPOSITORY_PROXY_PASSWORD="" \
+    INSTANA_REPOSITORY_PROXY_USE_DNS=""
 
 RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
@@ -37,6 +49,8 @@ ADD org.ops4j.pax.logging.cfg /root/
 ADD org.ops4j.pax.url.mvn.cfg /root/
 ADD configuration.yaml /root/
 ADD com.instana.agent.main.sender.Backend.cfg.tmpl /root/
+ADD com.instana.agent.main.config.UpdateManager.cfg.tmpl /root/
+ADD com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /root/
 ADD mvn-settings.xml.tmpl /root/
 ADD run.sh /opt/instana/agent/bin
 
