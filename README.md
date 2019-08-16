@@ -1,19 +1,12 @@
-Instana Agent Docker
-====================
+## instana-agent-docker
 
-This build of the instana agent includes requires access to the publicly hosted Instana maven repository in order to download sensors. It requires proxy settings for egress access to the ${INSTANA_AGENT_ENDPOINT}, which may either be for your self hosted Instana installation or for the Instana SaaS, and for access to the Instana maven repository.
+This repo contains the Dockerfiles relating to the various containers Instana
+supports.
 
-Building
-========
-
-docker build ./ --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache
-
-*Note*
-
-FTP_PROXY is being abused to pass in the agent key for the package download during docker build, we are doing this until docker build time secrets issue is resolved: [issue GH33343](https://github.com/moby/moby/issues/33343)
-
-Docker Hub
-==========
-
-The image can be found on docker hub [https://hub.docker.com/r/instana/agent/](https://hub.docker.com/r/instana/agent)
+ * dynamic - is the image used in the Helm chart and is suggested as the
+             preferred image for a standard install.
+ * static - the static image that contains all run-time dependencies ideal for
+            network access restricted environments such as airgapped servers.
+ * rhel - is the RHEL Atomic based image which is suggested for environments
+          where a RHEL base image is required.
 
