@@ -1,19 +1,19 @@
 FROM ubuntu:18.04
 
 ENV LANG=C.UTF-8 \
+    INSTANA_AGENT_KEY="" \
     INSTANA_AGENT_ENDPOINT="" \
     INSTANA_AGENT_ENDPOINT_PORT="" \
+    INSTANA_AGENT_ZONE="" \
+    INSTANA_AGENT_TAGS="" \
     INSTANA_AGENT_HTTP_LISTEN="" \
-    INSTANA_AGENT_KEY="" \
     INSTANA_AGENT_MODE="APM" \
     INSTANA_AGENT_PROXY_HOST="" \
     INSTANA_AGENT_PROXY_PASSWORD="" \
     INSTANA_AGENT_PROXY_PORT="" \
     INSTANA_AGENT_PROXY_PROTOCOL="" \
     INSTANA_AGENT_PROXY_USER="" \
-    INSTANA_AGENT_PROXY_USE_DNS="" \
-    INSTANA_AGENT_TAGS="" \
-    INSTANA_AGENT_ZONE=""
+    INSTANA_AGENT_PROXY_USE_DNS=""
 
 RUN apt-get update && \
     apt-get install -y gnupg2 ca-certificates curl && \
@@ -32,6 +32,7 @@ RUN apt-get update && \
 ADD org.ops4j.pax.logging.cfg /root/
 ADD configuration.yaml /root/
 ADD com.instana.agent.main.sender.Backend.cfg.tmpl /root/
+ADD com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /root/
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent

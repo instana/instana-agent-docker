@@ -32,7 +32,7 @@ fi
 
 if [ -n "${INSTANA_AGENT_PROXY_USE_DNS}" ]; then
   case ${INSTANA_AGENT_PROXY_USE_DNS} in
-    y|Y|yes|Yes|YES|1|true) 
+    y|Y|yes|Yes|YES|1|true)
       INSTANA_AGENT_PROXY_USE_DNS=1
       ;;
     *)
@@ -48,7 +48,8 @@ fi
 rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
   /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg  \
   /opt/instana/agent/etc/instana/configuration.yaml \
-  /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg
+  /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg \
+  /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 
 
 cp /root/org.ops4j.pax.logging.cfg /opt/instana/agent/etc
@@ -58,10 +59,10 @@ cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.templa
 cat /root/mvn-settings.xml.tmpl | gomplate > /opt/instana/agent/etc/mvn-settings.xml
 cat /root/com.instana.agent.main.sender.Backend.cfg.tmpl | gomplate > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg
+cat /root/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl | gomplate > \
+  /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 cat /root/com.instana.agent.main.config.UpdateManager.cfg.tmpl | gomplate > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg
-
-echo "origin = public_docker" >> /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 
 if [ ! -z "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
   echo -e "\nhttp.listen = ${INSTANA_AGENT_HTTP_LISTEN}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
@@ -71,7 +72,7 @@ if [ ! -z "${INSTANA_AGENT_MODE}" ]; then
   if [ "${INSTANA_AGENT_MODE}" = "AWS" ]; then
 
     INSTANA_AWS_REGION_CONFIG=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document --connect-timeout 2 | awk -F\" '/region/ {print $4}')
-    
+
     if [ $? != 0 ]; then
       log_error "Error querying AWS metadata."
       exit 1
