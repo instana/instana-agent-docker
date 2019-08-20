@@ -1,7 +1,7 @@
 #!groovy
 
 DOCKER_REGISTRY_INTERNAL = "containers.instana.io"
-SLACK_CHANNEL = "sre-test"
+SLACK_CHANNEL = "tech-sre-status"
 
 node {
   stage ('Checkout Git Repo') {
