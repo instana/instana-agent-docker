@@ -102,7 +102,7 @@ def publishImage(name) {
     slackSend channel: "#${SLACK_CHANNEL}",
                 color: "#ff5d00",
               message: """
-      Failed to push Instana agent docker image to ${name} for ${INSTANA_AGENT_RELEASE}.
+      Failed to push Instana agent docker image for ${name}-${INSTANA_AGENT_RELEASE}.
       Reason: ${e.message}
       (<${env.BUILD_URL}|Open>)
     """
