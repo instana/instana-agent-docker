@@ -10,21 +10,22 @@ node {
     }
 
     stage ('Build Static Agent Docker Image') {
-      if ("${STATIC}") {
+      if (env.STATIC.toBoolean()) {
           println "Building static agent docker image"
-
           buildImage("static", "static")
       }
     }
 
     stage ('Build Dynamic Agent Docker Image') {
-      if ("${DYNAMIC}") {
-        println "Building dynamic agent docker image"
+      if (env.DYNAMIC.toBoolean()) {
+          println "Building dynamic agent docker image"
       }
     }
 
     stage ('Build RHEL Agent Docker Image') {
-      println "Building rhel agent docker image"
+      if (env.RHEL.toBoolean()) {
+          println "Building rhel agent docker image"
+      }
     }
 
     stage('Push Docker Registry') {
