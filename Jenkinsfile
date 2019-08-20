@@ -70,7 +70,7 @@ node {
       }
     }
   }
-  slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent ${INSTANA_AGENT_RELEASE} \n(<${env.BUILD_URL}|Open>)"
+  slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${INSTANA_AGENT_RELEASE} \n(<${env.BUILD_URL}|Open>)"
 }
 
 def buildImage(name, context) {
@@ -82,7 +82,7 @@ def buildImage(name, context) {
     slackSend channel: "#${SLACK_CHANNEL}",
                 color: "#ff5d00",
               message: """
-      Failed to build docker image for ${name}-${INSTANA_AGENT_RELEASE}.
+      Failed to build Instana agent docker image for ${name}-${INSTANA_AGENT_RELEASE}.
       Reason: ${e.message}
       (<${env.BUILD_URL}|Open>)
       """
@@ -102,7 +102,7 @@ def publishImage(name) {
     slackSend channel: "#${SLACK_CHANNEL}",
                 color: "#ff5d00",
               message: """
-      Failed to push docker image to ${name} for ${INSTANA_AGENT_RELEASE}.
+      Failed to push Instana agent docker image to ${name} for ${INSTANA_AGENT_RELEASE}.
       Reason: ${e.message}
       (<${env.BUILD_URL}|Open>)
     """
