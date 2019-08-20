@@ -67,7 +67,7 @@ node {
         if (env.RHEL.toBoolean()) {
             println "Push rhel agent docker image to release"
             publishImage("instana/agent-rhel")
-            publishImage("${DOCKER_REGISTRY_INTERNAL}/instana/release/agent/rhel)
+            publishImage("${DOCKER_REGISTRY_INTERNAL}/instana/release/agent/rhel")
         }
       }
     }
