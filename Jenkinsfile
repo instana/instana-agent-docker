@@ -98,11 +98,11 @@ def publishImage(name) {
       echo "docker push ${name}:${INSTANA_AGENT_RELEASE}"
       echo "docker push ${name}:latest"
     """
-  catch(e) {
+  } catch(e) {
     slackSend channel: "#${SLACK_CHANNEL}",
                 color: "#ff5d00",
               message: """
-      Failed to push docker image: ${name}-${INSTANA_AGENT_RELEASE}.
+      Failed to push docker image to ${name} for ${INSTANA_AGENT_RELEASE}.
       Reason: ${e.message}
       (<${env.BUILD_URL}|Open>)
     """
