@@ -1,22 +1,45 @@
 #!groovy
 
-stage ('Container Build') {
-  node {
-    deleteDir()
-    checkout scm  
-    // TODO: Add build status "PENDING"
+node {
 
-    try {
-      sh "./build.sh" 
-
-      if ( env.BRANCH_NAME == "master" ) {
-        sh "./publish.sh"
-      }
-    } catch(e) {
-      
-      // TODO: Add build status "FAILURE"
+    stage ('Checkout Git Repo') {
+        deleteDir()
+        checkout scm
+        // Debug
+        sh "git status"
     }
 
-    // TODO: Add build status "SUCCESS"
-  }
+    stage ('Build Static Agent Docker Image') {
+      if ("${STATIC}") {
+          println "Building static agent docker image"
+
+          buildImage("static", "static")
+      }
+    }
+
+    stage ('Build Dynamic Agent Docker Image') {
+      if ("${DYNAMIC}") {
+        println "Building dynamic agent docker image"
+      }
+    }
+
+    stage ('Build RHEL Agent Docker Image') {
+      println "Building rhel agent docker image"
+    }
+
+    stage('Push Docker Registry') {
+      println "Pushing images to prerelease"
+
+      if("${PUBLISH}" != "YES") {
+        println "Pushing images to release"
+      }
+    }
 }
+
+def buildImage(name, context) {
+  sh """
+        docker build ./${context} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache -t instana/agent/${name}:${INSTANA_AGENT_RELEASE}
+      """
+}
+
+
