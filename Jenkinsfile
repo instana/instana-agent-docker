@@ -72,7 +72,7 @@ node {
       }
     }
   }
-
+  
   cleanUp()
   slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${INSTANA_AGENT_RELEASE} \n(<${env.BUILD_URL}|Open>)"
 }
@@ -90,9 +90,8 @@ def buildImage(name, context) {
       Reason: ${e.message}
       (<${env.BUILD_URL}|Open>)
       """
-    throw e;
-  } finally {
     cleanUp()
+    throw e;
   }
 }
 
@@ -112,10 +111,9 @@ def publishImage(name) {
       Reason: ${e.message}
       (<${env.BUILD_URL}|Open>)
     """
-    throw e;
-  } finally {
     cleanUp()
-  }
+    throw e;
+  } 
 }
 
 def cleanUp() {
