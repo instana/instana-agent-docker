@@ -3,6 +3,8 @@
 DOCKER_REGISTRY_INTERNAL = "containers.instana.io"
 SLACK_CHANNEL = "tech-sre-status"
 
+currentBuild.displayName = "#${BUILD_NUMBER}:${env.INSTANA_AGENT_RELEASE}"
+
 node {
   stage ('Checkout Git Repo') {
     deleteDir()
@@ -70,6 +72,8 @@ node {
       }
     }
   }
+
+  cleanUp()
   slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${INSTANA_AGENT_RELEASE} \n(<${env.BUILD_URL}|Open>)"
 }
 
@@ -87,6 +91,8 @@ def buildImage(name, context) {
       (<${env.BUILD_URL}|Open>)
       """
     throw e;
+  } finally {
+    cleanUp()
   }
 }
 
@@ -107,5 +113,13 @@ def publishImage(name) {
       (<${env.BUILD_URL}|Open>)
     """
     throw e;
+  } finally {
+    cleanUp()
   }
+}
+
+def cleanUp() {
+  sh """
+    docker images --format='{{.Repository}} {{.ID}}' | grep -E '.*instana.*agent.*' | xargs docker rmi | true
+  """
 }
