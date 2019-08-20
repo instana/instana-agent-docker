@@ -1,6 +1,7 @@
 #!groovy
 
 DOCKER_REGISTRY_INTERNAL = "containers.instana.io"
+SLACK_CHANNEL = "sre-test"
 
 node {
   stage ('Checkout Git Repo') {
@@ -69,7 +70,7 @@ node {
       }
     }
   }
-  slackSend channel: "#tech-sre-status", color: "#389a07", message: "Successfully build Instana agent ${INSTANA_AGENT_RELEASE} \n(<${env.BUILD_URL}|Open>)"
+  slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent ${INSTANA_AGENT_RELEASE} \n(<${env.BUILD_URL}|Open>)"
 }
 
 def buildImage(name, context) {
@@ -78,7 +79,7 @@ def buildImage(name, context) {
       docker build ./${context} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache -t instana/agent/${name}:${INSTANA_AGENT_RELEASE}
     """
   } catch(e) {
-    slackSend channel: "#tech-sre-status",
+    slackSend channel: "#${SLACK_CHANNEL}",
                 color: "#ff5d00",
               message: """
       Failed to build docker image for ${name}-${INSTANA_AGENT_RELEASE}.
@@ -98,7 +99,7 @@ def publishImage(name) {
       echo "docker push ${name}:latest"
     """
   catch(e) {
-    slackSend channel: "#tech-sre-status",
+    slackSend channel: "#${SLACK_CHANNEL}",
                 color: "#ff5d00",
               message: """
       Failed to push docker image: ${name}-${INSTANA_AGENT_RELEASE}.
