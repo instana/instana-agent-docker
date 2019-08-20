@@ -45,6 +45,21 @@ if [ -z "${INSTANA_DOWNLOAD_KEY}" ]; then
   INSTANA_DOWNLOAD_KEY="${INSTANA_AGENT_KEY}"
 fi
 
+# Take over Agent Proxy variables if no Repository Proxy is enabled
+case ${INSTANA_REPOSITORY_PROXY_ENABLED} in
+  y|Y|yes|Yes|YES|1|true)
+	# Don't do anything, use existing variables
+	;;
+  *)
+	INSTANA_REPOSITORY_PROXY_HOST=${INSTANA_AGENT_PROXY_HOST}
+	INSTANA_REPOSITORY_PROXY_PORT=${INSTANA_AGENT_PROXY_PORT}
+	INSTANA_REPOSITORY_PROXY_PROTOCOL=${INSTANA_AGENT_PROXY_PROTOCOL}
+	INSTANA_REPOSITORY_PROXY_USER=${INSTANA_AGENT_PROXY_USER}
+	INSTANA_REPOSITORY_PROXY_PASSWORD=${INSTANA_AGENT_PROXY_PASSWORD}
+	INSTANA_REPOSITORY_PROXY_USE_DNS=${INSTANA_AGENT_PROXY_USE_DNS}
+	;;
+esac
+
 rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
   /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg  \
   /opt/instana/agent/etc/instana/configuration.yaml \
