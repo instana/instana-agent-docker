@@ -98,8 +98,8 @@ def buildImage(name, context) {
 def publishImage(name) {
   try {
     sh """
-      echo "docker tag ${name}:${INSTANA_AGENT_RELEASE}"
-      echo "docker tag ${name}:latest"
+      docker tag ${name}:${INSTANA_AGENT_RELEASE}
+      docker tag ${name}:latest
       echo "docker push ${name}:${INSTANA_AGENT_RELEASE}"
       echo "docker push ${name}:latest"
     """
