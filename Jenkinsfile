@@ -119,6 +119,6 @@ def publishImage(name) {
 def cleanUp() {
   println "Cleaning up docker images"
   sh """
-    images=$(docker images --format='{{.Repository}} {{.ID}}' | grep -E '.*instana.*agent' | cut -d " " -f 1); if [[ ! -z "${images}" ]]; then docker rmi ${images}; fi;
+    images=$(docker images --format='{{.Repository}} {{.ID}}' | grep -E '.*instana.*agent.*' | cut -d ' ' -f 1); if [[ ! -z \${images} ]]; then docker rmi \${images}; fi;
   """
 }
