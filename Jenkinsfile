@@ -105,8 +105,8 @@ def publishImage(sourceName, targetName) {
     sh """
       docker tag ${sourceName}:${INSTANA_AGENT_RELEASE} ${targetName}:${INSTANA_AGENT_RELEASE}
       docker tag ${sourceName}:${INSTANA_AGENT_RELEASE} ${targetName}:latest
-      echo "docker push ${targetName}:${INSTANA_AGENT_RELEASE}"
-      echo "docker push ${targetName}:latest"
+      docker push ${targetName}:${INSTANA_AGENT_RELEASE}
+      docker push ${targetName}:latest
     """
   } catch(e) {
     slackSend channel: "#${SLACK_CHANNEL}",
