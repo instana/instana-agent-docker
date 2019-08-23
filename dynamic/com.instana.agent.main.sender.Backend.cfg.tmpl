@@ -21,7 +21,7 @@ proxy.port={{ getenv "INSTANA_AGENT_PROXY_PORT" "" }}
 {{- if ne (getenv "INSTANA_AGENT_PROXY_PROTOCOL" "") "" -}}
 proxy.type={{ getenv "INSTANA_AGENT_PROXY_PROTOCOL" "" }}
 {{- end -}}
-{{- if ne (getenv "INSTANA_AGENT_PROXY_USE_DNS" "") "" }}
+{{- if ne (getenv "INSTANA_AGENT_PROXY_USE_DNS" "") "" -}}
 proxy.dns=true
 {{- end -}}
 {{- if ne (getenv "INSTANA_AGENT_PROXY_USER" "") "" -}}
