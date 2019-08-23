@@ -13,24 +13,24 @@ protocol=HTTP/2
 # fingerprints=29:17:5A:F4:2E:35:DF:87:D6:1F:4D:C8:A8:01:D2:43:18:47:BF:6E
 
 # The HTTP/2 connection to Instana SaaS can be proxied.
-{{- if ne (getenv "INSTANA_AGENT_PROXY_HOST" "") "" }}
+{{- if ne (getenv "INSTANA_AGENT_PROXY_HOST" "") "" -}}
 proxy.host={{ getenv "INSTANA_AGENT_PROXY_HOST" "" }}
-{{- if ne (getenv "INSTANA_AGENT_PROXY_PORT" "") "" }}
+{{- if ne (getenv "INSTANA_AGENT_PROXY_PORT" "") "" -}}
 proxy.port={{ getenv "INSTANA_AGENT_PROXY_PORT" "" }}
-{{- end }}
-{{- if ne (getenv "INSTANA_AGENT_PROXY_PROTOCOL" "") "" }}
+{{- end -}}
+{{- if ne (getenv "INSTANA_AGENT_PROXY_PROTOCOL" "") "" -}}
 proxy.type={{ getenv "INSTANA_AGENT_PROXY_PROTOCOL" "" }}
-{{- end }}
-{{- if ne (getenv "INSTANA_AGENT_PROXY_USE_DNS" "") "" }}
+{{- end -}}
+{{- if ne (getenv "INSTANA_AGENT_PROXY_USE_DNS" "") "" -}}
 proxy.dns=true
-{{- end }}
-{{- if ne (getenv "INSTANA_AGENT_PROXY_USER" "") "" }}
+{{- end -}}
+{{- if ne (getenv "INSTANA_AGENT_PROXY_USER" "") "" -}}
 proxy.user={{ getenv "INSTANA_AGENT_PROXY_USER" "" }}
 {{- end }}
-{{- if ne (getenv "INSTANA_AGENT_PROXY_PASSWORD" "") "" }}
+{{- if ne (getenv "INSTANA_AGENT_PROXY_PASSWORD" "") "" -}}
 proxy.password={{ getenv "INSTANA_AGENT_PROXY_PASSWORD" "" }}
-{{- end }}
-{{- end }}
+{{- end -}}
+{{- end -}}
 
 # Access Key for your SaaS installation. Is pre-filled during agent download.
 key={{ getenv "INSTANA_AGENT_KEY" "" }}

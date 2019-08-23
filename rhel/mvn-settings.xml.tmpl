@@ -32,26 +32,26 @@
        uncomment the proxies section and insert proxy details. -->
   <!-- https://maven.apache.org/guides/mini/guide-proxies.html -->
 
-{{- if ne (getenv "INSTANA_REPOSITORY_PROXY_HOST" "") "" }}
+{{- if ne (getenv "INSTANA_REPOSITORY_PROXY_HOST" "") "" -}}
   <proxies>
     <proxy>
       <active>true</active>
       <host>{{ getenv "INSTANA_REPOSITORY_PROXY_HOST" "" }}</host>
-  {{- if ne (getenv "INSTANA_REPOSITORY_PROXY_PORT" "") "" }}
+  {{- if ne (getenv "INSTANA_REPOSITORY_PROXY_PORT" "") "" -}}
       <port>{{ getenv "INSTANA_REPOSITORY_PROXY_PORT" "" }}</port>
-  {{- end }}
-  {{- if ne (getenv "INSTANA_REPOSITORY_PROXY_USER" "") "" }}
+  {{- end -}}
+  {{- if ne (getenv "INSTANA_REPOSITORY_PROXY_USER" "") "" -}}
       <username>{{ getenv "INSTANA_REPOSITORY_PROXY_USER" "" }}</username>
-  {{- end }}
-  {{- if ne (getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL" "") "" }}
+  {{- end -}}
+  {{- if ne (getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL" "") "" -}}
       <protocol>{{ getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL" }}</protocol>
-  {{- end }}
-  {{- if ne (getenv "INSTANA_REPOSITORY_PROXY_PASSWORD" "") "" }}
+  {{- end -}}
+  {{- if ne (getenv "INSTANA_REPOSITORY_PROXY_PASSWORD" "") "" -}}
       <password>{{ getenv "INSTANA_REPOSITORY_PROXY_PASSWORD" "" }}</password>
-  {{- end }}
+  {{- end -}}
     </proxy>
   </proxies>
-{{- end }}
+{{- end -}}
 
   <!-- If you want to use a company internal mirror, make sure that mirror is
        configured to use the Instana repository, uncomment the mirrors section
