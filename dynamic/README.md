@@ -1,4 +1,4 @@
-# Instana Agent Docker
+# Instana Agent Docker - Dynamic Image
 
 This build of the instana agent includes requires access to the publicly hosted Instana maven repository in order to download sensors. It requires proxy settings for egress access to the ${INSTANA_AGENT_ENDPOINT}, which may either be for your self hosted Instana installation or for the Instana SaaS, and for access to the Instana maven repository.
 
