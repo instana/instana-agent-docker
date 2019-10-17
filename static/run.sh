@@ -23,7 +23,7 @@ fi
 
 if [ -n "${INSTANA_AGENT_PROXY_USE_DNS}" ]; then
   case ${INSTANA_AGENT_PROXY_USE_DNS} in
-    y|Y|yes|Yes|YES|1|true) 
+    y|Y|yes|Yes|YES|1|true)
       INSTANA_AGENT_PROXY_USE_DNS=1
       ;;
     *)
@@ -55,7 +55,7 @@ if [ ! -z "${INSTANA_AGENT_MODE}" ]; then
   if [ "${INSTANA_AGENT_MODE}" = "AWS" ]; then
 
     INSTANA_AWS_REGION_CONFIG=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document --connect-timeout 2 | awk -F\" '/region/ {print $4}')
-    
+
     if [ $? != 0 ]; then
       log_error "Error querying AWS metadata."
       exit 1
@@ -84,6 +84,22 @@ fi
 
 if [ -d /host/proc ]; then
   export INSTANA_AGENT_PROC_PATH=/host/proc
+fi
+
+if [ -f /root/crashReport.sh ]; then
+  cp /root/crashReport.sh /opt/instana/agent/crashReport.sh
+
+  # Rewrite the Karaf script to make sure spaces in JAVA_OPTS are properly escaped (JAVA_OPTS is not within quotes)
+  sed -i "s|\ \${JAVA_OPTS}\ |\ \"\${JAVA_OPTS}\"\ |g" /opt/instana/agent/bin/karaf
+
+  FLAGS="-XX:OnError=\"/opt/instana/agent/crashReport.sh %p\" -XX:ErrorFile=/opt/instana/agent/hs_err.log -XX:OnOutOfMemoryError=\"/opt/instana/agent/crashReport.sh %p 'Out of Memory'\""
+  # Ensure to check if JAVA_OPTS are already configured, just including possibly existing JAVA_OPTS might introduce
+  # spaces when no options are set, which the Java command can't handle
+  if [ "x${JAVA_OPTS}" = "x" ]; then
+	export JAVA_OPTS="${FLAGS}"
+  else
+	export JAVA_OPTS="${JAVA_OPTS} ${FLAGS}"
+  fi
 fi
 
 echo "Starting Instana Agent ..."

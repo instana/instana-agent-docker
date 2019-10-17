@@ -1,15 +1,11 @@
 #!/bin/bash
 
 # TODO
-# Add (and modify) Docker container, use -XX:OnError , -XX:OnOutOfMemoryError and -XX:ErrorFile
 # remove 'logging' echo statements
-# configure logging in Docker container to be picked up
-# Build script include utils in each context
-# Any other script improvements?
 
 # Variables for script usage
-FILE_HS_ERR_LOG=hs_err.log
-DIR_AGENT_LOG=data/log
+FILE_HS_ERR_LOG=/opt/instana/agent/hs_err.log
+DIR_AGENT_LOG=/opt/instana/agent/data/log
 AGENT_LOG_COLLECT_LINES=1000
 
 # Variables for use in the JSON payload

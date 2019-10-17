@@ -77,7 +77,7 @@ node {
       }
     }
   }
-  
+
   cleanUp()
   slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${INSTANA_AGENT_RELEASE} \n(<${env.BUILD_URL}|Open>)"
 }
@@ -85,6 +85,7 @@ node {
 def buildImage(name, context) {
   try {
     sh """
+      cp -r ./util ./${context}/ \
       docker build ./${context} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache -t ${name}:${INSTANA_AGENT_RELEASE}
     """
   } catch(e) {
@@ -118,14 +119,14 @@ def publishImage(sourceName, targetName) {
     """
     cleanUp()
     throw e;
-  } 
+  }
 }
 
 def cleanUp() {
   println "Cleaning up docker images"
   sh '''
     images=$(docker images --format='{{.Repository}} {{.ID}}' | grep -E '.*instana.*agent.*' | cut -d ' ' -f 2 | uniq)
-    if [[ ! -z "${images}" ]]; then 
+    if [[ ! -z "${images}" ]]; then
       docker rmi --force ${images}
     fi
   '''
