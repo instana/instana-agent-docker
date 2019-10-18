@@ -98,7 +98,7 @@ if [ -f /root/crashReport.sh ]; then
   if [ "x${JAVA_OPTS}" = "x" ]; then
 	export JAVA_OPTS="${FLAGS}"
   else
-	export JAVA_OPTS="${JAVA_OPTS} ${FLAGS}"
+	export JAVA_OPTS="${FLAGS} ${JAVA_OPTS}"
   fi
 fi
 
