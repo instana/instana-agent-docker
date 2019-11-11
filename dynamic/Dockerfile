@@ -26,15 +26,25 @@ ENV LANG=C.UTF-8 \
     INSTANA_REPOSITORY_PROXY_PASSWORD="" \
     INSTANA_REPOSITORY_PROXY_USE_DNS=""
 
+# Setup of dependencies we need inside the container
 RUN apt-get update && \
     apt-get install -y gnupg2 ca-certificates curl && \
-    echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
     echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" > /etc/apt/sources.list.d/docker.list && \
-    apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
-    apt-get install -y instana-agent-dynamic inotify-tools gomplate docker-ce-cli containerd.io python-pip iptables && \
-    apt-get purge -y gnupg2 && \
+    apt-get install -y inotify-tools docker-ce-cli containerd python-pip iptables && \
+    apt-get clean
+
+# Setup to install the Instana package
+RUN echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
+    apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
+    apt-get update && \
+    apt-get install -y gomplate
+
+RUN apt-get install -y instana-agent-dynamic
+
+# Cleanup
+RUN apt-get purge -y gnupg2 && \
     apt-get autoremove -y && \
     rm -rf /etc/apt/sources.list.d/instana-agent.list && \
     rm -rf /var/lib/apt/lists/* && \
