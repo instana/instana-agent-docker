@@ -47,6 +47,7 @@ ADD com.instana.agent.main.sender.Backend.cfg.tmpl /root/
 ADD com.instana.agent.main.config.UpdateManager.cfg.tmpl /root/
 ADD com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /root/
 ADD mvn-settings.xml.tmpl /root/
+ADD util /root/
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent
