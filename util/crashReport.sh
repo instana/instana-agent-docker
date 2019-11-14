@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# TODO
-# remove 'logging' echo statements
-
 # Variables for script usage
 FILE_HS_ERR_LOG=/opt/instana/agent/hs_err.log
 DIR_AGENT_LOG=/opt/instana/agent/data/log
@@ -20,13 +17,15 @@ fi
 
 
 post_crash_data() {
-  echo
-  echo $(generate_crash_data)
-  echo
+  #echo
+  #echo $(generate_crash_data)
+  #echo
   # Silence all output so it doesn't show up in e.g. Docker or Kubernetes logs
   curl -XPOST "https://${INSTANA_AGENT_ENDPOINT}:${INSTANA_AGENT_ENDPOINT_PORT}/metrics" \
     --silent \
 	--http2-prior-knowledge \
+	--connect-timeout 5 \
+	--max-time 30 \
 	--header "x-instana-key: ${INSTANA_AGENT_KEY}" \
 	--header "x-instana-host: ${JSON_HOSTNAME}" \
 	--header "Content-Type: application/json" \
