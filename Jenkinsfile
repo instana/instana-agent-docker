@@ -86,7 +86,7 @@ def buildImage(name, context) {
   try {
     sh """
       cp -r ./util ./${context}/
-      docker build ./${context} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache -t ${name}:${INSTANA_AGENT_RELEASE}
+      docker build --pull ./${context} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache -t ${name}:${INSTANA_AGENT_RELEASE}
     """
   } catch(e) {
     slackSend channel: "#${SLACK_CHANNEL}",
