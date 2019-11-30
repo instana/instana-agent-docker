@@ -72,8 +72,8 @@ cp /root/org.ops4j.pax.url.mvn.cfg /opt/instana/agent/etc
 cp /root/configuration.yaml /opt/instana/agent/etc/instana
 cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.template /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 cat /root/mvn-settings.xml.tmpl | gomplate > /opt/instana/agent/etc/mvn-settings.xml
-cat /root/com.instana.agent.main.sender.Backend.cfg.tmpl | gomplate > \
-  /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend.cfg
+cat /root/com.instana.agent.main.sender.Backend-1.cfg.tmpl | gomplate > \
+  /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
 cat /root/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl | gomplate > \
   /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 cat /root/com.instana.agent.main.config.UpdateManager.cfg.tmpl | gomplate > \

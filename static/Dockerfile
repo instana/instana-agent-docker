@@ -31,7 +31,7 @@ RUN apt-get update && \
 
 ADD org.ops4j.pax.logging.cfg /root/
 ADD configuration.yaml /root/
-ADD com.instana.agent.main.sender.Backend.cfg.tmpl /root/
+ADD com.instana.agent.main.sender.Backend-1.cfg.tmpl /root/
 ADD com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /root/
 ADD util /root/
 ADD run.sh /opt/instana/agent/bin
