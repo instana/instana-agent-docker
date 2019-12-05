@@ -7,6 +7,7 @@ RUN apt-get update && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
     apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python-pip iptables && \
+    apt-get upgrade -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -33,7 +34,8 @@ ENV LANG=C.UTF-8 \
     INSTANA_AGENT_PROXY_PORT="" \
     INSTANA_AGENT_PROXY_PROTOCOL="" \
     INSTANA_AGENT_PROXY_USER="" \
-    INSTANA_AGENT_PROXY_USE_DNS=""
+    INSTANA_AGENT_PROXY_USE_DNS="" \
+    INSTANA_LOG_LEVEL=""
 
 RUN apt-get update && \
     apt-get install -y instana-agent-static && \
@@ -43,7 +45,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
-COPY org.ops4j.pax.logging.cfg \
+COPY org.ops4j.pax.logging.cfg.tmpl \
   configuration.yaml \
   com.instana.agent.main.sender.Backend-1.cfg.tmpl \
   com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
