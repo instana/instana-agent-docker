@@ -26,7 +26,7 @@
 
 # Configuration of the Instana logger. Changes will be hot-reloaded.
 log4j2.logger.instana.name = com.instana
-log4j2.logger.instana.level = INFO
+log4j2.logger.instana.level = {{ getenv "INSTANA_LOG_LEVEL" }}
 
 # Root logger - Only change on request by support.
 log4j2.rootLogger.level = ERROR

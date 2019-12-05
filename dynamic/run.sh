@@ -45,6 +45,32 @@ if [ -z "${INSTANA_DOWNLOAD_KEY}" ]; then
   INSTANA_DOWNLOAD_KEY="${INSTANA_AGENT_KEY}"
 fi
 
+if  [ -z "${INSTANA_MVN_REPOSITORY_URL}" ]; then
+  INSTANA_MVN_REPOSITORY_URL='https://artifact-public.instana.io'
+fi
+
+if  [ -z "${INSTANA_MVN_REPOSITORY_FEATURES_PATH}" ]; then
+  INSTANA_MVN_REPOSITORY_FEATURES_PATH='artifactory/features-public@id=features@snapshots@snapshotsUpdate=always'
+fi
+
+if  [ -z "${INSTANA_MVN_REPOSITORY_SENSORS_PATH}" ]; then
+  INSTANA_MVN_REPOSITORY_SENSORS_PATH='artifactory/shared@id=shared@snapshots@snapshotsUpdate=never'
+fi
+
+if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
+  INSTANA_LOG_LEVEL='INFO'
+fi
+if [ -n "${INSTANA_LOG_LEVEL}" ]; then
+  case ${INSTANA_LOG_LEVEL} in
+    INFO|DEBUG|TRACE|ERROR|OFF)
+      ;;
+    *)
+      echo "Log level is set to '${INSTANA_LOG_LEVEL}' which is unsupported, falling back to 'INFO'"
+      INSTANA_LOG_LEVEL=INFO
+      ;;
+  esac
+fi
+
 # Take over Agent Proxy variables if no Repository Proxy is enabled
 case ${INSTANA_REPOSITORY_PROXY_ENABLED} in
   y|Y|yes|Yes|YES|1|true)
@@ -66,12 +92,11 @@ rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
   /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg \
   /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 
-
-cp /root/org.ops4j.pax.logging.cfg /opt/instana/agent/etc
-cp /root/org.ops4j.pax.url.mvn.cfg /opt/instana/agent/etc
 cp /root/configuration.yaml /opt/instana/agent/etc/instana
 cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.template /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
+cat /root/org.ops4j.pax.logging.cfg.tmpl | gomplate > /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
 cat /root/mvn-settings.xml.tmpl | gomplate > /opt/instana/agent/etc/mvn-settings.xml
+cat /root/org.ops4j.pax.url.mvn.cfg.tmpl | gomplate > /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg
 cat /root/com.instana.agent.main.sender.Backend-1.cfg.tmpl | gomplate > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
 cat /root/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl | gomplate > \
