@@ -7,6 +7,7 @@ RUN apt-get update && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
     apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python-pip iptables && \
+    apt-get upgrade -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -44,7 +45,12 @@ ENV LANG=C.UTF-8 \
     INSTANA_REPOSITORY_PROXY_PROTOCOL="" \
     INSTANA_REPOSITORY_PROXY_USER="" \
     INSTANA_REPOSITORY_PROXY_PASSWORD="" \
-    INSTANA_REPOSITORY_PROXY_USE_DNS=""
+    INSTANA_REPOSITORY_PROXY_USE_DNS="" \
+    INSTANA_MVN_REPOSITORY_URL="" \
+    INSTANA_MVN_REPOSITORY_FEATURES_PATH="" \
+    INSTANA_MVN_REPOSITORY_SENSORS_PATH="" \
+    INSTANA_LOG_LEVEL=""
+
 
 RUN apt-get update && \
     apt-get install -y instana-agent-dynamic && \
@@ -54,8 +60,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
-COPY org.ops4j.pax.logging.cfg \
-  org.ops4j.pax.url.mvn.cfg \
+COPY org.ops4j.pax.logging.cfg.tmpl \
+  org.ops4j.pax.url.mvn.cfg.tmpl \
   configuration.yaml \
   com.instana.agent.main.sender.Backend-1.cfg.tmpl \
   com.instana.agent.main.config.UpdateManager.cfg.tmpl \

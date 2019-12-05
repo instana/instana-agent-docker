@@ -30,7 +30,11 @@ ENV LANG=C.UTF-8 \
     INSTANA_REPOSITORY_PROXY_PROTOCOL="" \
     INSTANA_REPOSITORY_PROXY_USER="" \
     INSTANA_REPOSITORY_PROXY_PASSWORD="" \
-    INSTANA_REPOSITORY_PROXY_USE_DNS=""
+    INSTANA_REPOSITORY_PROXY_USE_DNS="" \
+    INSTANA_MVN_REPOSITORY_URL="" \
+    INSTANA_MVN_REPOSITORY_FEATURES_PATH="" \
+    INSTANA_MVN_REPOSITORY_SENSORS_PATH="" \
+    INSTANA_LOG_LEVEL=""
 
 ADD docker.repo /etc/yum.repos.d/docker.repo
 
@@ -46,14 +50,14 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
 ADD licenses/* /licenses/
 ADD help.1 /help.1
 
-ADD org.ops4j.pax.logging.cfg /root/
-ADD org.ops4j.pax.url.mvn.cfg /root/
-ADD configuration.yaml /root/
-ADD com.instana.agent.main.sender.Backend-1.cfg.tmpl /root/
-ADD com.instana.agent.main.config.UpdateManager.cfg.tmpl /root/
-ADD com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /root/
-ADD mvn-settings.xml.tmpl /root/
-ADD util /root/
+COPY org.ops4j.pax.logging.cfg.tmpl \
+  org.ops4j.pax.url.mvn.cfg.tmpl \
+  configuration.yaml \
+  com.instana.agent.main.sender.Backend-1.cfg.tmpl \
+  com.instana.agent.main.config.UpdateManager.cfg.tmpl \
+  com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
+  mvn-settings.xml.tmpl \
+  /root/
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent

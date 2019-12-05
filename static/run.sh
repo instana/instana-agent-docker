@@ -15,6 +15,20 @@ if [ "${INSTANA_AGENT_ENDPOINT_PORT}" == "" ]; then
   exit 1
 fi
 
+if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
+  INSTANA_LOG_LEVEL='INFO'
+fi
+if [ -n "${INSTANA_LOG_LEVEL}" ]; then
+  case ${INSTANA_LOG_LEVEL} in
+    INFO|DEBUG|TRACE|ERROR|OFF)
+      ;;
+    *)
+      echo "Log level is set to '${INSTANA_LOG_LEVEL}' which is unsupported, falling back to 'INFO'"
+      INSTANA_LOG_LEVEL=INFO
+      ;;
+  esac
+fi
+
 [ -z "${INSTANA_TAGS}" ] && [ -n "${INSTANA_AGENT_TAGS}" ] && \
   INSTANA_TAGS="${INSTANA_AGENT_TAGS}" && export INSTANA_TAGS
 
@@ -41,7 +55,7 @@ cp /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg.template /opt/instana/agent/
 touch /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 
 cp /root/configuration.yaml /opt/instana/agent/etc/instana
-cp /root/org.ops4j.pax.logging.cfg /opt/instana/agent/etc
+cat /root/org.ops4j.pax.logging.cfg.tmpl | gomplate > /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
 cat /root/com.instana.agent.main.sender.Backend-1.cfg.tmpl | gomplate > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
 
