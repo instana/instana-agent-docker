@@ -86,20 +86,15 @@ if [ -d /host/proc ]; then
   export INSTANA_AGENT_PROC_PATH=/host/proc
 fi
 
-if [ -f /root/crashReport.sh ]; then
+if [ -f /root/crashReport.sh ] && [ -z "${INSTANA_DISABLE_CRASH_REPORT}" ]; then
   cp /root/crashReport.sh /opt/instana/agent/crashReport.sh
 
-  # Rewrite the Karaf script to make sure spaces in JAVA_OPTS are properly escaped (JAVA_OPTS is not within quotes)
-  sed -i "s|\ \${JAVA_OPTS}\ |\ \"\${JAVA_OPTS}\"\ |g" /opt/instana/agent/bin/karaf
-
+  # Rewrite the Karaf script to add FLAGS for hooking in the crashReport.sh script. Adding them simply to JAVA_OPTS
+  # does not work, as the parameters contain spaces which will turn them into separate arguments.
+  # Therefore instead modify the script directly so we can properly include the quotes and spaces are escaped correctly.
   FLAGS="-XX:OnError=\"/opt/instana/agent/crashReport.sh %p\" -XX:ErrorFile=/opt/instana/agent/hs_err.log -XX:OnOutOfMemoryError=\"/opt/instana/agent/crashReport.sh %p 'Out of Memory'\""
-  # Ensure to check if JAVA_OPTS are already configured, just including possibly existing JAVA_OPTS might introduce
-  # spaces when no options are set, which the Java command can't handle
-  if [ "x${JAVA_OPTS}" = "x" ]; then
-	export JAVA_OPTS="${FLAGS}"
-  else
-	export JAVA_OPTS="${FLAGS} ${JAVA_OPTS}"
-  fi
+  sed -i "s|\ \${JAVA_OPTS}\ |\ \${JAVA_OPTS}\ ${FLAGS} |g" /opt/instana/agent/bin/karaf
+
 fi
 
 echo "Starting Instana Agent ..."
