@@ -43,7 +43,7 @@ RUN apt-get update && \
 ADD org.ops4j.pax.logging.cfg /root/
 ADD org.ops4j.pax.url.mvn.cfg /root/
 ADD configuration.yaml /root/
-ADD com.instana.agent.main.sender.Backend.cfg.tmpl /root/
+ADD com.instana.agent.main.sender.Backend-1.cfg.tmpl /root/
 ADD com.instana.agent.main.config.UpdateManager.cfg.tmpl /root/
 ADD com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /root/
 ADD mvn-settings.xml.tmpl /root/
