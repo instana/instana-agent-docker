@@ -57,7 +57,7 @@ RUN apt-get update && \
 COPY org.ops4j.pax.logging.cfg \
   org.ops4j.pax.url.mvn.cfg \
   configuration.yaml \
-  com.instana.agent.main.sender.Backend.cfg.tmpl \
+  com.instana.agent.main.sender.Backend-1.cfg.tmpl \
   com.instana.agent.main.config.UpdateManager.cfg.tmpl \
   com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
   mvn-settings.xml.tmpl \
