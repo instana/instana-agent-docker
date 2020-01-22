@@ -1,5 +1,63 @@
 #!groovy
 
+node {
+  
+  def DOCKER_REGISTRY_INTERNAL = "containers.instana.io"
+
+  def STATIC_IMAGE_NAME = "instana/agent/static"
+  def DYNAMIC_IMAGE_NAME = "instana/agent/dynamic"
+  def RHEL_IMAGE_NAME = "instana/agent/rhel"
+
+  def SLACK_CHANNEL = "tech-agent-delivery"
+
+  def releaseVersion = getNextPatchVersion(env.INSTANA_SAAS_RELEASE, env.MASTER_BUILD_NUMBER)
+  currentBuild.displayName = "#${BUILD_NUMBER}:${releaseVersion}"
+
+  stage ('Checkout Git Repo') {
+    deleteDir()
+    checkout scm
+  }
+
+  stage ('Build Dynamic Agent Docker Image') {
+    println "Building dynamic agent docker image"
+    buildImage(DYNAMIC_IMAGE_NAME, "dynamic", releaseVersion, null)
+  }
+
+  stage ('Build Static Agent Docker Image') {
+    println "Building static agent docker image"
+    buildImage(STATIC_IMAGE_NAME, "static", releaseVersion, "${DYNAMIC_IMAGE_NAME}:${releaseVersion}")
+  }
+  
+  stage ('Build RHEL Agent Docker Image') {
+    //TODO fix redhat build
+    //if (env.RHEL.toBoolean()) {
+    //  println "Building rhel agent docker image"
+    //  buildImage(RHEL_IMAGE_NAME, "rhel", releaseVersion, null)
+    //}
+  }
+
+  stage('Push to prerelease') {
+    // Push docker images to prerelease
+    println "Pushing images to prerelease"
+
+    println "Push dynamic agent docker image to prerelease"
+    publishImage(DYNAMIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/dynamic", releaseVersion)
+    
+    println "Push static agent docker image to prerelease"
+    publishImage(STATIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/static", releaseVersion)
+    
+    //TODO fix redhat build
+    //if (env.RHEL.toBoolean()) {
+    //  println "Push rhel agent docker image to prerelease"
+    //  publishImage(RHEL_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/rhel", releaseVersion)
+    //}
+  }
+
+  cleanUp()
+  
+  slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${releaseVersion} \n(<${env.BUILD_URL}|Open>)"
+}
+
 def getNextPatchVersion(def saasVersion, def masterBuildNumber) {
   def versionBaseDir = '/mnt/efs/data/instana-version'
   def patchMarkerFile = "${versionBaseDir}/agent-docker/${saasVersion}.number"
@@ -28,71 +86,6 @@ def getNextPatchVersion(def saasVersion, def masterBuildNumber) {
     """)
     return "1.${saasVersion}.0"
   }
-}
-
-node {
-  
-  def DOCKER_REGISTRY_INTERNAL = "containers.instana.io"
-
-  def STATIC_IMAGE_NAME = "instana/agent/static"
-  def DYNAMIC_IMAGE_NAME = "instana/agent/dynamic"
-  def RHEL_IMAGE_NAME = "instana/agent/rhel"
-
-  def SLACK_CHANNEL = "tech-agent-delivery"
-
-  def releaseVersion = getNextPatchVersion(env.INSTANA_SAAS_RELEASE, env.MASTER_BUILD_NUMBER)
-  currentBuild.displayName = "#${BUILD_NUMBER}:${releaseVersion}"
-
-  stage ('Checkout Git Repo') {
-    deleteDir()
-    checkout scm
-  }
-
-  stage ('Build Static Agent Docker Image') {
-    if (env.STATIC.toBoolean()) {
-      println "Building static agent docker image"
-      buildImage(STATIC_IMAGE_NAME, "static", releaseVersion, "${DYNAMIC_IMAGE_NAME}:${releaseVersion}")
-    }
-  }
-
-  stage ('Build Dynamic Agent Docker Image') {
-    if (env.DYNAMIC.toBoolean()) {
-      println "Building dynamic agent docker image"
-      buildImage(DYNAMIC_IMAGE_NAME, "dynamic", releaseVersion, null)
-    }
-  }
-
-  stage ('Build RHEL Agent Docker Image') {
-    if (env.RHEL.toBoolean()) {
-      println "Building rhel agent docker image"
-      buildImage(RHEL_IMAGE_NAME, "rhel", releaseVersion, null)
-    }
-  }
-
-  stage('Push Images to Docker Registry') {
-    // Push docker images to prerelease
-    println "Pushing images to prerelease"
-    if (env.STATIC.toBoolean()) {
-      println "Push static agent docker image to prerelease"
-      publishImage(STATIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/static", releaseVersion)
-    }
-
-    if (env.DYNAMIC.toBoolean()) {
-      println "Push dynamic agent docker image to prerelease"
-      publishImage(DYNAMIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/dynamic", releaseVersion)
-    }
-
-    if (env.RHEL.toBoolean()) {
-      println "Push rhel agent docker image to prerelease"
-      publishImage(RHEL_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/rhel", releaseVersion)
-    }
-  }
-
-  if (!env.DYNAMIC.toBoolean()) {
-      cleanUp()
-  }
-  
-  slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${releaseVersion} \n(<${env.BUILD_URL}|Open>)"
 }
 
 def buildImage(name, context, releaseVersion, cacheFromImage) {
