@@ -10,7 +10,7 @@ node {
 
   def SLACK_CHANNEL = "tech-agent-delivery"
 
-  def releaseVersion = getNextPatchVersion(env.INSTANA_SAAS_RELEASE, env.MASTER_BUILD_NUMBER)
+  def releaseVersion = getNextPatchVersion(env.INSTANA_SAAS_RELEASE, BUILD_NUMBER)
   currentBuild.displayName = "#${BUILD_NUMBER}:${releaseVersion}"
 
   stage ('Checkout Git Repo') {
@@ -37,20 +37,24 @@ node {
   }
 
   stage('Push to prerelease') {
-    // Push docker images to prerelease
-    println "Pushing images to prerelease"
+    if (env.DRY_RUN.toBoolean()) {
+      println "Skipping publish to prerelease!"
+    } else {
+      // Push docker images to prerelease
+      println "Pushing images to prerelease"
 
-    println "Push dynamic agent docker image to prerelease"
-    publishImage(DYNAMIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/dynamic", releaseVersion)
-    
-    println "Push static agent docker image to prerelease"
-    publishImage(STATIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/static", releaseVersion)
-    
-    //TODO fix redhat build
-    //if (env.RHEL.toBoolean()) {
-    //  println "Push rhel agent docker image to prerelease"
-    //  publishImage(RHEL_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/rhel", releaseVersion)
-    //}
+      println "Push dynamic agent docker image to prerelease"
+      publishImage(DYNAMIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/dynamic", releaseVersion)
+      
+      println "Push static agent docker image to prerelease"
+      publishImage(STATIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/static", releaseVersion)
+      
+      //TODO fix redhat build
+      //if (env.RHEL.toBoolean()) {
+      //  println "Push rhel agent docker image to prerelease"
+      //  publishImage(RHEL_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/rhel", releaseVersion)
+      //}
+    }
   }
 
   cleanUp()
@@ -58,7 +62,7 @@ node {
   slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${releaseVersion} \n(<${env.BUILD_URL}|Open>)"
 }
 
-def getNextPatchVersion(def saasVersion, def masterBuildNumber) {
+def getNextPatchVersion(def saasVersion, def buildNumber) {
   def versionBaseDir = '/mnt/efs/data/instana-version'
   def patchMarkerFile = "${versionBaseDir}/agent-docker/${saasVersion}.number"
 
@@ -66,12 +70,12 @@ def getNextPatchVersion(def saasVersion, def masterBuildNumber) {
     def patchVersionNumberProp = readProperties file: patchMarkerFile
     
     def patchVersionNumber
-    if (patchVersionNumberProp.masterBuildNumber != masterBuildNumber) {
+    if (patchVersionNumberProp.buildNumber != buildNumber) {
       def currentPatchNumber = patchVersionNumberProp.value as Integer
       def nextPatchVersionNumber = currentPatchNumber + 1
       new File(patchMarkerFile).write(
         """value=${nextPatchVersionNumber}
-        masterBuildNumber=${masterBuildNumber}
+        buildNumber=${buildNumber}
         """) 
       patchVersionNumber = nextPatchVersionNumber 
     } else {
@@ -82,7 +86,7 @@ def getNextPatchVersion(def saasVersion, def masterBuildNumber) {
   } else {
     new File(patchMarkerFile).write(
       """value=0
-    masterBuildNumber=${masterBuildNumber}
+    buildNumber=${buildNumber}
     """)
     return "1.${saasVersion}.0"
   }
