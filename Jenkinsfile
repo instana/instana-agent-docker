@@ -1,5 +1,7 @@
 #!groovy
 
+def SLACK_CHANNEL = "tech-agent-delivery"
+
 node {
   
   def DOCKER_REGISTRY_INTERNAL = "containers.instana.io"
@@ -7,8 +9,6 @@ node {
   def STATIC_IMAGE_NAME = "instana/agent/static"
   def DYNAMIC_IMAGE_NAME = "instana/agent/dynamic"
   def RHEL_IMAGE_NAME = "instana/agent/rhel"
-
-  def SLACK_CHANNEL = "tech-agent-delivery"
 
   def releaseVersion = getNextPatchVersion(env.INSTANA_SAAS_RELEASE, BUILD_NUMBER)
   currentBuild.displayName = "#${BUILD_NUMBER}:${releaseVersion}"
