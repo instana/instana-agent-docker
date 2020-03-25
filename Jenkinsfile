@@ -3,7 +3,7 @@
 def SLACK_CHANNEL = "tech-agent-delivery"
 
 node {
-  
+
   def DOCKER_REGISTRY_INTERNAL = "containers.instana.io"
 
   def STATIC_IMAGE_NAME = "instana/agent/static"
@@ -27,13 +27,10 @@ node {
     println "Building static agent docker image"
     buildImage(STATIC_IMAGE_NAME, "static", releaseVersion, "${DYNAMIC_IMAGE_NAME}:${releaseVersion}")
   }
-  
+
   stage ('Build RHEL Agent Docker Image') {
-    //TODO fix redhat build
-    //if (env.RHEL.toBoolean()) {
-    //  println "Building rhel agent docker image"
-    //  buildImage(RHEL_IMAGE_NAME, "rhel", releaseVersion, null)
-    //}
+    println "Building rhel agent docker image"
+    buildImage(RHEL_IMAGE_NAME, "rhel", releaseVersion, null)
   }
 
   stage('Push to prerelease') {
@@ -45,20 +42,17 @@ node {
 
       println "Push dynamic agent docker image to prerelease"
       publishImage(DYNAMIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/dynamic", releaseVersion)
-      
+
       println "Push static agent docker image to prerelease"
       publishImage(STATIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/static", releaseVersion)
-      
-      //TODO fix redhat build
-      //if (env.RHEL.toBoolean()) {
-      //  println "Push rhel agent docker image to prerelease"
-      //  publishImage(RHEL_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/rhel", releaseVersion)
-      //}
+
+      println "Push rhel agent docker image to prerelease"
+      publishImage(RHEL_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/rhel", releaseVersion)
     }
   }
 
   cleanUp()
-  
+
   slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${releaseVersion} \n(<${env.BUILD_URL}|Open>)"
 }
 
@@ -68,7 +62,7 @@ def getNextPatchVersion(def saasVersion, def buildNumber) {
 
   if(fileExists("${patchMarkerFile}")) {
     def patchVersionNumberProp = readProperties file: patchMarkerFile
-    
+
     def patchVersionNumber
     if (patchVersionNumberProp.buildNumber != buildNumber) {
       def currentPatchNumber = patchVersionNumberProp.value as Integer
@@ -76,8 +70,8 @@ def getNextPatchVersion(def saasVersion, def buildNumber) {
       new File(patchMarkerFile).write(
         """value=${nextPatchVersionNumber}
         buildNumber=${buildNumber}
-        """) 
-      patchVersionNumber = nextPatchVersionNumber 
+        """)
+      patchVersionNumber = nextPatchVersionNumber
     } else {
       patchVersionNumber = patchVersionNumberProp.value as Integer
     }
@@ -97,7 +91,7 @@ def buildImage(name, context, releaseVersion, cacheFromImage) {
   try {
     sh """
       cp -r ./util ./${context}/
-      docker build --pull ./${context} ${cacheFlag} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} -t ${name}:${releaseVersion}
+      docker build --pull ./${context} ${cacheFlag} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --label "version=${releaseVersion}" -t ${name}:${releaseVersion}
     """
   } catch(e) {
     slackSend channel: "#${SLACK_CHANNEL}",
