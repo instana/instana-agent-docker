@@ -2,7 +2,6 @@ FROM registry.access.redhat.com/rhel7-atomic:latest
 
 LABEL name="instana-agent" \
       vendor="Instana Inc." \
-      version="1.0.2" \
       release="1" \
       summary="Instana APM agent" \
       description="Instana APM agent"
@@ -33,18 +32,20 @@ ENV LANG=C.UTF-8 \
     INSTANA_REPOSITORY_PROXY_PASSWORD="" \
     INSTANA_REPOSITORY_PROXY_USE_DNS=""
 
+ADD docker.repo /etc/yum.repos.d/docker.repo
+
 RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
-    echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${FTP_PROXY}@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1gpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf install instana-agent-dynamic iptables-services && \
-    rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/Docker.repo && \
+    echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${FTP_PROXY}@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
+    microdnf install instana-agent-dynamic docker-ce-cli && \
+    curl -L https://github.com/hairyhenderson/gomplate/releases/download/v3.6.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
+    chmod 755 /usr/bin/gomplate && \
+    rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
     microdnf clean all
 
 ADD licenses/* /licenses/
 ADD help.1 /help.1
 
-ADD gomplate /usr/bin/gomplate
-ADD docker /usr/bin/docker
 ADD org.ops4j.pax.logging.cfg /root/
 ADD org.ops4j.pax.url.mvn.cfg /root/
 ADD configuration.yaml /root/
