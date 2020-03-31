@@ -92,4 +92,4 @@ org.ops4j.pax.url.mvn.defaultRepositories=file:${karaf.home}/${karaf.default.rep
 #    @noreleases : the repository does not contain any released artifacts
 #    @id=repository.id : the id for the repository, just like in the settings.xml this is optional but recommended
 #
-org.ops4j.pax.url.mvn.repositories={{ getenv "INSTANA_MVN_REPOSITORY_URL" }}/{{ getenv "INSTANA_MVN_REPOSITORY_FEATURES_PATH" }},{{ getenv "INSTANA_MVN_REPOSITORY_URL" }}/{{ getenv "INSTANA_MVN_REPOSITORY_SENSORS_PATH" }}
+org.ops4j.pax.url.mvn.repositories={{ getenv "INSTANA_MVN_REPOSITORY_URL" }}/{{ getenv "INSTANA_MVN_REPOSITORY_FEATURES_PATH" }},{{ getenv "INSTANA_MVN_REPOSITORY_URL" }}/{{ getenv "INSTANA_MVN_REPOSITORY_SHARED_PATH" }}

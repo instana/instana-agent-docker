@@ -53,8 +53,8 @@ if  [ -z "${INSTANA_MVN_REPOSITORY_FEATURES_PATH}" ]; then
   INSTANA_MVN_REPOSITORY_FEATURES_PATH='artifactory/features-public@id=features@snapshots@snapshotsUpdate=always'
 fi
 
-if  [ -z "${INSTANA_MVN_REPOSITORY_SENSORS_PATH}" ]; then
-  INSTANA_MVN_REPOSITORY_SENSORS_PATH='artifactory/shared@id=shared@snapshots@snapshotsUpdate=never'
+if  [ -z "${INSTANA_MVN_REPOSITORY_SHARED_PATH}" ]; then
+  INSTANA_MVN_REPOSITORY_SHARED_PATH='artifactory/shared@id=shared@snapshots@snapshotsUpdate=never'
 fi
 
 if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
