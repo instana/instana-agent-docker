@@ -53,7 +53,9 @@ node {
 
   cleanUp()
 
-  slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${releaseVersion} \n(<${env.BUILD_URL}|Open>)"
+  if (!env.DRY_RUN.toBoolean()) {
+    slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${releaseVersion} \n(<${env.BUILD_URL}|Open>)"
+  }
 }
 
 def getNextPatchVersion(def saasVersion, def buildNumber) {
