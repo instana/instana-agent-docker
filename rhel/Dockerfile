@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/rhel7-atomic:latest
+FROM registry.access.redhat.com/ubi7/ubi-minimal:latest
 
 LABEL name="instana-agent" \
       vendor="Instana Inc." \
@@ -41,7 +41,7 @@ ADD docker.repo /etc/yum.repos.d/docker.repo
 RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${FTP_PROXY}@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf install instana-agent-dynamic docker-ce-cli && \
+    microdnf install instana-agent-dynamic docker-ce-cli iptables && \
     curl -L https://github.com/hairyhenderson/gomplate/releases/download/v3.6.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
     chmod 755 /usr/bin/gomplate && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
