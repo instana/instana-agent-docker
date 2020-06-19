@@ -154,5 +154,16 @@ if [ -f /root/crashReport.sh ] && [ -z "${INSTANA_DISABLE_CRASH_REPORT}" ]; then
 
 fi
 
+if [ ! -z "${INSTANA_GIT_REMOTE_REPOSITORY}" ]; then
+  echo "Initializing GitOps integration with remote repository '${INSTANA_GIT_REMOTE_REPOSITORY}' and remote branch '${INSTANA_GIT_REMOTE_BRANCH}'"
+
+  (
+    cd /opt/instana/agent/etc && git init && \
+    git remote add -m ${INSTANA_GIT_REMOTE_BRANCH} -t ${INSTANA_GIT_REMOTE_BRANCH} configuration ${INSTANA_GIT_REMOTE_REPOSITORY} && \
+    git fetch configuration ${INSTANA_GIT_REMOTE_BRANCH} && \
+    git checkout -f -b ${INSTANA_GIT_REMOTE_BRANCH} --track configuration/${INSTANA_GIT_REMOTE_BRANCH}
+  )
+fi
+
 echo "Starting Instana Agent ..."
 exec /opt/instana/agent/bin/karaf daemon

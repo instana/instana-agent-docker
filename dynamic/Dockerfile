@@ -39,6 +39,8 @@ ENV LANG=C.UTF-8 \
     INSTANA_AGENT_PROXY_PROTOCOL="" \
     INSTANA_AGENT_PROXY_USER="" \
     INSTANA_AGENT_PROXY_USE_DNS="" \
+    INSTANA_GIT_REMOTE_REPOSITORY=""\
+    INSTANA_GIT_REMOTE_BRANCH=""\
     INSTANA_REPOSITORY_PROXY_ENABLED="false" \
     INSTANA_REPOSITORY_PROXY_HOST="" \
     INSTANA_REPOSITORY_PROXY_PORT="" \
@@ -51,9 +53,9 @@ ENV LANG=C.UTF-8 \
     INSTANA_MVN_REPOSITORY_SHARED_PATH="" \
     INSTANA_LOG_LEVEL=""
 
-
 RUN apt-get update && \
     apt-get install -y instana-agent-dynamic && \
+    apt-get install -y git && \
     apt-get purge -y gnupg2 && \
     apt-get autoremove -y && \
     rm -rf /etc/apt/sources.list.d/instana-agent.list && \
@@ -68,6 +70,7 @@ COPY org.ops4j.pax.logging.cfg.tmpl \
   com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
   mvn-settings.xml.tmpl \
   /root/
+
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent
