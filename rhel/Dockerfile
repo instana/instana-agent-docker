@@ -45,19 +45,22 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     curl -L https://github.com/hairyhenderson/gomplate/releases/download/v3.6.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
     chmod 755 /usr/bin/gomplate && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
-    microdnf clean all
+    microdnf clean all && \
+    curl https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /usr/bin/jq && \
+    chmod u+x /usr/bin/jq
 
 ADD licenses/* /licenses/
 ADD help.1 /help.1
 
 COPY org.ops4j.pax.logging.cfg.tmpl \
-  org.ops4j.pax.url.mvn.cfg.tmpl \
-  configuration.yaml \
-  com.instana.agent.main.sender.Backend-1.cfg.tmpl \
-  com.instana.agent.main.config.UpdateManager.cfg.tmpl \
-  com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
-  mvn-settings.xml.tmpl \
-  /root/
+    org.ops4j.pax.url.mvn.cfg.tmpl \
+    configuration.yaml \
+    com.instana.agent.main.sender.Backend-1.cfg.tmpl \
+    com.instana.agent.main.config.UpdateManager.cfg.tmpl \
+    com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
+    mvn-settings.xml.tmpl \
+    /root/
+
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent

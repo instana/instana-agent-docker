@@ -6,6 +6,7 @@ RUN apt-get update && \
     echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" > /etc/apt/sources.list.d/docker.list && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
+    apt-get install -y --no-install-recommends jq && \
     apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python-pip iptables && \
     apt-get upgrade -y && \
     apt-get clean && \
@@ -51,7 +52,6 @@ ENV LANG=C.UTF-8 \
     INSTANA_MVN_REPOSITORY_SHARED_PATH="" \
     INSTANA_LOG_LEVEL=""
 
-
 RUN apt-get update && \
     apt-get install -y instana-agent-dynamic && \
     apt-get purge -y gnupg2 && \
@@ -61,13 +61,14 @@ RUN apt-get update && \
     apt-get clean
 
 COPY org.ops4j.pax.logging.cfg.tmpl \
-  org.ops4j.pax.url.mvn.cfg.tmpl \
-  configuration.yaml \
-  com.instana.agent.main.sender.Backend-1.cfg.tmpl \
-  com.instana.agent.main.config.UpdateManager.cfg.tmpl \
-  com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
-  mvn-settings.xml.tmpl \
-  /root/
+    org.ops4j.pax.url.mvn.cfg.tmpl \
+    configuration.yaml \
+    com.instana.agent.main.sender.Backend-1.cfg.tmpl \
+    com.instana.agent.main.config.UpdateManager.cfg.tmpl \
+    com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
+    mvn-settings.xml.tmpl \
+    /root/
+
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent

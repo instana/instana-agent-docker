@@ -94,50 +94,131 @@ rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
 
 cp /root/configuration.yaml /opt/instana/agent/etc/instana
 cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.template /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
-cat /root/org.ops4j.pax.logging.cfg.tmpl | gomplate > /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
-cat /root/mvn-settings.xml.tmpl | gomplate > /opt/instana/agent/etc/mvn-settings.xml
-cat /root/org.ops4j.pax.url.mvn.cfg.tmpl | gomplate > /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg
-cat /root/com.instana.agent.main.sender.Backend-1.cfg.tmpl | gomplate > \
+gomplate < /root/org.ops4j.pax.logging.cfg.tmpl > /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
+gomplate < /root/org.ops4j.pax.url.mvn.cfg.tmpl > /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg
+gomplate < /root/mvn-settings.xml.tmpl > /opt/instana/agent/etc/mvn-settings.xml
+gomplate < /root/com.instana.agent.main.sender.Backend-1.cfg.tmpl > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
-cat /root/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl | gomplate > \
+gomplate < /root/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl > \
   /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
-cat /root/com.instana.agent.main.config.UpdateManager.cfg.tmpl | gomplate > \
+gomplate < /root/com.instana.agent.main.config.UpdateManager.cfg.tmpl > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg
 
-if [ ! -z "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
+if [ -n "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
   echo -e "\nhttp.listen = ${INSTANA_AGENT_HTTP_LISTEN}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 fi
 
-if [ ! -z "${INSTANA_AGENT_MODE}" ]; then
-  if [ "${INSTANA_AGENT_MODE}" = "AWS" ]; then
+if [ "${INSTANA_AGENT_MODE}" = 'AWS' ]; then
+  echo 'AWS mode configured'
 
-    INSTANA_AWS_REGION_CONFIG=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document --connect-timeout 2 | awk -F\" '/region/ {print $4}')
+  ###
+  # Discover which platform we are running on
+  ###
+  if [ -n "${ECS_CONTAINER_METADATA_URI}" ]; then
+    PLATFORM='ECS'
+    echo 'Running on ECS'
+  elif curl -s http://169.254.169.254/latest/meta-data/ --connect-timeout 2 --fail 2>&1 /dev/null; then
+    PLATFORM='EC2'
+    echo 'Running on EC2'
+  else
+    PLATFORM='UNKNOWN'
+    echo 'Cannot recognize the platform; it is neither ECS nor EC2'
+  fi
 
-    if [ $? != 0 ]; then
-      log_error "Error querying AWS metadata."
+  ###
+  # Retrieve region
+  ###
+  if [ -n "${INSTANA_AWS_REGION_CONFIG}" ]; then
+    echo "AWS region configured via environment: ${INSTANA_AWS_REGION_CONFIG}"
+  else
+    case "${PLATFORM}" in
+
+    'ECS')
+      if ! curl -s "${ECS_CONTAINER_METADATA_URI}/task" --connect-timeout 2 --fail -o /tmp/ecs_data; then
+        echo "Cannot retrieve metadata from the '${ECS_CONTAINER_METADATA_URI}/task' endpoint. Aborting startup."
+        exit 1
+      fi
+
+      if AWS_AVAILABILITY_ZONE=$(jq -e -r '.AvailabilityZone' < /tmp/ecs_data); then
+        # The -e flag of jq will make it fail on purpose, if the data do not contain the 'AvailabilityZone' key
+        readonly ARN_REGEXP='^([a-z]+-[a-z]+-[0-9])*'
+        if [[ "${AWS_AVAILABILITY_ZONE}" =~ ${ARN_REGEXP} ]]; then
+          echo "AWS region parsed from the availability zone"
+          INSTANA_AWS_REGION_CONFIG="${BASH_REMATCH[1]}"
+        else
+          echo "Cannot parse the AWS region from the availability zone '${AWS_AVAILABILITY_ZONE}' retrieved from the '${ECS_CONTAINER_METADATA_URI}/task' endpoint. Aborting startup."
+          cat /tmp/ecs_data
+          exit 1
+        fi
+      elif INSTANA_AWS_REGION_CONFIG=$(jq -e -r '.Cluster' | awk -F ':' '{ print $5 }' < /tmp/ecs_data); then
+        # The -e flag of jq will make it fail on purpose, if the data do not contain the 'Cluster' key
+        echo "Metadata endpoint did not return the availability zone; parsing the region from the ARN."
+      else
+        echo "Cannot parse the AWS region from the data retrieved from the '${ECS_CONTAINER_METADATA_URI}/task' endpoint. Aborting startup."
+        cat /tmp/ecs_data
+        exit 1
+      fi
+      ;;
+
+    'EC2')
+      readonly EC2_METADATA_ENDPOINT='http://169.254.169.254/latest/dynamic/instance-identity/document'
+
+      if ! curl -s "${EC2_METADATA_ENDPOINT}" --connect-timeout 2 --fail -o /tmp/ec2_data; then
+        echo "Cannot retrieve metadata from the '${EC2_METADATA_ENDPOINT}' endpoint. Aborting startup."
+        exit 1
+      fi
+
+      if ! INSTANA_AWS_REGION_CONFIG=$(jq -e -r '.region' < /tmp/ec2_data); then
+        echo "The metadata endpoint did not return the 'region' key. Aborting startup."
+        cat /tmp/ecs_data
+        exit 1
+      fi
+      ;;
+
+    *)
+      if [ -n "${AWS_DEFAULT_REGION}" ]; then
+        echo "Using the default AWS region '${AWS_DEFAULT_REGION}' set in the environment via the 'AWS_DEFAULT_REGION' environment variable."
+        INSTANA_AWS_REGION_CONFIG="${AWS_DEFAULT_REGION}"
+      else
+        echo "Platform not recognized: this agent does not seem to run on EC2 or ECS. Set the 'INSTANA_AWS_REGION_CONFIG' environment variable. Aborting startup."
+        exit 1
+      fi
+      ;;
+    esac
+
+    if [ -z "${INSTANA_AWS_REGION_CONFIG}" ]; then
+      echo "Could not retrieve the AWS region from the AWS metadata. Aborting startup."
       exit 1
     fi
 
+    echo "Discovered AWS region: ${INSTANA_AWS_REGION_CONFIG}"
     export INSTANA_AWS_REGION_CONFIG
+  fi
 
-    ROLES_FOUND=false
-
-    if ! curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/ --connect-timeout 2 | grep 404&> /dev/null; then
-      ROLES_FOUND=true
+  if [ "${PLATFORM}" = 'UNKNOWN' ]; then
+    if [ -z "${AWS_ACCESS_KEY_ID}" ] || [ -z "${AWS_SECRET_ACCESS_KEY}" ]; then
+      echo "The platform is not recognized (this agent does not seem to run on EC2 or ECS) and neither 'AWS_ACCESS_KEY_ID' nor 'AWS_SECRET_ACCESS_KEY' environment variables are exported. AWS Services monitoring might just not work. If so, please configure either the 'AWS_ACCESS_KEY_ID' or the 'AWS_SECRET_ACCESS_KEY' environment variables."
     fi
-
-    if [ "$ROLES_FOUND" = "false" ]; then
-      if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
-        echo "AWS_ACCESS_KEY_ID and/or AWS_SECRET_ACCESS_KEY not exported, and no IAM instance role detected to allow AWS API access."
-        exit 1
-      fi
-    fi
-
-    echo -e "\nmode = INFRASTRUCTURE" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
-  else
-    echo -e "\nmode = ${INSTANA_AGENT_MODE}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
   fi
 fi
+
+# Normalize the Agent mode to those that are actually used by the agent itself, i.e., OFF, APM and INFRASTRUCTURE
+case "${INSTANA_AGENT_MODE}" in
+  'AWS')
+    INSTANA_AGENT_MODE='INFRASTRUCTURE'
+    ;; # The AWS agent mode is infra + AWS sensor setup
+  'INFRASTRUCTURE')
+    ;;
+  'APM')
+    ;;
+  'OFF')
+    ;;
+  *)
+    echo "Unknown agent mode ${INSTANA_AGENT_MODE}"
+    exit 1;
+esac
+
+echo -e "\nmode = ${INSTANA_AGENT_MODE}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 
 if [ -d /host/proc ]; then
   export INSTANA_AGENT_PROC_PATH=/host/proc
@@ -151,7 +232,6 @@ if [ -f /root/crashReport.sh ] && [ -z "${INSTANA_DISABLE_CRASH_REPORT}" ]; then
   # Therefore instead modify the script directly so we can properly include the quotes and spaces are escaped correctly.
   FLAGS="-XX:OnError=\"/opt/instana/agent/crashReport.sh %p\" -XX:ErrorFile=/opt/instana/agent/hs_err.log -XX:OnOutOfMemoryError=\"/opt/instana/agent/crashReport.sh %p 'Out of Memory'\""
   sed -i "s|\ \${JAVA_OPTS}\ |\ \${JAVA_OPTS}\ ${FLAGS} |g" /opt/instana/agent/bin/karaf
-
 fi
 
 echo "Starting Instana Agent ..."
