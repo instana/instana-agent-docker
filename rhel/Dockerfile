@@ -43,21 +43,28 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${FTP_PROXY}@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf install instana-agent-dynamic docker-ce-cli iptables && \
     curl -L https://github.com/hairyhenderson/gomplate/releases/download/v3.6.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
+    echo "0867b2d6b23c70143a4ea37705d4308d051317dd0532d7f3063acec21f6cbbc8 /usr/bin/gomplate" | sha256sum -c - > /dev/null && \
     chmod 755 /usr/bin/gomplate && \
+    curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /usr/bin/jq && \
+    echo "af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44 /usr/bin/jq" | sha256sum -c - > /dev/null && \
+    chmod 755 /usr/bin/jq && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
-    microdnf clean all
+    microdnf clean all && \
+    curl https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /usr/bin/jq && \
+    chmod u+x /usr/bin/jq
 
 ADD licenses/* /licenses/
 ADD help.1 /help.1
 
 COPY org.ops4j.pax.logging.cfg.tmpl \
-  org.ops4j.pax.url.mvn.cfg.tmpl \
-  configuration.yaml \
-  com.instana.agent.main.sender.Backend-1.cfg.tmpl \
-  com.instana.agent.main.config.UpdateManager.cfg.tmpl \
-  com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
-  mvn-settings.xml.tmpl \
-  /root/
+    org.ops4j.pax.url.mvn.cfg.tmpl \
+    configuration.yaml \
+    com.instana.agent.main.sender.Backend-1.cfg.tmpl \
+    com.instana.agent.main.config.UpdateManager.cfg.tmpl \
+    com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
+    mvn-settings.xml.tmpl \
+    /root/
+
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent

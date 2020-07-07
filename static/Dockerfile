@@ -6,7 +6,7 @@ RUN apt-get update && \
     echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" > /etc/apt/sources.list.d/docker.list && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
-    apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python-pip iptables && \
+    apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python-pip iptables jq && \
     apt-get upgrade -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -46,10 +46,11 @@ RUN apt-get update && \
     apt-get clean
 
 COPY org.ops4j.pax.logging.cfg.tmpl \
-  configuration.yaml \
-  com.instana.agent.main.sender.Backend-1.cfg.tmpl \
-  com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
-  /root/
+    configuration.yaml \
+    com.instana.agent.main.sender.Backend-1.cfg.tmpl \
+    com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
+    /root/
+
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent
