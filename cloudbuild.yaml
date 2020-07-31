@@ -1,38 +1,22 @@
-steps:
-  # Step 1 - get the secret encryption key
-  - name: "gcr.io/cloud-builders/gcloud"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - "gcloud secrets versions access latest --secret=instana-qa-instana-agent-docker-prs > /workspace/$_FLAVOR/encryption_key.txt"
-
-  # Step 2 - build the docker image
-  - name: "gcr.io/cloud-builders/docker"
-    dir: "/workspace/$_FLAVOR"
-    args:
-      - build
-      - -t
-      - gcr.io/instana-qa/github.com/instana/instana-agent-docker:$_FLAVOR-$COMMIT_SHA
-      - --build-arg
-      - "FTP_PROXY=$_FTP_PROXY"
-      - "."
-      - "--no-cache"
-    env:
-      - "BRANCH_NAME=$BRANCH_NAME"
-      - "_FTP_PROXY=$(cat /workspace/$_FLAVOR/encryption_key.txt)"
-      - "_FLAVOR=$_FLAVOR"
-      - "COMMIT_SHA=$COMMIT_SHA"
-
-  # Step 3 - run the docker image
-  - name: "gcr.io/cloud-builders/docker"
-    dir: "/workspace/$_FLAVOR"
-    args:
-      - push
-      - gcr.io/instana-qa/github.com/instana/instana-agent-docker:$_FLAVOR-$COMMIT_SHA
-    env:
-      - "BRANCH_NAME=$BRANCH_NAME"
-      - "_FLAVOR=$_FLAVOR"
-      - "COMMIT_SHA=$COMMIT_SHA"
-timeout: 3000s
+timeout: '3000s'
 images:
-  - gcr.io/instana-qa/github.com/instana/instana-agent-docker
+  - 'gcr.io/$PROJECT_ID/instana-agent-docker:$_FLAVOR-$COMMIT_SHA'
+
+substitutions:
+  _FLAVOR: 'dynamic'
+
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'gcloud secrets versions access latest --secret=instana-qa-instana-agent-docker-prs > agent_key.txt'
+  - name: 'docker'
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        docker build -t gcr.io/$PROJECT_ID/instana-agent-docker:$_FLAVOR-$COMMIT_SHA \
+          --no-cache \
+          --build-arg FTP_PROXY="$$( cat agent_key.txt )" \
+          $_FLAVOR/
