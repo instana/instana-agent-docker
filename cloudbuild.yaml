@@ -14,11 +14,12 @@ steps:
       - -t
       - gcr.io/instana-qa/github.com/instana/instana-agent-docker:$_FLAVOR-$COMMIT_SHA
       - --build-arg
-      - "FTP_PROXY=$(cat /workspace/$_FLAVOR/encryption_key.txt)"
+      - "FTP_PROXY=$_FTP_PROXY"
       - "."
       - "--no-cache"
     env:
       - "BRANCH_NAME=$BRANCH_NAME"
+      - "_FTP_PROXY=$(cat /workspace/$_FLAVOR/encryption_key.txt)"
       - "_FLAVOR=$_FLAVOR"
       - "COMMIT_SHA=$COMMIT_SHA"
 
