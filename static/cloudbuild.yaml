@@ -1,0 +1,32 @@
+steps:
+  # Step 1 - get the secret encryption key
+  - name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - "gcloud secrets versions access latest --secret=instana-qa-instana-agent-docker-prs > encryption_key.txt"
+
+  # Step 2 - build the docker image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - -t
+      - gcr.io/instana-qa/github.com/instana/instana-agent-docker:static-$COMMIT_SHA
+      - --build-arg
+      - "FTP_PROXY=<(cat encryption_key.txt)"
+      - "."
+    env:
+      - "BRANCH_NAME=$BRANCH_NAME"
+      - "COMMIT_SHA=$COMMIT_SHA"
+
+  # Step 3 - run the docker image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - gcr.io/instana-qa/github.com/instana/instana-agent-docker:static-$COMMIT_SHA
+    env:
+      - "BRANCH_NAME=$BRANCH_NAME"
+      - "COMMIT_SHA=$COMMIT_SHA"
+timeout: 3000s
+images:
+  - gcr.io/instana-qa/github.com/instana/instana-agent-docker
