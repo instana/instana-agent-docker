@@ -4,7 +4,7 @@ steps:
     entrypoint: "bash"
     args:
       - "-c"
-      - "gcloud secrets versions access latest --secret=instana-qa-instana-agent-docker-prs > encryption_key.txt"
+      - "gcloud secrets versions access latest --secret=instana-qa-instana-agent-docker-prs > /workspace/$_FLAVOR/encryption_key.txt"
 
   # Step 2 - build the docker image
   - name: "gcr.io/cloud-builders/docker"
@@ -14,7 +14,7 @@ steps:
       - -t
       - gcr.io/instana-qa/github.com/instana/instana-agent-docker:$_FLAVOR-$COMMIT_SHA
       - --build-arg
-      - "FTP_PROXY=<(cat encryption_key.txt)"
+      - "FTP_PROXY=$(cat encryption_key.txt)"
       - "."
     env:
       - "BRANCH_NAME=$BRANCH_NAME"
