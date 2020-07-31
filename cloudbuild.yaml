@@ -8,6 +8,7 @@ steps:
 
   # Step 2 - build the docker image
   - name: "gcr.io/cloud-builders/docker"
+    dir: "/workspace/$_FLAVOR"
     args:
       - build
       - -t
@@ -22,6 +23,7 @@ steps:
 
   # Step 3 - run the docker image
   - name: "gcr.io/cloud-builders/docker"
+    dir: "/workspace/$_FLAVOR"
     args:
       - push
       - gcr.io/instana-qa/github.com/instana/instana-agent-docker:$_FLAVOR-$COMMIT_SHA
