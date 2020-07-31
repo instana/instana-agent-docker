@@ -11,21 +11,23 @@ steps:
     args:
       - build
       - -t
-      - gcr.io/instana-qa/github.com/instana/instana-agent-docker:static-$COMMIT_SHA
+      - gcr.io/instana-qa/github.com/instana/instana-agent-docker:$_FLAVOR-$COMMIT_SHA
       - --build-arg
       - "FTP_PROXY=<(cat encryption_key.txt)"
       - "."
     env:
       - "BRANCH_NAME=$BRANCH_NAME"
+      - "_FLAVOR=$_FLAVOR"
       - "COMMIT_SHA=$COMMIT_SHA"
 
   # Step 3 - run the docker image
   - name: "gcr.io/cloud-builders/docker"
     args:
       - push
-      - gcr.io/instana-qa/github.com/instana/instana-agent-docker:static-$COMMIT_SHA
+      - gcr.io/instana-qa/github.com/instana/instana-agent-docker:$_FLAVOR-$COMMIT_SHA
     env:
       - "BRANCH_NAME=$BRANCH_NAME"
+      - "_FLAVOR=$_FLAVOR"
       - "COMMIT_SHA=$COMMIT_SHA"
 timeout: 3000s
 images:
