@@ -35,6 +35,15 @@ fi
 [ -z "${INSTANA_ZONE}" ] && [ -n "${INSTANA_AGENT_ZONE}" ] && \
   INSTANA_ZONE="${INSTANA_AGENT_ZONE}" && export INSTANA_ZONE
 
+
+if [ "${INSTANA_GIT_REMOTE_REPOSITORY}" == "" ]; then
+  unset INSTANA_GIT_REMOTE_REPOSITORY
+fi
+
+if [ "${INSTANA_GIT_REMOTE_BRANCH}" == "" ]; then
+  unset INSTANA_GIT_REMOTE_BRANCH
+fi
+
 if [ -n "${INSTANA_AGENT_PROXY_USE_DNS}" ]; then
   case ${INSTANA_AGENT_PROXY_USE_DNS} in
     y|Y|yes|Yes|YES|1|true)
