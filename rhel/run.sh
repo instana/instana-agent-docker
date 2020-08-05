@@ -57,6 +57,14 @@ if  [ -z "${INSTANA_MVN_REPOSITORY_SHARED_PATH}" ]; then
   INSTANA_MVN_REPOSITORY_SHARED_PATH='artifactory/shared@id=shared@snapshots@snapshotsUpdate=never'
 fi
 
+if [ "${INSTANA_GIT_REMOTE_REPOSITORY}" == "" ]; then
+  unset INSTANA_GIT_REMOTE_REPOSITORY
+fi
+
+if [ "${INSTANA_GIT_REMOTE_BRANCH}" == "" ]; then
+  unset INSTANA_GIT_REMOTE_BRANCH
+fi
+
 if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
   INSTANA_LOG_LEVEL='INFO'
 fi
