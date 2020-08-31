@@ -51,6 +51,9 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /usr/bin/jq && \
     echo "af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44 /usr/bin/jq" | sha256sum -c - > /dev/null && \
     chmod 755 /usr/bin/jq && \
+    curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 -o /usr/bin/runc && \
+    echo "256bd490a55a1939a4c9cd15c043404b79a86429ee04129c00d33dab8c0cf040 /usr/bin/runc" | sha256sum -c - > /dev/null && \
+    chmod 755 /usr/bin/runc && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
     microdnf clean all && \
     curl https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /usr/bin/jq && \
