@@ -200,4 +200,4 @@ if [ -f /root/crashReport.sh ] && [ -z "${INSTANA_DISABLE_CRASH_REPORT}" ]; then
 fi
 
 echo "Starting Instana Agent ..."
-exec /opt/instana/agent/bin/karaf daemon
+exec /opt/instana/agent/bin/karaf server
