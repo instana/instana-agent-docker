@@ -44,7 +44,7 @@ ADD docker.repo /etc/yum.repos.d/docker.repo
 RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${FTP_PROXY}@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf install instana-agent-dynamic docker-ce-cli iptables && \
+    microdnf install instana-agent-dynamic docker-ce-cli iptables python python-setuptools && \
     curl -L https://github.com/hairyhenderson/gomplate/releases/download/v3.6.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
     echo "0867b2d6b23c70143a4ea37705d4308d051317dd0532d7f3063acec21f6cbbc8 /usr/bin/gomplate" | sha256sum -c - > /dev/null && \
     chmod 755 /usr/bin/gomplate && \
@@ -57,7 +57,10 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
     microdnf clean all && \
     curl https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /usr/bin/jq && \
-    chmod u+x /usr/bin/jq
+    chmod u+x /usr/bin/jq && \
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py && \
+    rm -rf get-pip.py
 
 ADD licenses/* /licenses/
 ADD help.1 /help.1
