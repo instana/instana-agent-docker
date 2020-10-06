@@ -27,35 +27,35 @@
     </server>
     -->
   </servers>
-  
+
   <!-- If you want to access the Instana repository using an HTTP/Socks proxy,
        uncomment the proxies section and insert proxy details. -->
   <!-- https://maven.apache.org/guides/mini/guide-proxies.html -->
 
-{{if (getenv "INSTANA_REPOSITORY_PROXY_HOST") not eq "" }}
+{{if ne (getenv "INSTANA_REPOSITORY_PROXY_HOST") "" }}
   <proxies>
     <proxy>
       <active>true</active>
       <host>{{ getenv "INSTANA_REPOSITORY_PROXY_HOST" }}</host>
-  {{ if (getenv "INSTANA_REPOSITORY_PROXY_PORT") not eq "" }}
+  {{ if ne (getenv "INSTANA_REPOSITORY_PROXY_PORT") "" }}
       <port>{{ getenv "INSTANA_REPOSITORY_PROXY_PORT" }}</port>
   {{end}}
-  {{ if (getenv "INSTANA_REPOSITORY_PROXY_USER") not eq "" }}
+  {{ if ne (getenv "INSTANA_REPOSITORY_PROXY_USER") "" }}
       <username>{{ getenv "INSTANA_REPOSITORY_PROXY_USER" }}</username>
   {{end}}
-  {{ if (getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL") not eq "" }}
+  {{ if ne (getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL") "" }}
       <protocol>{{ getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL" }}</protocol>
   {{end}}
-  {{ if (getenv "INSTANA_REPOSITORY_PROXY_PASSWORD") not eq "" }}
+  {{ if ne (getenv "INSTANA_REPOSITORY_PROXY_PASSWORD") "" }}
       <password>{{ getenv "INSTANA_REPOSITORY_PROXY_PASSWORD" }}</password>
   {{end}}
     </proxy>
   </proxies>
 {{end}}
-  
+
   <!-- If you want to use a company internal mirror, make sure that mirror is
        configured to use the Instana repository, uncomment the mirrors section
-       and insert maven mirror details. 
+       and insert maven mirror details.
        If the mirror also requires auth it can be added above. -->
   <!-- https://maven.apache.org/guides/mini/guide-mirror-settings.html -->
   <!-- Repos that need to be mirrored -->
@@ -72,8 +72,8 @@
       <id>shared-mirror</id>
       <url>http://repo.mycompany.com/artifactory/instana-shared</url>
       <mirrorOf>shared</mirrorOf>
-    </mirror> 
+    </mirror>
   </mirrors>
   -->
-  
+
 </settings>

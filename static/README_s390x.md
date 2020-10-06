@@ -26,7 +26,7 @@ The script uses [Dockerfile.s390x_gomplate](Dockerfile.s390x_gomplate)
 to create an image `gomplate:latest`, runs it as `gomplate`, copies
 the `gomplate` binary from the container to this project directory,
 and cleans up container and image again. The gomplate binary is built
-in a Ubuntu 18.04 container. Adapt the Dockerfile if you need something
+in a Ubuntu container. Adapt the Dockerfile if you need something
 else.
 
 ### Building the Instana Agent Docker Image
@@ -41,7 +41,7 @@ docker build ./ --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} \
   -f Dockerfile.s390x -t instana_agent:latest --no-cache
 ```
 
-It creates a Ubuntu 18.04 image named `instana_agent:latest`.
+It creates a Ubuntu image named `instana_agent:latest`.
 
 Feel free to adapt the Dockerfile to your needs like e.g.
 integrating the IBM Java SDK or adding your credentials.
@@ -58,7 +58,7 @@ An example for getting the IBM Java SDK is downloading the file
 https://developer.ibm.com/javasdk/downloads/sdk8/, making it
 executable, and executing it.
 
-The Instana agent inside the Docker container expects the JDK at 
+The Instana agent inside the Docker container expects the JDK at
 `/opt/instana/agent/jvm`. This is independent of the `JAVA_HOME`
 environment variable.
 
