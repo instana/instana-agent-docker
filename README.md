@@ -12,6 +12,6 @@ supports.
 
 ## Building
 
-The agent docker images are built on [ops-jenkins](https://ops-jenkins.instana.io) - and require access from the SRE team and VPN to access.
+The agent docker images are built on agent-jenkins and updates are posted to the private #tech-agent-delivery channel in Slack.  Ask SRE for access to that channel if needed.
 
 The QA team automatically builds PRs in [GCP Cloudbuild](https://console.cloud.google.com/cloud-build/builds?folder=&organizationId=&project=instana-qa) and the (eventually) built images land on [GCP GCR](https://gcr.io/instana-qa/github.com/instana/instana-agent-docker) for testing. Merges to master then get built on ops-jenkins again.
