@@ -172,6 +172,8 @@ case "${INSTANA_AGENT_MODE}" in
   'AWS')
     INSTANA_AGENT_MODE='INFRASTRUCTURE'
     ;; # The AWS agent mode is infra + AWS sensor setup
+  'KUBERNETES')
+    ;;
   'INFRASTRUCTURE')
     ;;
   'APM')
