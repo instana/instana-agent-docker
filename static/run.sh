@@ -44,6 +44,13 @@ if [ "${INSTANA_GIT_REMOTE_BRANCH}" == "" ]; then
   unset INSTANA_GIT_REMOTE_BRANCH
 fi
 
+if [ "${INSTANA_GIT_REMOTE_USERNAME}" == "" ]; then
+  unset INSTANA_GIT_REMOTE_USERNAME
+fi
+
+# Empty string is a valid value for INSTANA_GIT_REMOTE_PASSWORD
+# so don't unset it like the other environment variables
+
 if [ -n "${INSTANA_AGENT_PROXY_USE_DNS}" ]; then
   case ${INSTANA_AGENT_PROXY_USE_DNS} in
     y|Y|yes|Yes|YES|1|true)
