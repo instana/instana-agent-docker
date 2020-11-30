@@ -65,6 +65,13 @@ if [ "${INSTANA_GIT_REMOTE_BRANCH}" == "" ]; then
   unset INSTANA_GIT_REMOTE_BRANCH
 fi
 
+if [ "${INSTANA_GIT_REMOTE_USERNAME}" == "" ]; then
+  unset INSTANA_GIT_REMOTE_USERNAME
+fi
+
+# Empty string is a valid value for INSTANA_GIT_REMOTE_PASSWORD
+# so don't unset it like the other environment variables
+
 if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
   INSTANA_LOG_LEVEL='INFO'
 fi
