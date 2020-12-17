@@ -6,7 +6,7 @@ RUN apt-get update && \
     echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable" > /etc/apt/sources.list.d/docker.list && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
-    apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python3-pip iptables jq && \
+    apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python3-pip iptables iproute2 jq && \
     apt-get upgrade -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

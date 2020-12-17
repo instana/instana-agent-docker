@@ -46,7 +46,7 @@ ADD docker.repo /etc/yum.repos.d/docker.repo
 RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${FTP_PROXY}@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf install instana-agent-dynamic docker-ce-cli iptables python3 && \
+    microdnf install instana-agent-dynamic docker-ce-cli iptables iproute util-linux python3 && \
     curl -L https://github.com/hairyhenderson/gomplate/releases/download/v3.8.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
     echo "847f7d9fc0dc74c33188c2b0d0e9e4ed9204f67c36da5aacbab324f8bfbf29c9 /usr/bin/gomplate" | sha256sum -c - > /dev/null && \
     chmod 755 /usr/bin/gomplate && \
