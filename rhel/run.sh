@@ -239,15 +239,5 @@ if [ -d /host/proc ]; then
   export INSTANA_AGENT_PROC_PATH=/host/proc
 fi
 
-if [ -f /root/crashReport.sh ] && [ -z "${INSTANA_DISABLE_CRASH_REPORT}" ]; then
-  cp /root/crashReport.sh /opt/instana/agent/crashReport.sh
-
-  # Rewrite the Karaf script to add FLAGS for hooking in the crashReport.sh script. Adding them simply to JAVA_OPTS
-  # does not work, as the parameters contain spaces which will turn them into separate arguments.
-  # Therefore instead modify the script directly so we can properly include the quotes and spaces are escaped correctly.
-  FLAGS="-XX:OnError=\"/opt/instana/agent/crashReport.sh %p\" -XX:ErrorFile=/opt/instana/agent/hs_err.log -XX:OnOutOfMemoryError=\"/opt/instana/agent/crashReport.sh %p 'Out of Memory'\""
-  sed -i "s|\ \${JAVA_OPTS}\ |\ \${JAVA_OPTS}\ ${FLAGS} |g" /opt/instana/agent/bin/karaf
-fi
-
 echo "Starting Instana Agent ..."
 exec /opt/instana/agent/bin/karaf server

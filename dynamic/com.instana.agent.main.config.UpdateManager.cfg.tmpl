@@ -1,7 +1,7 @@
 # Instana Update Manager configuration.
 # AUTO for automatic updates with given schedule. OFF for no automatic updates.
 mode = AUTO
-{{- if (getenv "INSTANA_AGENT_UPDATES_VERSION") not eq "" }}
+{{- if ne (getenv "INSTANA_AGENT_UPDATES_VERSION") "" }}
 {{- else }}
 # DAY for daily, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
 every = {{ getenv "INSTANA_AGENT_UPDATES_FREQUENCY" "DAY" }}
