@@ -1,7 +1,7 @@
 # Configures connection to the Instana SaaS. Changes will be hot-reloaded.
 
 # Host and Port usually do not need to be changed, but can be modified to
-# tunnel connections. 
+# tunnel connections.
 host={{ getenv "INSTANA_AGENT_ENDPOINT" }}
 port={{ getenv "INSTANA_AGENT_ENDPOINT_PORT" }}
 protocol=HTTP/2
@@ -13,21 +13,21 @@ protocol=HTTP/2
 # fingerprints=29:17:5A:F4:2E:35:DF:87:D6:1F:4D:C8:A8:01:D2:43:18:47:BF:6E
 
 # The HTTP/2 connection to Instana SaaS can be proxied.
-{{if (getenv "INSTANA_AGENT_PROXY_HOST") not eq "" }}
+{{if ne (getenv "INSTANA_AGENT_PROXY_HOST") "" }}
 proxy.host={{ getenv "INSTANA_AGENT_PROXY_HOST" }}
-{{if (getenv "INSTANA_AGENT_PROXY_PORT") not eq "" }}
+{{if ne (getenv "INSTANA_AGENT_PROXY_PORT") "" }}
 proxy.port={{ getenv "INSTANA_AGENT_PROXY_PORT" }}
 {{end}}
-{{if (getenv "INSTANA_AGENT_PROXY_PROTOCOL") not eq "" }}
+{{if ne (getenv "INSTANA_AGENT_PROXY_PROTOCOL") "" }}
 proxy.type={{ getenv "INSTANA_AGENT_PROXY_PROTOCOL" }}
 {{end}}
-{{if (getenv "INSTANA_AGENT_PROXY_USE_DNS") not eq "" }}
+{{if ne (getenv "INSTANA_AGENT_PROXY_USE_DNS") "" }}
 proxy.dns=true
 {{end}}
-{{if (getenv "INSTANA_AGENT_PROXY_USER") not eq "" }}
+{{if ne (getenv "INSTANA_AGENT_PROXY_USER") "" }}
 proxy.user={{ getenv "INSTANA_AGENT_PROXY_USER" }}
 {{end}}
-{{if (getenv "INSTANA_AGENT_PROXY_PASSWORD") not eq "" }}
+{{if ne (getenv "INSTANA_AGENT_PROXY_PASSWORD") "" }}
 proxy.password={{ getenv "INSTANA_AGENT_PROXY_PASSWORD" }}
 {{end}}
 {{end}}

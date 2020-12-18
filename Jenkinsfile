@@ -92,7 +92,6 @@ def buildImage(name, context, releaseVersion, cacheFromImage) {
   def cacheFlag = cacheFromImage != null ? "--cache-from ${cacheFromImage}" : "--no-cache"
   try {
     sh """
-      cp -r ./util ./${context}/
       docker build --pull ./${context} ${cacheFlag} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --label "version=${releaseVersion}" -t ${name}:${releaseVersion}
     """
   } catch(e) {
