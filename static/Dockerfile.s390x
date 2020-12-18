@@ -1,4 +1,7 @@
-FROM s390x/ubuntu:20.04
+FROM s390x/ubuntu:21.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TZ=Etc/UTC
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
@@ -28,7 +31,7 @@ RUN apt-get update && \
     apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
     apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
     apt-get update && \
-    apt-get install -y instana-agent-static inotify-tools docker-ce containerd python-pip && \
+    apt-get install -y instana-agent-static inotify-tools docker-ce containerd python-pip iproute2 && \
     apt-get purge -y gnupg2 && \
     apt-get autoremove -y && \
     rm -rf /etc/apt/sources.list.d/instana-agent.list && \

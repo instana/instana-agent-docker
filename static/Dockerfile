@@ -1,4 +1,7 @@
-FROM ubuntu:20.04
+FROM ubuntu:21.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TZ=Etc/UTC
 
 # Setup of dependencies we need inside the container
 RUN apt-get update && \
