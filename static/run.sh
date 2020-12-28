@@ -1,18 +1,44 @@
 #!/bin/bash
 
-if [ "${INSTANA_AGENT_KEY}" == "" ]; then
+if [[ "${INSTANA_KEY}" == "" ]] && [[ "${INSTANA_AGENT_KEY}" == "" ]]; then
   echo "Please add the INSTANA_AGENT_KEY environment variable and provide your Agent Key!"
   exit 1
 fi
 
-if [ "${INSTANA_AGENT_ENDPOINT}" == "" ]; then
+if [[ "${INSTANA_HOST}" == "" ]] && [[ "${INSTANA_AGENT_ENDPOINT}" == "" ]]; then
   echo "Please add the INSTANA_AGENT_ENDPOINT environment variable to let the agent know where to connect to!"
   exit 1
 fi
 
-if [ "${INSTANA_AGENT_ENDPOINT_PORT}" == "" ]; then
+if [[ "${INSTANA_PORT}" == "" ]] && [[ "${INSTANA_AGENT_ENDPOINT_PORT}" == "" ]]; then
   echo "Please add the INSTANA_AGENT_ENDPOINT_PORT environment variable to let the agent know where to connect to!"
   exit 1
+fi
+
+[ -z "${INSTANA_AGENT_KEY}" ] && [ -n "${INSTANA_KEY}" ] && \
+  INSTANA_AGENT_KEY="${INSTANA_KEY}"
+
+[ -z "${INSTANA_AGENT_ENDPOINT}" ] && [ -n "${INSTANA_HOST}" ] && \
+  INSTANA_AGENT_ENDPOINT="${INSTANA_HOST}"
+
+[ -z "${INSTANA_AGENT_ENDPOINT_PORT}" ] && [ -n "${INSTANA_PORT}" ] && \
+  INSTANA_AGENT_ENDPOINT_PORT="$INSTANA_PORT"
+
+[ -z "${INSTANA_TAGS}" ] && [ -n "${INSTANA_AGENT_TAGS}" ] && \
+  INSTANA_TAGS="${INSTANA_AGENT_TAGS}" && export INSTANA_TAGS
+
+[ -z "${INSTANA_ZONE}" ] && [ -n "${INSTANA_AGENT_ZONE}" ] && \
+  INSTANA_ZONE="${INSTANA_AGENT_ZONE}" && export INSTANA_ZONE
+
+if [ -n "${INSTANA_AGENT_PROXY_USE_DNS}" ]; then
+  case ${INSTANA_AGENT_PROXY_USE_DNS} in
+    y|Y|yes|Yes|YES|1|true)
+      INSTANA_AGENT_PROXY_USE_DNS=1
+      ;;
+    *)
+      INSTANA_AGENT_PROXY_USE_DNS=0
+      ;;
+  esac
 fi
 
 if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
@@ -29,13 +55,6 @@ if [ -n "${INSTANA_LOG_LEVEL}" ]; then
   esac
 fi
 
-[ -z "${INSTANA_TAGS}" ] && [ -n "${INSTANA_AGENT_TAGS}" ] && \
-  INSTANA_TAGS="${INSTANA_AGENT_TAGS}" && export INSTANA_TAGS
-
-[ -z "${INSTANA_ZONE}" ] && [ -n "${INSTANA_AGENT_ZONE}" ] && \
-  INSTANA_ZONE="${INSTANA_AGENT_ZONE}" && export INSTANA_ZONE
-
-
 if [ "${INSTANA_GIT_REMOTE_REPOSITORY}" == "" ]; then
   unset INSTANA_GIT_REMOTE_REPOSITORY
 fi
@@ -50,17 +69,6 @@ fi
 
 # Empty string is a valid value for INSTANA_GIT_REMOTE_PASSWORD
 # so don't unset it like the other environment variables
-
-if [ -n "${INSTANA_AGENT_PROXY_USE_DNS}" ]; then
-  case ${INSTANA_AGENT_PROXY_USE_DNS} in
-    y|Y|yes|Yes|YES|1|true)
-      INSTANA_AGENT_PROXY_USE_DNS=1
-      ;;
-    *)
-      INSTANA_AGENT_PROXY_USE_DNS=0
-      ;;
-  esac
-fi
 
 readonly CANONICAL_DOCKER_SOCKET_PATH='/var/run/docker.sock'
 # Adjust Docker socket for VMware TKGI

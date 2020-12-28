@@ -1,29 +1,36 @@
-FROM ubuntu:20.04
+# syntax = docker/dockerfile:1.2
 
-ARG DEBIAN_FRONTEND=noninteractive
-ARG TZ=Etc/UTC
+FROM registry.access.redhat.com/ubi8/ubi:latest
 
-# Setup of dependencies we need inside the container
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gnupg2 ca-certificates curl && \
-    echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable" > /etc/apt/sources.list.d/docker.list && \
-    apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python3-pip iptables iproute2 jq && \
-    apt-get upgrade -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+LABEL name="instana-agent" \
+      vendor="Instana Inc." \
+      release="1" \
+      summary="Instana APM agent" \
+      description="Instana APM agent"
 
-# Setup to install the Instana package
-RUN echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
-    apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends gomplate && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+ADD docker.repo /etc/yum.repos.d/docker.repo
+
+RUN --mount=type=secret,id=download_key,dst=/run/secrets/download_key,required=true \
+    curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
+    rpm --import /tmp/Instana.gpg && \
+    echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:$(cat /run/secrets/download_key)@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
+    yum install -y --disableplugin=subscription-manager instana-agent-static docker-ce-cli iptables iproute util-linux python3 jq && \
+    rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
+    yum clean all -y --disableplugin=subscription-manager
+
+RUN curl --silent --fail --show-error -L https://github.com/hairyhenderson/gomplate/releases/download/v3.8.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
+    echo "847f7d9fc0dc74c33188c2b0d0e9e4ed9204f67c36da5aacbab324f8bfbf29c9 /usr/bin/gomplate" | sha256sum -c - > /dev/null && \
+    chmod 755 /usr/bin/gomplate
+
+RUN curl --silent --fail --show-error -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 -o /usr/bin/runc && \
+    echo "256bd490a55a1939a4c9cd15c043404b79a86429ee04129c00d33dab8c0cf040 /usr/bin/runc" | sha256sum -c - > /dev/null && \
+    chmod 755 /usr/bin/runc
+
+ADD help.1 /help.1
 
 # Configuration up to this line needs to be in sync with dynamic/Dockerfile
 # Dynamic & static agent start to diverge here:
+
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
     INSTANA_AGENT_ENDPOINT="" \
@@ -44,15 +51,6 @@ ENV LANG=C.UTF-8 \
     INSTANA_GIT_REMOTE_PASSWORD="" \
     INSTANA_GIT_LOG_COUNT="10" \
     INSTANA_LOG_LEVEL=""
-
-RUN apt-get update && \
-    apt-get install -y instana-agent-static && \
-    apt-get purge -y gnupg2 && \
-    apt-get autoremove -y && \
-    rm -rf /etc/apt/sources.list.d/instana-agent.list && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean && \
-    sed -i -e 's/^root:[^:]*:/root:!locked:/' /etc/shadow
 
 COPY org.ops4j.pax.logging.cfg.tmpl \
     configuration.yaml \
