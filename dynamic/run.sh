@@ -101,6 +101,18 @@ case ${INSTANA_REPOSITORY_PROXY_ENABLED} in
 	;;
 esac
 
+readonly CANONICAL_DOCKER_SOCKET_PATH='/var/run/docker.sock'
+if [ ! -S "${CANONICAL_DOCKER_SOCKET_PATH}" ]; then
+  echo "Docker socket not found at ${CANONICAL_DOCKER_SOCKET_PATH}"
+
+  readonly KUBO_DOCKER_SOCKET_PATH='/var/vcap/sys/run/docker/docker.sock'
+  if [ -S "${KUBO_DOCKER_SOCKET_PATH}" ]; then
+    # Adjust Docker socket for VMware TKGI and older PKS systems
+    echo "Docker socket found at ${KUBO_DOCKER_SOCKET_PATH}, linking it under ${CANONICAL_DOCKER_SOCKET_PATH}"
+    ln -sf "${KUBO_DOCKER_SOCKET_PATH}" "${CANONICAL_DOCKER_SOCKET_PATH}"
+  fi
+fi
+
 rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
   /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg  \
   /opt/instana/agent/etc/instana/configuration.yaml \
