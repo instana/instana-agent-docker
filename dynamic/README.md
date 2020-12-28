@@ -1,19 +1,18 @@
-Instana Agent Docker
-====================
+Instana Agent Dynamic Docker
+============================
 
-This build of the instana agent includes requires access to the publicly hosted Instana maven repository in order to download sensors. It requires proxy settings for egress access to the ${INSTANA_AGENT_ENDPOINT}, which may either be for your self hosted Instana installation or for the Instana SaaS, and for access to the Instana maven repository.
+This build of the Instana agent requires access to the publicly hosted Instana maven repository in order to download sensors. It requires proxy settings for egress access to the `${INSTANA_AGENT_ENDPOINT}`, which may either be for your self hosted Instana installation or for the Instana SaaS, and for access to the Instana maven repository.
 
 Building
 ========
 
-docker build ./ --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache
-
-*Note*
-
-FTP_PROXY is being abused to pass in the agent key for the package download during docker build, we are doing this until docker build time secrets issue is resolved: [issue GH33343](https://github.com/moby/moby/issues/33343)
+```sh
+echo <DOWNLOAD_KEY> > download_key
+DOCKER_BUILDKIT=1 docker build --secret id=download_key,src=download_key --no-cache . -t instana-agent
+rm download_key
+```
 
 Docker Hub
 ==========
 
-The image can be found on docker hub [https://hub.docker.com/r/instana/agent/](https://hub.docker.com/r/instana/agent)
-
+The image can be found on docker hub [https://hub.docker.com/r/instana/agent/](https://hub.docker.com/r/instana/agent).

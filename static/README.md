@@ -6,20 +6,20 @@ This build of the Instana agent includes all sensors. It requires proxy settings
 Building
 ========
 
-Use the following command for a Ubuntu-based image:
-```
-docker build ./ --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache
-```
+Needs Docker 18.09 or higher:
 
-**Note:**
-
-`FTP_PROXY` is being abused to pass in the agent key for the package download during docker build, we are doing this until docker build time secrets issue is resolved: [issue GH33343](https://github.com/moby/moby/issues/33343)
+```sh
+echo <DOWNLOAD_KEY> > download_key
+DOCKER_BUILDKIT=1 docker build --secret id=download_key,src=download_key --no-cache . -t containers.instana.io/instana/release/agent/static
+rm download_key
+```
 
 Download Prebuilt Image
 =======================
 
 The static image can be found on containers.instana.io and can be downloaded using the following commands:
-```
+
+```sh
 docker login containers.instana.io -u _ -p <agent_key>
 
 docker pull containers.instana.io/instana/release/agent/static:latest
