@@ -14,7 +14,8 @@ RUN --mount=type=secret,id=download_key,dst=/run/secrets/download_key,required=t
     curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:$(cat /run/secrets/download_key)@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    yum install -y --disableplugin=subscription-manager instana-agent-dynamic docker-ce-cli iptables iproute util-linux python3 jq && \
+    yum install -y --disableplugin=subscription-manager docker-ce-cli iptables iproute util-linux python3 jq instana-agent-dynamic && \
+    ln -s /opt/instana/agent/licenses /licenses && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
     yum clean all -y --disableplugin=subscription-manager
 
