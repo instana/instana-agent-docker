@@ -65,7 +65,8 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     rm -rf /etc/apt/sources.list.d/instana-agent.list && \
     rm -rf /var/lib/apt/lists/* && \
-    apt-get clean
+    apt-get clean && \
+    sed -i -e 's/^root:[^:]*:/root:!locked:/' /etc/shadow
 
 COPY org.ops4j.pax.logging.cfg.tmpl \
     org.ops4j.pax.url.mvn.cfg.tmpl \
