@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.2
 
-FROM registry.access.redhat.com/ubi8/ubi:latest
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
 LABEL name="instana-agent" \
       vendor="Instana Inc." \
@@ -10,14 +10,9 @@ LABEL name="instana-agent" \
 
 ADD docker.repo /etc/yum.repos.d/docker.repo
 
-RUN --mount=type=secret,id=download_key,dst=/run/secrets/download_key,required=true \
-    curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
-    rpm --import /tmp/Instana.gpg && \
-    echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:$(cat /run/secrets/download_key)@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    yum install -y --disableplugin=subscription-manager docker-ce-cli iptables iproute util-linux python3 jq instana-agent-dynamic && \
-    ln -s /opt/instana/agent/licenses /licenses && \
-    rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo /etc/yum.repos.d/docker.repo && \
-    yum clean all -y --disableplugin=subscription-manager
+RUN microdnf install docker-ce-cli iptables iproute util-linux python3 jq && \
+    rm -rf /tmp/* /etc/yum.repos.d/docker.repo && \
+    microdnf clean all
 
 RUN curl --silent --fail --show-error -L https://github.com/hairyhenderson/gomplate/releases/download/v3.8.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
     echo "847f7d9fc0dc74c33188c2b0d0e9e4ed9204f67c36da5aacbab324f8bfbf29c9 /usr/bin/gomplate" | sha256sum -c - > /dev/null && \
@@ -27,10 +22,20 @@ RUN curl --silent --fail --show-error -L https://github.com/opencontainers/runc/
     echo "256bd490a55a1939a4c9cd15c043404b79a86429ee04129c00d33dab8c0cf040 /usr/bin/runc" | sha256sum -c - > /dev/null && \
     chmod 755 /usr/bin/runc
 
+# Dynamic & static agent start to diverge here:
+
+# The content of the help file is different
 ADD help.1 /help.1
 
 # Configuration up to this line needs to be in sync with static/Dockerfile
-# Dynamic & static agent start to diverge here:
+RUN --mount=type=secret,id=download_key,dst=/run/secrets/download_key,required=true \
+    curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
+    rpm --import /tmp/Instana.gpg && \
+    echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:$(cat /run/secrets/download_key)@packages.instana.io/agent/generic/x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
+    microdnf install instana-agent-dynamic && \
+    ln -s /opt/instana/agent/licenses /licenses && \
+    rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
+    microdnf clean all
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
