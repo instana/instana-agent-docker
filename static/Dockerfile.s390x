@@ -1,3 +1,4 @@
+# TODO Move this build image to UBI
 FROM s390x/ubuntu:21.04 AS build-gomplate
 
 ENV LANG=C.UTF-8 \
