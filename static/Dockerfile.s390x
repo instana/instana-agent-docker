@@ -1,55 +1,7 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS build-gomplate
+FROM s390x/ubuntu:20.04
 
-ENV LANG=C.UTF-8 \
-    GOMPLATE_VERSION="3.8.0" \
-    GOMPLATE_SHA256="d32817821a7b083b0aeadf29c2aea17e3384b6b619f3a6285150db1914b94c89  v3.8.0.tar.gz"
-
-RUN microdnf install wget golang make && \
-    mkdir -p /root/go/src/github.com/hairyhenderson && \
-    cd /root/go/src/github.com/hairyhenderson && \
-    wget https://github.com/hairyhenderson/gomplate/archive/v${GOMPLATE_VERSION}.tar.gz && \
-    echo "${GOMPLATE_SHA256}" | sha256sum --check && \
-    tar xzf v${GOMPLATE_VERSION}.tar.gz && \
-    mv gomplate-${GOMPLATE_VERSION} gomplate && \
-    cd gomplate/ && make && cp bin/gomplate /usr/bin/gomplate && \
-    gomplate --version
-
-WORKDIR /root
-
-ENTRYPOINT ["/bin/bash"]
-
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
-
-LABEL name="instana-agent" \
-      vendor="Instana Inc." \
-      release="1" \
-      summary="Instana APM agent" \
-      description="Instana APM agent"
-
-ADD docker.repo /etc/yum.repos.d/docker.repo
-
-RUN microdnf install docker-ce-cli iptables iproute util-linux python3 jq && \
-    rm -rf /tmp/* /etc/yum.repos.d/docker.repo && \
-    microdnf clean all
-
-# RUN curl --silent --fail --show-error -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 -o /usr/bin/runc && \
-#     echo "256bd490a55a1939a4c9cd15c043404b79a86429ee04129c00d33dab8c0cf040 /usr/bin/runc" | sha256sum -c - > /dev/null && \
-#     chmod 755 /usr/bin/runc
-
-# Dynamic & static agent start to diverge here:
-
-# The content of the help file is different
-ADD help.1 /help.1
-
-# Configuration up to this line needs to be in sync with static/Dockerfile
-RUN --mount=type=secret,id=download_key,dst=/run/secrets/download_key,required=true \
-    curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
-    rpm --import /tmp/Instana.gpg && \
-    echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:$(cat /run/secrets/download_key)@packages.instana.io/agent/generic/s390x\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf install instana-agent-static && \
-    ln -s /opt/instana/agent/licenses /licenses && \
-    rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf clean all
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TZ=Etc/UTC
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
@@ -72,14 +24,28 @@ ENV LANG=C.UTF-8 \
     INSTANA_GIT_LOG_COUNT="10" \
     INSTANA_LOG_LEVEL=""
 
-COPY org.ops4j.pax.logging.cfg.tmpl \
-    configuration.yaml \
-    com.instana.agent.main.sender.Backend-1.cfg.tmpl \
-    com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
-    /root/
+RUN apt-get update && \
+    apt-get install -y gnupg2 ca-certificates curl && \
+    echo "deb [arch=s390x] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
+    echo "deb [arch=s390x] https://download.docker.com/linux/ubuntu bionic stable" > /etc/apt/sources.list.d/docker.list && \
+    apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
+    apt-key adv --fetch-keys "https://download.docker.com/linux/ubuntu/gpg" && \
+    apt-get update && \
+    apt-get install -y instana-agent-static inotify-tools docker-ce containerd python-pip iproute2 && \
+    apt-get purge -y gnupg2 && \
+    apt-get autoremove -y && \
+    rm -rf /etc/apt/sources.list.d/instana-agent.list && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && \
+    sed -i -e 's/^root:[^:]*:/root:!locked:/' /etc/shadow
 
+ADD org.ops4j.pax.logging.cfg /root/
+ADD configuration.yaml /root/
+ADD com.instana.agent.main.sender.Backend-1.cfg.tmpl /root/
+ADD com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /root/
+ADD util /root/
 ADD run.sh /opt/instana/agent/bin
-COPY --from=build-gomplate /root/go/src/github.com/hairyhenderson/gomplate/bin/gomplate /usr/bin/
+ADD gomplate /usr/bin
 
 WORKDIR /opt/instana/agent
 
