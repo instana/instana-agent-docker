@@ -1,12 +1,10 @@
-# TODO Move this build image to UBI
-FROM s390x/ubuntu:21.04 AS build-gomplate
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS build-gomplate
 
 ENV LANG=C.UTF-8 \
     GOMPLATE_VERSION="3.8.0" \
     GOMPLATE_SHA256="d32817821a7b083b0aeadf29c2aea17e3384b6b619f3a6285150db1914b94c89  v3.8.0.tar.gz"
 
-RUN apt-get update && \
-    apt-get install -y wget golang make && \
+RUN microdnf install wget golang make && \
     mkdir -p /root/go/src/github.com/hairyhenderson && \
     cd /root/go/src/github.com/hairyhenderson && \
     wget https://github.com/hairyhenderson/gomplate/archive/v${GOMPLATE_VERSION}.tar.gz && \
