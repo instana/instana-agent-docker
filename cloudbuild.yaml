@@ -18,10 +18,10 @@ steps:
     args:
       - '-c'
       - |
-        DOCKER_BUILDKIT=1 docker build dynamic/ --no-cache --build-arg $_ARCH --secret id=download_key,src=download_key --label "version=${releaseVersion}" -t gcr.io/$PROJECT_ID/instana-agent-docker:$BRANCH_NAME-$COMMIT_SHA-dynamic-$_ARCH
+        DOCKER_BUILDKIT=1 docker build dynamic/ --no-cache --build-arg arch=$_ARCH --secret id=download_key,src=download_key --label "version=${releaseVersion}" -t gcr.io/$PROJECT_ID/instana-agent-docker:$BRANCH_NAME-$COMMIT_SHA-dynamic-$_ARCH
   - name: 'docker'
     entrypoint: /bin/sh
     args:
       - '-c'
       - |
-        DOCKER_BUILDKIT=1 docker build static/ --no-cache --build-arg $_ARCH --secret id=download_key,src=download_key --label "version=${releaseVersion}" -t gcr.io/$PROJECT_ID/instana-agent-docker:$BRANCH_NAME-$COMMIT_SHA-static-$_ARCH
+        DOCKER_BUILDKIT=1 docker build static/ --no-cache --build-arg arch=$_ARCH --secret id=download_key,src=download_key --label "version=${releaseVersion}" -t gcr.io/$PROJECT_ID/instana-agent-docker:$BRANCH_NAME-$COMMIT_SHA-static-$_ARCH
