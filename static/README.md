@@ -8,9 +8,15 @@ Needs Docker 18.09 or higher:
 
 ```sh
 echo <DOWNLOAD_KEY> > download_key
-DOCKER_BUILDKIT=1 docker build --secret id=download_key,src=download_key --no-cache . -t containers.instana.io/instana/release/agent/static
+DOCKER_BUILDKIT=1 docker build --build-arg <ARCH> --secret id=download_key,src=download_key --no-cache . -t containers.instana.io/instana/release/agent/static
 rm download_key
 ```
+
+Supported values of `<ARCH>`:
+
+* `x86_64` (default)
+* `aarch64`
+* `s390x`
 
 ## Download Prebuilt Image
 

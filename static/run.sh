@@ -100,8 +100,7 @@ if [ -n "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
   echo -e "\nhttp.listen = ${INSTANA_AGENT_HTTP_LISTEN}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 fi
 
-# No jq on s390x. Also, an AWS sensor running on s390x is every bit as likely as Xmas in August
-if which jq > /dev/null && [ "${INSTANA_AGENT_MODE}" = 'AWS' ]; then
+if [ "${INSTANA_AGENT_MODE}" = 'AWS' ]; then
   echo 'AWS mode configured'
 
   ###
