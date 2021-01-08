@@ -1,25 +1,27 @@
 timeout: '3000s'
 images:
-  - 'gcr.io/$PROJECT_ID/instana-agent-docker:$_FLAVOR-$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/instana-agent-docker:$BRANCH_NAME-$COMMIT_SHA-dynamic-$_ARCH'
+  - 'gcr.io/$PROJECT_ID/instana-agent-docker:$BRANCH_NAME-$COMMIT_SHA-static-$_ARCH'
 
 substitutions:
-  _FLAVOR: 'dynamic'
+  _FLAVOR: dynamic
+  _ARCH: x86_64
 
 steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
-      - 'gcloud secrets versions access latest --secret=instana-qa-instana-agent-docker-prs > download_key'
+      - 'mkdir -p /run/secrets && gcloud secrets versions access latest --secret=instana-qa-instana-agent-docker-prs > download_key'
   - name: 'docker'
     entrypoint: /bin/sh
     args:
       - '-c'
       - |
-        echo ${INSTANA_AGENT_KEY} > download_key
-        DOCKER_BUILDKIT=1 docker build --no-cache \
-          --pull $_FLAVOR/ ${cacheFlag} \
-          --secret id=download_key,src=download_key \
-          --label "version=${releaseVersion}" \
-          -t gcr.io/$PROJECT_ID/instana-agent-docker:$_FLAVOR-$COMMIT_SHA
-        rm download_key
+        DOCKER_BUILDKIT=1 docker build dynamic/ --no-cache --build-arg $_ARCH --secret id=download_key,src=download_key --label "version=${releaseVersion}" -t gcr.io/$PROJECT_ID/instana-agent-docker:$BRANCH_NAME-$COMMIT_SHA-dynamic-$_ARCH
+  - name: 'docker'
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        DOCKER_BUILDKIT=1 docker build static/ --no-cache --build-arg $_ARCH --secret id=download_key,src=download_key --label "version=${releaseVersion}" -t gcr.io/$PROJECT_ID/instana-agent-docker:$BRANCH_NAME-$COMMIT_SHA-static-$_ARCH
