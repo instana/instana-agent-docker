@@ -12,9 +12,15 @@ Additional documentation about the usage of this image is available on the [Inst
 
 ```sh
 echo <DOWNLOAD_KEY> > download_key
-DOCKER_BUILDKIT=1 docker build --secret id=download_key,src=download_key --no-cache . -t instana-agent
+DOCKER_BUILDKIT=1 docker build --build-arg <ARCH> --secret id=download_key,src=download_key --no-cache . -t instana-agent
 rm download_key
 ```
+
+Supported values of `<ARCH>`:
+
+* `x86_64` (default)
+* `aarch64`
+* `s390x`
 
 ## Docker Hub
 

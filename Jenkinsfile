@@ -79,6 +79,7 @@ def getNextPatchVersion(def saasVersion, def buildNumber) {
   }
 }
 
+// TODO Add support for other architectures passing `--build-arg <ARCH>`
 def buildImage(name, context, releaseVersion, cacheFromImage) {
   def cacheFlag = cacheFromImage != null ? "--cache-from ${cacheFromImage}" : "--no-cache"
   try {

@@ -4,6 +4,7 @@ images:
 
 substitutions:
   _FLAVOR: 'dynamic'
+  _ARCH: x86_64
 
 steps:
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -18,6 +19,7 @@ steps:
       - |
         echo ${INSTANA_AGENT_KEY} > download_key
         DOCKER_BUILDKIT=1 docker build --no-cache \
+          --build-arg $_ARCH
           --pull $_FLAVOR/ ${cacheFlag} \
           --secret id=download_key,src=download_key \
           --label "version=${releaseVersion}" \
