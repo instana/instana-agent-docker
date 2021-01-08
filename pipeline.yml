@@ -1,0 +1,146 @@
+---
+# see https://concourse-ci.org/pipelines.html
+resource_types:
+  - name: codebuild
+    type: registry-image
+    source:
+      repository: cedricziel/concourse-codebuild-resource
+      tag: "0.1.14"
+  - name: gcs-resource
+    type: registry-image
+    source:
+      repository: frodenas/gcs-resource
+resources:
+  - name: instana-agent-docker-git
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/instana/instana-agent-docker.git
+      branch: ((branch))
+      ignore_paths:
+        - README.md
+  - name: aarch64-build-bundle
+    type: s3
+    icon: zip-disk
+    source:
+      bucket: instana-agent-images-codebuild
+      versioned_file: context.zip
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+      region_name: us-west-2
+      skip_download: true
+  - name: aarch64-dynamic-build
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: aarch64-static-build
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: agent-dynamic-aarch64
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: ubi-latest-dynamic-aarch64
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-aarch64
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: ubi-latest-static-aarch64
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+jobs:
+  - name: self-update
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+      - set_pipeline: self
+        file: instana-agent-docker-git/pipeline.yml
+  - name: aarch64-build
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ self-update ]
+      - task: package-aarch64-build-bundle
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: ubuntu
+          inputs:
+            - name: instana-agent-docker-git
+              path: .
+          run:
+            path: bash
+            args:
+              - -c
+              - |
+                date
+                apt-get update
+                apt-get install -yqq zip unzip
+                #zip -r target/context.zip . --exclude @buildtools/codebuild/exclude.lst
+                zip -r target/context.zip .
+          outputs:
+            - name: target
+      - put: aarch64-build-bundle
+        params:
+          file: target/context.zip
+      - load_var: s3-artifact-version
+        file: aarch64-build-bundle/version
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: aarch64-static-build
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  VERSION: changeme
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+            - put: aarch64-dynamic-build
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  VERSION: changeme
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+      - load_var: static-aarch64-version
+        file: aarch64-static-build/artifacts/tag
+        reveal: true
+      - load_var: dynamic-aarch64-version
+        file: aarch64-dynamic-build/artifacts/tag
+        reveal: true
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: agent-dynamic-aarch64
+              params:
+                  image: aarch64-dynamic-build/artifacts/image.tar
+                  additional_tags: aarch64-dynamic-build/artifacts/tag
+            - put: agent-static-aarch64
+              params:
+                  image: aarch64-static-build/artifacts/image.tar
+                  additional_tags: aarch64-static-build/artifacts/tag
