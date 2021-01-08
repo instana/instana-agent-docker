@@ -1,0 +1,28 @@
+version: 0.2
+
+env:
+  variables:
+    DOCKERHUB_USER: _
+    DOCKERHUB_PASSWORD: _
+    DOWNLOAD_KEY: _
+    IMAGE_REPO_NAME: gcr.io/instana-agent-qa/instana-agent-docker
+    IMAGE_TAG: latest
+    ARCH: aarch64
+    BRANCH: _
+    COMMIT_SHA: _
+    FLAVOR: dynamic
+    VERSION: _
+
+phases:
+  build:
+    commands:
+      - docker --version
+      - echo Build started on `date`
+      - echo "$DOWNLOAD_KEY" > download_key
+      - echo "$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" > tag
+      - DOCKER_BUILDKIT=1 docker build --secret id=download_key,src=download_key --build-arg "arch=${ARCH}" --label "version=${VERSION}" -t "$IMAGE_REPO_NAME:$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" $FLAVOR
+      - docker save "$IMAGE_REPO_NAME:$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" > image.tar
+artifacts:
+  files:
+    - 'tag'
+    - 'image.tar'
