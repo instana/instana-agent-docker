@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:experimental
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS build-gomplate
+FROM --platform=linux/amd64 registry.access.redhat.com/ubi8/ubi-minimal:latest AS build-gomplate
 
 ENV LANG=C.UTF-8 \
     GOMPLATE_VERSION="3.8.0" \
@@ -14,8 +14,12 @@ RUN microdnf install tar gzip wget golang make findutils && \
     tar xzf v${GOMPLATE_VERSION}.tar.gz && \
     mv gomplate-${GOMPLATE_VERSION} gomplate && \
     cd gomplate/ && make && \
-    cp bin/gomplate /usr/bin/gomplate && \
-    chmod u+x /usr/bin/gomplate
+    GOOS=linux GOARCH=amd64 go build -o gomplate_amd64 && \
+    GOOS=linux GOARCH=s390x go build -o gomplate_s390x && \
+    mkdir -p /usr/bin/linux/{amd64,s390x} && \
+    chmod u+x gomplate_* && \
+    cp gomplate_amd64 /usr/bin/linux/amd64/gomplate && \
+    cp gomplate_s390x /usr/bin/linux/s390x/gomplate
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
@@ -58,7 +62,7 @@ RUN ( \
         && chmod 755 /usr/bin/runc \
     ) || true
 
-COPY --from=build-gomplate /usr/bin/gomplate /usr/bin/gomplate
+COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
 
 # Dynamic & static agent start to diverge here:
 
