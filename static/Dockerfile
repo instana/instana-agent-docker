@@ -27,26 +27,27 @@ LABEL name="instana-agent" \
 
 ARG TARGETPLATFORM='linux/amd64'
 
-RUN microdnf install iptables iproute util-linux python3 jq findutils && \
-    microdnf clean all
-
-ADD docker.repo /etc/yum.repos.d/docker.repo
+RUN microdnf install --nodocs iptables iproute util-linux python3 jq findutils \
+    && rm -rf /tmp/* \
+    && microdnf clean all
 
 # s390x does not carry the Docker cli
 RUN ( \
-       [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] \
-       && microdnf install docker-ce-cli \
-       && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
-       && microdnf clean all \
+        [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] \
+        && echo -e '[docker-ce-stable]\nname=Docker CE Stable - $basearch\nbaseurl=https://download.docker.com/linux/centos/8/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=https://download.docker.com/linux/centos/gpg' > /etc/yum.repos.d/docker.repo \
+        && microdnf install --nodocs docker-ce-cli \
+        && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
+        && microdnf clean all \
     ) || true
 
 # On s390x, out Agent packages do not carry a JVM, so we need to install an OpenJDK one
 # and teach run.sh where to find it
 RUN ( \
-       [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
-       && microdnf install java-1.8.0-openjdk \ 
-       && microdnf clean all \
-       && echo "export JAVA_HOME=$(find / -name jre | grep openjdk)" >> /opt/instana/agent/bin/setenv \
+        [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
+        && microdnf install --nodocs java-1.8.0-openjdk \
+        && rm -rf /tmp/* \
+        && microdnf clean all \
+        && echo "export JAVA_HOME=$(find / -name jre | grep openjdk)" >> /opt/instana/agent/bin/setenv \
     ) || true
 
 # Install runc on the x86_64, the other platforms are not supported
