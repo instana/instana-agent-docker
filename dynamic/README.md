@@ -12,16 +12,25 @@ Additional documentation about the usage of this image is available on the [Inst
 
 ```sh
 echo <DOWNLOAD_KEY> > download_key
-DOCKER_BUILDKIT=1 docker build --build-arg <ARCH> --secret id=download_key,src=download_key --no-cache . -t instana-agent
+DOCKER_BUILDKIT=1 docker build --build-arg TARGETPLATFORM=<PLATFORM> --secret id=download_key,src=download_key --no-cache . -t instana-agent
 rm download_key
 ```
 
-Supported values of `<ARCH>`:
+Supported values of `<PLATFORM>`:
 
-* `x86_64` (default)
-* `aarch64`
-* `s390x`
+* `linux/amd64`
+* `linux/arm64`
+* `linux/s390x`
 
-## Docker Hub
+## Download Prebuilt Image
 
-The image can be found on docker hub [https://hub.docker.com/r/instana/agent/](https://hub.docker.com/r/instana/agent).
+The Instana Agent Dynamic Docker image can be found on:
+
+* Docker Hub as [https://hub.docker.com/r/instana/agent/](https://hub.docker.com/r/instana/agent)
+* `containers.instana.io` as `containers.instana.io/instana/release/agent/dynamic:latest`, which you can pull with the following commands:
+
+```sh
+docker login containers.instana.io -u _ -p <agent_key>
+
+docker pull containers.instana.io/instana/release/agent/dynamic:latest
+```

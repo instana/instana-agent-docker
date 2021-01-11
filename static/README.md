@@ -8,26 +8,22 @@ Needs Docker 18.09 or higher:
 
 ```sh
 echo <DOWNLOAD_KEY> > download_key
-DOCKER_BUILDKIT=1 docker build --build-arg <ARCH> --secret id=download_key,src=download_key --no-cache . -t containers.instana.io/instana/release/agent/static
+DOCKER_BUILDKIT=1 docker build --build-arg TARGETPLATFORM=<PLATFORM> --secret id=download_key,src=download_key --no-cache . -t containers.instana.io/instana/release/agent/static
 rm download_key
 ```
 
-Supported values of `<ARCH>`:
+Supported values of `<PLATFORM>`:
 
-* `x86_64` (default)
-* `aarch64`
-* `s390x`
+* `linux/amd64`
+* `linux/arm64`
+* `linux/s390x`
 
 ## Download Prebuilt Image
 
-The static image can be found on containers.instana.io and can be downloaded using the following commands:
+The Instana Agent static Docker image can be found on `containers.instana.io` and can be downloaded using the following commands:
 
 ```sh
 docker login containers.instana.io -u _ -p <agent_key>
 
 docker pull containers.instana.io/instana/release/agent/static:latest
 ```
-
-## OS Architecture Specifics
-
-For Linux s390x see: [s390x Build Documentation](README_s390x.md)

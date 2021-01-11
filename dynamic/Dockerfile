@@ -25,19 +25,33 @@ LABEL name="instana-agent" \
       summary="Instana APM agent" \
       description="Instana APM agent"
 
-ARG arch="x86_64"
+ARG TARGETPLATFORM='linux/amd64'
 
-ENV arch=${arch}
+RUN microdnf install iptables iproute util-linux python3 jq findutils && \
+    microdnf clean all
 
 ADD docker.repo /etc/yum.repos.d/docker.repo
 
-RUN microdnf install docker-ce-cli iptables iproute util-linux python3 jq && \
-    rm -rf /tmp/* /etc/yum.repos.d/docker.repo && \
-    microdnf clean all
+# s390x does not carry the Docker cli
+RUN ( \
+        [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] \
+        && microdnf install docker-ce-cli \
+        && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
+        && microdnf clean all \
+    ) || true
+
+# On s390x, out Agent packages do not carry a JVM, so we need to install an OpenJDK one
+# and teach run.sh where to find it
+RUN ( \
+        [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
+        && microdnf install java-1.8.0-openjdk \ 
+        && microdnf clean all \
+        && echo "export JAVA_HOME=$(find / -name jre | grep openjdk)" >> /opt/instana/agent/bin/setenv \
+    ) || true
 
 # Install runc on the x86_64, the other platforms are not supported
 RUN ( \
-        [[ "${arch}" = 'x86_64' ]] \
+        [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
         && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 -o /usr/bin/runc \
         && echo '256bd490a55a1939a4c9cd15c043404b79a86429ee04129c00d33dab8c0cf040 /usr/bin/runc' | sha256sum -c - > /dev/null \
         && chmod 755 /usr/bin/runc \
@@ -54,6 +68,7 @@ ADD help.1 /help.1
 RUN --mount=type=secret,id=download_key,dst=/run/secrets/download_key,required=true \
     curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
+    export arch=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'x86_64' ;; 'linux/arm64') echo 'aarch64' ;; 'linux/s390x') echo 's390x' ;; esac) && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:$(cat /run/secrets/download_key)@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf install instana-agent-dynamic && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
