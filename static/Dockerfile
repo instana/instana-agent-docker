@@ -21,6 +21,22 @@ RUN microdnf install tar gzip wget golang make findutils && \
     cp gomplate_amd64 /usr/bin/linux/amd64/gomplate && \
     cp gomplate_s390x /usr/bin/linux/s390x/gomplate
 
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS instana-agent
+
+ARG TARGETPLATFORM='linux/amd64'
+ARG DOWNLOAD_KEY
+# This is for backwards compatibility for end users that build their own images
+ARG FTP_PROXY
+
+RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
+    rpm --import /tmp/Instana.gpg && \
+    export arch=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'x86_64' ;; 'linux/arm64') echo 'aarch64' ;; 'linux/s390x') echo 's390x' ;; esac) && \
+    [[ -z "${FTP_PROXY}" ]] || DOWNLOAD_KEY="${FTP_PROXY}" && \
+    echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${DOWNLOAD_KEY}@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
+    microdnf install instana-agent-static && \
+    rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
+    microdnf clean all
+
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
 LABEL name="instana-agent" \
@@ -70,15 +86,10 @@ COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
 ADD help.1 /help.1
 
 # Configuration up to this line needs to be in sync with static/Dockerfile
-RUN --mount=type=secret,id=download_key,dst=/run/secrets/download_key,required=true \
-    curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
-    rpm --import /tmp/Instana.gpg && \
-    export arch=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'x86_64' ;; 'linux/arm64') echo 'aarch64' ;; 'linux/s390x') echo 's390x' ;; esac) && \
-    echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:$(cat /run/secrets/download_key)@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf install instana-agent-static && \
-    rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf clean all && \
-    ln -s /opt/instana/agent/licenses /licenses
+COPY --from=instana-agent /opt/instana /opt/instana 
+COPY --from=instana-agent /usr/lib/tmpfiles.d/instana-agent.conf /usr/lib/tmpfiles.d/instana-agent.conf
+
+RUN ln -s /opt/instana/agent/licenses /licenses
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \

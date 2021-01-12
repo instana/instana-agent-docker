@@ -10,10 +10,10 @@ Additional documentation about the usage of this image is available on the [Inst
 
 ## Building
 
+Needs Docker 18.09 or higher:
+
 ```sh
-echo <DOWNLOAD_KEY> > download_key
-DOCKER_BUILDKIT=1 docker build --build-arg TARGETPLATFORM=<PLATFORM> --secret id=download_key,src=download_key --no-cache . -t instana-agent
-rm download_key
+DOCKER_BUILDKIT=1 docker build --build-arg TARGETPLATFORM=<PLATFORM> --build-arg DOWNLOAD_KEY=<DOWNLOAD_KEY> --no-cache . -t instana-agent
 ```
 
 Supported values of `<PLATFORM>`:
@@ -21,6 +21,8 @@ Supported values of `<PLATFORM>`:
 * `linux/amd64`
 * `linux/arm64`
 * `linux/s390x`
+
+**Note:** For backwards compatibility reasons, the `<DOWNLOAD_KEY>` can also be passed via the `FTP_PROXY` build argument, and using buildkit, which is activated via the `DOCKER_BUILDKIT=1` environment variable, is optional.
 
 ## Download Prebuilt Image
 
