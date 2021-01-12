@@ -17,9 +17,13 @@ phases:
   build:
     commands:
       - docker --version
+      - yum -y install qemu-user-static
       - echo Build started on `date`
       - echo "$DOWNLOAD_KEY" > download_key
       - echo "$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" > tag
+      - docker buildx create --name x86
+      - docker buildx use x86
+      - docker buildx inspect --bootstrap
       - DOCKER_BUILDKIT=1 docker build --secret id=download_key,src=download_key --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "$IMAGE_REPO_NAME:$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" $FLAVOR
       - docker save "$IMAGE_REPO_NAME:$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" > image.tar
 artifacts:
