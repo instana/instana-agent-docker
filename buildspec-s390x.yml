@@ -2,6 +2,7 @@ version: 0.2
 
 env:
   variables:
+    DOCKER_CLI_EXPERIMENTAL: enabled
     DOCKERHUB_USER: _
     DOCKERHUB_PASSWORD: _
     DOWNLOAD_KEY: _
