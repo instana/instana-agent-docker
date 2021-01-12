@@ -17,7 +17,7 @@ RUN microdnf install tar gzip wget golang make findutils && \
     GOOS=linux GOARCH=amd64 go build -o gomplate_amd64 && \
     GOOS=linux GOARCH=arm64 go build -o gomplate_arm64 && \
     GOOS=linux GOARCH=s390x go build -o gomplate_s390x && \
-    mkdir -p /usr/bin/linux/{amd64,s390x} && \
+    mkdir -p /usr/bin/linux/{amd64,arm64,s390x} && \
     chmod u+x gomplate_* && \
     cp gomplate_amd64 /usr/bin/linux/amd64/gomplate && \
     cp gomplate_arm64 /usr/bin/linux/arm64/gomplate && \
