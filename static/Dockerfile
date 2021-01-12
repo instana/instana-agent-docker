@@ -13,7 +13,7 @@ RUN microdnf install tar gzip wget golang make findutils && \
     echo "${GOMPLATE_SHA256}" | sha256sum --check && \
     tar xzf v${GOMPLATE_VERSION}.tar.gz && \
     mv gomplate-${GOMPLATE_VERSION} gomplate && \
-    cd gomplate/ && make && \
+    cd gomplate/ && \
     GOOS=linux GOARCH=amd64 go build -o gomplate_amd64 && \
     GOOS=linux GOARCH=arm64 go build -o gomplate_arm64 && \
     GOOS=linux GOARCH=s390x go build -o gomplate_s390x && \
