@@ -15,10 +15,12 @@ RUN microdnf install tar gzip wget golang make findutils && \
     mv gomplate-${GOMPLATE_VERSION} gomplate && \
     cd gomplate/ && make && \
     GOOS=linux GOARCH=amd64 go build -o gomplate_amd64 && \
+    GOOS=linux GOARCH=arm64 go build -o gomplate_arm64 && \
     GOOS=linux GOARCH=s390x go build -o gomplate_s390x && \
     mkdir -p /usr/bin/linux/{amd64,s390x} && \
     chmod u+x gomplate_* && \
     cp gomplate_amd64 /usr/bin/linux/amd64/gomplate && \
+    cp gomplate_arm64 /usr/bin/linux/arm64/gomplate && \
     cp gomplate_s390x /usr/bin/linux/s390x/gomplate
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS instana-agent
@@ -86,7 +88,7 @@ COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
 ADD help.1 /help.1
 
 # Configuration up to this line needs to be in sync with static/Dockerfile
-COPY --from=instana-agent /opt/instana /opt/instana 
+COPY --from=instana-agent /opt/instana /opt/instana
 COPY --from=instana-agent /usr/lib/tmpfiles.d/instana-agent.conf /usr/lib/tmpfiles.d/instana-agent.conf
 
 RUN ln -s /opt/instana/agent/licenses /licenses
