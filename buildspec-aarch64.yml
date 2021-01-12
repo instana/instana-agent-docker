@@ -19,10 +19,10 @@ phases:
     commands:
       - docker --version
       - yum -y install qemu-user-static
-      - wget https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
-      - chmod a+x buildx-v0.5.1.linux-amd64
+      - wget https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-arm64
+      - chmod a+x buildx-v0.5.1.linux-arm64
       - mkdir -p ~/.docker/cli-plugins
-      - mv buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
+      - mv buildx-v0.5.1.linux-arm64 ~/.docker/cli-plugins/docker-buildx
       - echo Build started on `date`
       - echo "$DOWNLOAD_KEY" > download_key
       - echo "$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" > tag
