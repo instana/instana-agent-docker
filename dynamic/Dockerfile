@@ -82,6 +82,9 @@ RUN ( \
 
 COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
 
+# gomplate sanity-check
+RUN /usr/bin/gomplate --version
+
 # Dynamic & static agent start to diverge here:
 
 # The content of the help file is different
