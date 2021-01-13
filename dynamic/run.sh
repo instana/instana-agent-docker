@@ -121,8 +121,7 @@ rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
 cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.template /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 
 cp /root/configuration.yaml /opt/instana/agent/etc/instana
-cat /root/org.ops4j.pax.logging.cfg.tmpl | /usr/bin/gomplate > /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
-cat /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
+gomplate < /root/org.ops4j.pax.logging.cfg.tmpl > /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
 gomplate < /root/com.instana.agent.main.sender.Backend-1.cfg.tmpl > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
 
