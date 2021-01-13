@@ -9,6 +9,7 @@ env:
     IMAGE_REPO_NAME: gcr.io/instana-agent-qa/instana-agent-docker
     IMAGE_TAG: latest
     TARGETPLATFORM: linux/arm64
+    ARCH: aarch64
     BRANCH: _
     COMMIT_SHA: _
     FLAVOR: dynamic
@@ -29,8 +30,8 @@ phases:
       - docker buildx create --name x86
       - docker buildx use x86
       - docker buildx inspect --bootstrap
-      - DOCKER_BUILDKIT=1 docker build --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "$IMAGE_REPO_NAME:$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" $FLAVOR
-      - docker save "$IMAGE_REPO_NAME:$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" > image.tar
+      - docker buildx build --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "$IMAGE_REPO_NAME:$COMMIT_SHA-$FLAVOR-$ARCH" $FLAVOR
+      - docker save "$IMAGE_REPO_NAME:$COMMIT_SHA-$FLAVOR-$ARCH" > image.tar
 artifacts:
   files:
     - 'tag'
