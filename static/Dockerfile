@@ -62,6 +62,20 @@ RUN ( \
         && microdnf clean all \
     ) || true
 
+# containerd cli is only available for amd64
+ENV CONTAINERD_VERSION=1.4.3 \
+    CONTAINERD_SHA256="34a161e3f459fd337b03141a339eeb1a56c5c811922fe72012d2dac9fa5542f1  containerd-1.4.3-linux-amd64.tar.gz"
+RUN ( \
+        [[ "${TARGETPLATFORM}" == 'linux/amd64' ]] \
+        && microdnf install --nodocs tar gzip wget \
+        && cd /tmp \
+        && wget https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
+        && echo "${CONTAINERD_SHA256}" | sha256sum --check \
+        && tar -xzf containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz  && mv bin/* /usr/local/bin \
+        && microdnf remove tar gzip wget \
+        && microdnf clean all \
+    ) || true
+
 # On s390x, out Agent packages do not carry a JVM, so we need to install an OpenJDK one
 # and teach run.sh where to find it
 RUN ( \

@@ -57,8 +57,22 @@ RUN microdnf install --nodocs iptables iproute util-linux python3 jq findutils \
 RUN ( \
         [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] \
         && echo -e '[docker-ce-stable]\nname=Docker CE Stable - $basearch\nbaseurl=https://download.docker.com/linux/centos/8/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=https://download.docker.com/linux/centos/gpg' > /etc/yum.repos.d/docker.repo \
-        && microdnf install --nodocs docker-ce-cli containerd.io \
+        && microdnf install --nodocs docker-ce-cli tar gzip wget \
         && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
+        && microdnf clean all \
+    ) || true
+
+# containerd cli is only available for amd64
+ENV CONTAINERD_VERSION=1.4.3 \
+    CONTAINERD_SHA256="34a161e3f459fd337b03141a339eeb1a56c5c811922fe72012d2dac9fa5542f1  containerd-1.4.3-linux-amd64.tar.gz"
+RUN ( \
+        [[ "${TARGETPLATFORM}" == 'linux/amd64' ]] \
+        && microdnf install --nodocs tar gzip wget \
+        && cd /tmp \
+        && wget https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
+        && echo "${CONTAINERD_SHA256}" | sha256sum --check \
+        && tar -xzf containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz  && mv bin/* /usr/local/bin \
+        && microdnf remove tar gzip wget \
         && microdnf clean all \
     ) || true
 
