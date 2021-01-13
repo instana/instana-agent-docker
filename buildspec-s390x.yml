@@ -26,12 +26,12 @@ phases:
       - mv buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
       - echo Build started on `date`
       - echo "$DOWNLOAD_KEY" > download_key
-      - echo "$BRANCH-$COMMIT_SHA-$FLAVOR-$ARCH" > tag
+      - echo "${COMMIT_SHA}-${FLAVOR}-${ARCH}" > tag
       - docker buildx create --name s390x
       - docker buildx use s390x
       - docker buildx inspect --bootstrap
-      - docker buildx build --platform linux/s390x --build-arg TARGETPLATFORM=linux/s390x --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "$IMAGE_REPO_NAME:$COMMIT_SHA-$FLAVOR-$ARCH" $FLAVOR
-      - docker save "$IMAGE_REPO_NAME:$COMMIT_SHA-$FLAVOR-$ARCH" > image.tar
+      - docker buildx build --platform linux/s390x --build-arg TARGETPLATFORM=linux/s390x --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-${ARCH}" $FLAVOR
+      - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-${ARCH}" > image.tar
 artifacts:
   files:
     - 'tag'
