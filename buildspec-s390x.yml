@@ -30,13 +30,15 @@ phases:
       - docker buildx create --name s390x
       - docker buildx use s390x
       - docker buildx inspect --bootstrap
-      - docker buildx build --load --platform linux/s390x --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-s390x" $FLAVOR
-      - docker buildx build --load --platform linux/amd64 --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-amd64" $FLAVOR
-      - docker buildx build --load --platform linux/arm64 --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-ard64" $FLAVOR
+      - docker buildx build --load --platform linux/s390x --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=linux/s390x" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-s390x" $FLAVOR
+      - docker buildx build --load --platform linux/amd64 --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=linux/amd64" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-amd64" $FLAVOR
+      - docker buildx build --load --platform linux/arm64 --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=linux/arm64" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-arm64" $FLAVOR
       - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-s390x" > image-s390x.tar
       - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-amd64" > image-amd64.tar
       - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-arm64" > image-arm64.tar
 artifacts:
   files:
     - 'tag'
-    - 'image.tar'
+    - 'image-s390x.tar'
+    - 'image-amd64.tar'
+    - 'image-arm64.tar'
