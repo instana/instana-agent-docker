@@ -30,7 +30,7 @@ phases:
       - docker buildx create --name x86
       - docker buildx use x86
       - docker buildx inspect --bootstrap
-      - docker buildx build --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-${ARCH}" $FLAVOR
+      - docker buildx build --load --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-${ARCH}" $FLAVOR
       - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-${ARCH}" > image.tar
 artifacts:
   files:
