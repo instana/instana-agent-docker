@@ -19,7 +19,7 @@ resources:
       branch: ((branch))
       ignore_paths:
         - README.md
-  - name: aarch64-build-bundle
+  - name: build-bundle
     type: s3
     icon: zip-disk
     source:
@@ -29,19 +29,19 @@ resources:
       secret_access_key: ((codebuild-key.key_secret))
       region_name: us-west-2
       skip_download: true
-  - name: aarch64-dynamic-build
+  - name: codebuild-dynamic
     type: codebuild
     icon: aws
     source:
-      project: instana-agent-images
+      project: instana-agent-images-s390x
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
-  - name: aarch64-static-build
+  - name: codebuild-static
     type: codebuild
     icon: aws
     source:
-      project: instana-agent-images
+      project: instana-agent-images-s390x
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
@@ -61,21 +61,53 @@ resources:
       tag: ubi-latest-static-aarch64
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-dynamic-x86
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: ubi-latest-dynamic-x86
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-x86
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: ubi-latest-static-x86
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-dynamic-s390x
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: ubi-latest-dynamic-s390x
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-s390x
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: ubi-latest-static-s390x
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
 jobs:
-  - name: self-update
-    max_in_flight: 1
-    plan:
-      - get: instana-agent-docker-git
-        trigger: true
-      - set_pipeline: self
-        file: instana-agent-docker-git/pipeline.yml
-  - name: aarch64-build
+#  - name: self-update
+#    max_in_flight: 1
+#    plan:
+#      - get: instana-agent-docker-git
+#        trigger: true
+#      - set_pipeline: self
+#        file: instana-agent-docker-git/pipeline.yml
+  - name: prepare-build-bundle
     public: true
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ self-update ]
-      - task: package-aarch64-build-bundle
+        # passed: [ self-update ]
+      - task: package-build-bundle
         config:
           platform: linux
           image_resource:
@@ -97,11 +129,21 @@ jobs:
                 zip -r target/context.zip .
           outputs:
             - name: target
-      - put: aarch64-build-bundle
+      - put: build-bundle
         params:
           file: target/context.zip
+
+  - name: x86-build
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: build-bundle
+        trigger: true
+        passed: [ prepare-build-bundle ]
       - load_var: s3-artifact-version
-        file: aarch64-build-bundle/version
+        file: build-bundle/version
         reveal: true
       - load_var: commit-sha
         file: instana-agent-docker-git/.git/short_ref
@@ -109,38 +151,140 @@ jobs:
       - in_parallel:
           fail_fast: true
           steps:
-            - put: aarch64-static-build
+            - put: codebuild-static
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
-                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  ARTIFACT_NAME: x86
+                  DOWNLOAD_KEY: ((download-key))
                   FLAVOR: static
                   VERSION: changeme
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
-            - put: aarch64-dynamic-build
+                  TARGETPLATFORM: linux/amd64
+            - put: codebuild-dynamic
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
-                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  ARTIFACT_NAME: x86
+                  DOWNLOAD_KEY: ((download-key))
                   FLAVOR: dynamic
                   VERSION: changeme
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
-      - load_var: static-aarch64-version
-        file: aarch64-static-build/artifacts/tag
+                  TARGETPLATFORM: linux/amd64
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: agent-dynamic-x86
+              params:
+                  image: codebuild-dynamic/artifacts/image.tar
+                  additional_tags: codebuild-dynamic/artifacts/tag
+            - put: agent-static-x86
+              params:
+                  image: codebuild-static/artifacts/image.tar
+                  additional_tags: codebuild-static/artifacts/tag
+
+  - name: arm64-build
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: build-bundle
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - load_var: s3-artifact-version
+        file: build-bundle/version
         reveal: true
-      - load_var: dynamic-aarch64-version
-        file: aarch64-dynamic-build/artifacts/tag
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
         reveal: true
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: codebuild-static
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARTIFACT_NAME: arm64
+                  DOWNLOAD_KEY: ((download-key))
+                  FLAVOR: static
+                  VERSION: changeme
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/arm64
+            - put: codebuild-dynamic
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARTIFACT_NAME: arm64
+                  DOWNLOAD_KEY: ((download-key))
+                  FLAVOR: dynamic
+                  VERSION: changeme
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/arm64
       - in_parallel:
           fail_fast: true
           steps:
             - put: agent-dynamic-aarch64
               params:
-                  image: aarch64-dynamic-build/artifacts/image.tar
-                  additional_tags: aarch64-dynamic-build/artifacts/tag
+                  image: codebuild-dynamic/artifacts/image.tar
+                  additional_tags: codebuild-dynamic/artifacts/tag
             - put: agent-static-aarch64
               params:
-                  image: aarch64-static-build/artifacts/image.tar
-                  additional_tags: aarch64-static-build/artifacts/tag
+                  image: codebuild-static/artifacts/image.tar
+                  additional_tags: codebuild-static/artifacts/tag
+
+  - name: s390x-build
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: build-bundle
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - load_var: s3-artifact-version
+        file: build-bundle/version
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: codebuild-static
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARTIFACT_NAME: s390x
+                  DOWNLOAD_KEY: ((download-key))
+                  FLAVOR: static
+                  VERSION: changeme
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/s390x
+            - put: codebuild-dynamic
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARTIFACT_NAME: s390x
+                  DOWNLOAD_KEY: ((download-key))
+                  FLAVOR: dynamic
+                  VERSION: changeme
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/s390x
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: agent-dynamic-s390x
+              params:
+                  image: codebuild-dynamic/artifacts/image.tar
+                  additional_tags: codebuild-dynamic/artifacts/tag
+            - put: agent-static-s390x
+              params:
+                  image: codebuild-static/artifacts/image.tar
+                  additional_tags: codebuild-static/artifacts/tag
