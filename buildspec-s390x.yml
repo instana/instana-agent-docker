@@ -7,9 +7,7 @@ env:
     DOCKERHUB_PASSWORD: _
     DOWNLOAD_KEY: _
     IMAGE_REPO_NAME: gcr.io/instana-agent-qa/instana-agent-docker
-    IMAGE_TAG: latest
-    TARGETPLATFORM: linux/s390x
-    ARCH: s390x
+    TARGETPLATFORM: _
     BRANCH: _
     COMMIT_SHA: _
     FLAVOR: dynamic
@@ -26,19 +24,13 @@ phases:
       - mv buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
       - echo Build started on `date`
       - echo "$DOWNLOAD_KEY" > download_key
-      - echo "${COMMIT_SHA}-${FLAVOR}-${ARCH}" > tag
-      - docker buildx create --name s390x
-      - docker buildx use s390x
+      - echo "${COMMIT_SHA}-${FLAVOR}" > tag
+      - docker buildx create --name rosetta
+      - docker buildx use rosetta
       - docker buildx inspect --bootstrap
-      - docker buildx build --load --platform linux/s390x --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=linux/s390x" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-s390x" $FLAVOR
-      - docker buildx build --load --platform linux/amd64 --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=linux/amd64" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-amd64" $FLAVOR
-      - docker buildx build --load --platform linux/arm64 --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=linux/arm64" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-arm64" $FLAVOR
-      - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-s390x" > image-s390x.tar
-      - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-amd64" > image-amd64.tar
-      - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}-arm64" > image-arm64.tar
+      - docker buildx build --load --platform ${TARGETPLATFORM} --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}" $FLAVOR
+      - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}" > image.tar
 artifacts:
   files:
     - 'tag'
-    - 'image-s390x.tar'
-    - 'image-amd64.tar'
-    - 'image-arm64.tar'
+    - 'image.tar'
