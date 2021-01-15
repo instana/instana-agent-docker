@@ -8,6 +8,7 @@ env:
     DOWNLOAD_KEY: _
     IMAGE_REPO_NAME: gcr.io/instana-agent-qa/instana-agent-docker
     TARGETPLATFORM: _
+    ARTIFACT_NAME: _
     BRANCH: _
     COMMIT_SHA: _
     FLAVOR: dynamic
@@ -31,6 +32,7 @@ phases:
       - docker buildx build --load --platform ${TARGETPLATFORM} --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}" $FLAVOR
       - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${FLAVOR}" > image.tar
 artifacts:
+  name: $COMMIT_SHA-$ARTIFACT_NAME-$FLAVOR
   files:
     - 'tag'
     - 'image.tar'
