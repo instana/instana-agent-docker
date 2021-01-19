@@ -252,5 +252,8 @@ if [ -d /host/proc ]; then
   export INSTANA_AGENT_PROC_PATH=/host/proc
 fi
 
+# Approximately 1/3 of container memory requests to allow for direct-buffer memory usage and JVM overhead
+echo "export JAVA_OPTS=\"-XX:+UseContainerSupport -XX:MaxRAMFraction=3 -XX:+ExitOnOutOfMemoryError ${JAVA_OPTS}\"" >> /opt/instana/agent/bin/setenv
+
 echo "Starting Instana Agent ..."
 exec /opt/instana/agent/bin/karaf server
