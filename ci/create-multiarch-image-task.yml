@@ -14,7 +14,7 @@ run:
   path: entrypoint.sh
   args:
     - bash
-    - -ceux
+    - -ceu
     - |
       set -e
       echo $JSON_KEY > key.json
