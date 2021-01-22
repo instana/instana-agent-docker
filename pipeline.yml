@@ -155,7 +155,7 @@ jobs:
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
-                  ARTIFACT_NAME: x86
+                  ARCH: x86
                   DOWNLOAD_KEY: ((download-key))
                   FLAVOR: static
                   VERSION: changeme
@@ -166,7 +166,7 @@ jobs:
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
-                  ARTIFACT_NAME: x86
+                  ARCH: x86
                   DOWNLOAD_KEY: ((download-key))
                   FLAVOR: dynamic
                   VERSION: changeme
@@ -207,7 +207,7 @@ jobs:
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
-                  ARTIFACT_NAME: arm64
+                  ARCH: arm64
                   DOWNLOAD_KEY: ((download-key))
                   FLAVOR: static
                   VERSION: changeme
@@ -218,7 +218,7 @@ jobs:
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
-                  ARTIFACT_NAME: arm64
+                  ARCH: arm64
                   DOWNLOAD_KEY: ((download-key))
                   FLAVOR: dynamic
                   VERSION: changeme
@@ -259,7 +259,7 @@ jobs:
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
-                  ARTIFACT_NAME: s390x
+                  ARCH: s390x
                   DOWNLOAD_KEY: ((download-key))
                   FLAVOR: static
                   VERSION: changeme
@@ -270,7 +270,7 @@ jobs:
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
-                  ARTIFACT_NAME: s390x
+                  ARCH: s390x
                   DOWNLOAD_KEY: ((download-key))
                   FLAVOR: dynamic
                   VERSION: changeme
@@ -288,3 +288,42 @@ jobs:
               params:
                   image: codebuild-static/artifacts/image.tar
                   additional_tags: codebuild-static/artifacts/tag
+  - name: build-multiarch
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ s390x-build, arm64-build, x86-build ]
+      - get: codebuild-dynamic
+        passed: [ arm64-build ]
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - task: build-dynamic-multiarch-manifest
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: karlkfi/concourse-dcind
+          inputs:
+            - name: instana-agent-docker-git
+            - name: codebuild-dynamic
+          params:
+            DOCKER_CLI_EXPERIMENTAL: enabled
+          run:
+            path: entrypoint.sh
+            args:
+              - bash
+              - -ceux
+              - |
+                set -e
+                echo '((project-berlin-tests-gcp-instana-qa))' > key.json
+                cat key.json | docker login -u _json_key --password-stdin https://gcr.io
+
+                docker manifest create "gcr.io/instana-agent-qa/instana-agent-docker:((.:commit-sha))" \
+                  --amend "gcr.io/instana-agent-qa/instana-agent-docker:((.:commit-sha))-amd64-dynamic" \
+                  --amend "gcr.io/instana-agent-qa/instana-agent-docker:((.:commit-sha))-arm64-dynamic"
+
+                docker manifest push "gcr.io/instana-agent-qa/instana-agent-docker:((.:commit-sha))"
