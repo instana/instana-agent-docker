@@ -126,19 +126,19 @@ resources:
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
 jobs:
-#  - name: self-update
-#    max_in_flight: 1
-#    plan:
-#      - get: instana-agent-docker-git
-#        trigger: true
-#      - set_pipeline: self
-#        file: instana-agent-docker-git/pipeline.yml
+  - name: self-update
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+      - set_pipeline: self
+        file: instana-agent-docker-git/pipeline.yml
   - name: prepare-build-bundle
     public: true
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        # passed: [ self-update ]
+        passed: [ self-update ]
       - task: package-build-bundle
         config:
           platform: linux
@@ -346,12 +346,27 @@ jobs:
                 commit-sha: ((.:commit-sha))
                 flavor: dynamic
                 docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-            - task: build-static-multiarch-manifest
-              privileged: true
-              file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
-              input_mapping:
-                code: instana-agent-docker-git
-              vars:
-                commit-sha: ((.:commit-sha))
-                flavor: static
-                docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+  - name: build-multiarch-static
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ s390x-build, arm64-build, amd64-build ]
+      - get: codebuild-static-amd64
+        passed: [ amd64-build ]
+      - get: codebuild-static-arm64
+        passed: [ arm64-build ]
+      - get: codebuild-static-s390x
+        passed: [ s390x-build ]
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - task: build-static-multiarch-manifest
+        privileged: true
+        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        vars:
+          commit-sha: ((.:commit-sha))
+          flavor: static
+          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
