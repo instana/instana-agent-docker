@@ -1,0 +1,182 @@
+#!groovy
+
+def SLACK_CHANNEL = "tech-agent-delivery"
+
+node {
+
+  def DOCKER_REGISTRY_INTERNAL = "containers.instana.io"
+
+  def STATIC_IMAGE_NAME = "instana/agent/static"
+  def DYNAMIC_IMAGE_NAME = "instana/agent/dynamic"
+
+  def SOURCE_IMAGE_NAME = "gcr.io/instana-agent-qa/instana-agent-docker"
+
+  def releaseVersion = getNextPatchVersion(env.INSTANA_SAAS_RELEASE, BUILD_NUMBER)
+  currentBuild.displayName = "#${BUILD_NUMBER}:${releaseVersion}"
+
+  stage ('Checkout Git Repo') {
+    deleteDir()
+    checkout scm
+  }
+
+  stage ('Pull Static Agent Docker Image') {
+    println "Pulling static docker image"
+    pullMultiPlatformImage(SOURCE_IMAGE_NAME, "latest", releaseVersion, "static")
+  }
+
+  stage ('Pull Static Agent Docker Image') {
+    println "Pulling dynamic docker image"
+    pullMultiPlatformImage(SOURCE_IMAGE_NAME, "latest", releaseVersion, "dynamic")
+  }
+
+  stage ('Re-Tag Dynamic Agent Docker Image') {
+    println "Re-Tagging dynamic docker image"
+    reTagMultiPlatformImage(SOURCE_IMAGE_NAME, DOCKER_REGISTRY_INTERNAL + "/" + DYNAMIC_IMAGE_NAME, "latest", releaseVersion, "dynamic")
+  }
+
+  stage ('Re-Tag Static Agent Docker Image') {
+    println "Re-Tagging static docker image"
+    reTagMultiPlatformImage(SOURCE_IMAGE_NAME, DOCKER_REGISTRY_INTERNAL + "/" + STATIC_IMAGE_NAME, "latest", releaseVersion, "static")
+  }
+
+  stage('Push to prerelease') {
+    if (env.DRY_RUN.toBoolean()) {
+      println "Skipping publish to prerelease!"
+    } else {
+      // Push docker images to prerelease
+      println "Pushing images to prerelease"
+
+      println "Push dynamic agent docker image to prerelease"
+      pushMultiPlatformImage("${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/dynamic", releaseVersion)
+
+      println "Push static agent docker image to prerelease"
+      pushMultiPlatformImage("${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/static", releaseVersion)
+    }
+  }
+
+  cleanUp()
+
+  if (!env.DRY_RUN.toBoolean()) {
+    //slackSend channel: "#${SLACK_CHANNEL}", color: "#389a07", message: "Successfully build Instana agent docker ${releaseVersion} \n(<${env.BUILD_URL}|Open>)"
+  }
+}
+
+def getNextPatchVersion(def saasVersion, def buildNumber) {
+  def versionBaseDir = '/mnt/efs/data/instana-version'
+  def patchMarkerFile = "${versionBaseDir}/agent-docker/${saasVersion}.number"
+
+  if(fileExists("${patchMarkerFile}")) {
+    def patchVersionNumberProp = readProperties file: patchMarkerFile
+
+    def patchVersionNumber
+    if (patchVersionNumberProp.buildNumber != buildNumber) {
+      def currentPatchNumber = patchVersionNumberProp.value as Integer
+      def nextPatchVersionNumber = currentPatchNumber + 1
+      new File(patchMarkerFile).write(
+        """value=${nextPatchVersionNumber}
+        buildNumber=${buildNumber}
+        """)
+      patchVersionNumber = nextPatchVersionNumber
+    } else {
+      patchVersionNumber = patchVersionNumberProp.value as Integer
+    }
+
+    return "1.${saasVersion}.${patchVersionNumber}"
+  } else {
+    new File(patchMarkerFile).write(
+      """value=0
+    buildNumber=${buildNumber}
+    """)
+    return "1.${saasVersion}.0"
+  }
+}
+
+def pullMultiPlatformImage(source, tag, releaseVersion, flavor) {
+  try {
+    sh """
+      docker pull --platform linux/amd64 ${source}:${tag}-amd64-${flavor}
+      docker pull --platform linux/s390x ${source}:${tag}-s390x-${flavor}
+      docker pull --platform linux/arm64 ${source}:${tag}-arm64-${flavor}
+    """
+  } catch(e) {
+    /**
+    slackSend channel: "#${SLACK_CHANNEL}",
+            color: "#ff5d00",
+            message: """
+      Failed to pull Instana agent docker image for ${source}:${tag}-${flavor} (${releaseVersion}).
+      Reason: ${e.message}
+      (<${env.BUILD_URL}|Open>)
+      """
+     **/
+    cleanUp()
+    throw e;
+  }
+}
+
+def reTagMultiPlatformImage(source, destination, tag, releaseVersion, flavor) {
+  try {
+    sh """
+      docker pull --platform linux/amd64 ${source}:${tag}-amd64-${flavor}
+      docker pull --platform linux/s390x ${source}:${tag}-s390x-${flavor}
+      docker pull --platform linux/arm64 ${source}:${tag}-arm64-${flavor}
+
+      docker tag ${source}:${tag}-amd64-${flavor} ${destination}:latest-amd64
+      docker tag ${source}:${tag}-s390x-${flavor} ${destination}:latest-s390x
+      docker tag ${source}:${tag}-arm64-${flavor} ${destination}:latest-arm64
+
+      docker tag ${source}:${tag}-amd64-${flavor} ${destination}:${releaseVersion}-amd64
+      docker tag ${source}:${tag}-s390x-${flavor} ${destination}:${releaseVersion}-s390x
+      docker tag ${source}:${tag}-arm64-${flavor} ${destination}:${releaseVersion}-arm64
+
+      docker manifest create "${destination}:${releaseVersion}" \\
+        --amend "${destination}:${releaseVersion}-amd64" \\
+        --amend "${destination}:${releaseVersion}-s390x" \\
+        --amend "${destination}:${releaseVersion}-arm64"
+
+      docker manifest create "${destination}:latest" \\
+        --amend "${destination}:latest-amd64" \\
+        --amend "${destination}:latest-s390x" \\
+        --amend "${destination}:latest-arm64"
+    """
+  } catch(e) {
+    /**
+    slackSend channel: "#${SLACK_CHANNEL}",
+                color: "#ff5d00",
+              message: """
+      Failed to re-tag Instana agent docker image for ${destination}:${releaseVersion}.
+      Reason: ${e.message}
+      (<${env.BUILD_URL}|Open>)
+      """
+     **/
+    cleanUp()
+    throw e;
+  }
+}
+
+def pushMultiPlatformImage(destination, releaseVersion) {
+  try {
+    sh """
+      docker manifest push "${destination}:${releaseVersion}"
+    """
+  } catch(e) {
+    /**
+    slackSend channel: "#${SLACK_CHANNEL}",
+            color: "#ff5d00",
+            message: """
+      Failed to push Instana agent docker image for ${destination}:${releaseVersion}.
+      Reason: ${e.message}
+      (<${env.BUILD_URL}|Open>)
+      """
+     **/
+    cleanUp()
+    throw e;
+  }
+}
+
+def cleanUp() {
+  println "Cleaning up docker images"
+  sh '''
+    IMAGES=$(docker images --format='{{.Repository}} {{.ID}}' | grep -E '.*instana.*agent.*' | cut -d ' ' -f 2 | uniq | tr '\n' ' ' | sed -e 's/[[:space:]]*$//')
+    docker rmi --force $IMAGES
+  '''
+}
