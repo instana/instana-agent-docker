@@ -1,0 +1,32 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: karlkfi/concourse-dcind
+inputs:
+  - name: code
+params:
+  DOCKER_CLI_EXPERIMENTAL: enabled
+  COMMIT_SHA: ((commit-sha))
+  FLAVOR: ((flavor))
+  JSON_KEY: ((docker-json-key))
+run:
+  path: entrypoint.sh
+  args:
+    - bash
+    - -ceux
+    - |
+      set -e
+      echo $JSON_KEY > key.json
+      cat key.json | docker login -u _json_key --password-stdin https://gcr.io
+
+      docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR"
+      docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR"
+      docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR"
+
+      docker manifest create "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA" \
+        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR" \
+        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR" \
+        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR"
+
+      docker manifest push "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-$FLAVOR"
