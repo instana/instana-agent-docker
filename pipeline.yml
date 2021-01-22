@@ -82,7 +82,7 @@ resources:
     icon: docker
     source:
       repository: gcr.io/instana-agent-qa/instana-agent-docker
-      tag: ubi-latest-dynamic-aarch64
+      tag: latest-arm64-dynamic
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
   - name: agent-static-arm64
@@ -90,7 +90,7 @@ resources:
     icon: docker
     source:
       repository: gcr.io/instana-agent-qa/instana-agent-docker
-      tag: latest-amd64-static
+      tag: latest-arm64-static
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
   - name: agent-dynamic-amd64
