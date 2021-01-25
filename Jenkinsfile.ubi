@@ -31,12 +31,12 @@ node {
 
   stage ('Re-Tag Dynamic Agent Docker Image') {
     println "Re-Tagging dynamic docker image"
-    reTagMultiPlatformImage(SOURCE_IMAGE_NAME, DOCKER_REGISTRY_INTERNAL + "/" + DYNAMIC_IMAGE_NAME, "latest", releaseVersion, "dynamic")
+    reTagMultiPlatformImage(SOURCE_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/dynamic", "latest", releaseVersion, "dynamic")
   }
 
   stage ('Re-Tag Static Agent Docker Image') {
     println "Re-Tagging static docker image"
-    reTagMultiPlatformImage(SOURCE_IMAGE_NAME, DOCKER_REGISTRY_INTERNAL + "/" + STATIC_IMAGE_NAME, "latest", releaseVersion, "static")
+    reTagMultiPlatformImage(SOURCE_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/static", "latest", releaseVersion, "static")
   }
 
   stage('Push to prerelease') {
@@ -127,16 +127,6 @@ def reTagMultiPlatformImage(source, destination, tag, releaseVersion, flavor) {
       docker tag ${source}:${tag}-amd64-${flavor} ${destination}:${releaseVersion}-amd64
       docker tag ${source}:${tag}-s390x-${flavor} ${destination}:${releaseVersion}-s390x
       docker tag ${source}:${tag}-arm64-${flavor} ${destination}:${releaseVersion}-arm64
-
-      docker manifest create "${destination}:${releaseVersion}" \\
-        --amend "${destination}:${releaseVersion}-amd64" \\
-        --amend "${destination}:${releaseVersion}-s390x" \\
-        --amend "${destination}:${releaseVersion}-arm64"
-
-      docker manifest create "${destination}:latest" \\
-        --amend "${destination}:latest-amd64" \\
-        --amend "${destination}:latest-s390x" \\
-        --amend "${destination}:latest-arm64"
     """
   } catch(e) {
     /**
@@ -156,7 +146,26 @@ def reTagMultiPlatformImage(source, destination, tag, releaseVersion, flavor) {
 def pushMultiPlatformImage(destination, releaseVersion) {
   try {
     sh """
+      docker push ${destination}:latest-amd64
+      docker push ${destination}:latest-s390x
+      docker push ${destination}:latest-arm64
+
+      docker push ${destination}:${releaseVersion}-amd64
+      docker push ${destination}:${releaseVersion}-s390x
+      docker push ${destination}:${releaseVersion}-arm64
+
+      docker manifest create "${destination}:${releaseVersion}" \\
+        --amend "${destination}:${releaseVersion}-amd64" \\
+        --amend "${destination}:${releaseVersion}-s390x" \\
+        --amend "${destination}:${releaseVersion}-arm64"
+
+      docker manifest create "${destination}:latest" \\
+        --amend "${destination}:latest-amd64" \\
+        --amend "${destination}:latest-s390x" \\
+        --amend "${destination}:latest-arm64"
+
       docker manifest push "${destination}:${releaseVersion}"
+      docker manifest push "${destination}:latest"
     """
   } catch(e) {
     /**
