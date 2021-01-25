@@ -24,6 +24,10 @@ run:
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR"
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR"
 
+      docker pull "gcr.io/instana-agent-qa/instana-agent-docker:latest-amd64-$FLAVOR"
+      docker pull "gcr.io/instana-agent-qa/instana-agent-docker:latest-s390x-$FLAVOR"
+      docker pull "gcr.io/instana-agent-qa/instana-agent-docker:latest-arm64-$FLAVOR"
+
       docker manifest create "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-$FLAVOR" \
         --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR" \
         --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR" \
