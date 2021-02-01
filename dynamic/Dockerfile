@@ -155,4 +155,6 @@ ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent
 
+ENV INSTANA_USE_MEMORY_CALCULATOR='true'
+
 ENTRYPOINT ["./bin/run.sh"]
