@@ -20,6 +20,7 @@ run:
       set -e
       echo $JSON_KEY > key.json
       cat key.json | docker login -u _json_key --password-stdin https://gcr.io
+      echo "((containers-instana-io-creds.password))" | docker login -u ((containers-instana-io-creds.username)) --password-stdin https://containers.instana.io
 
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR"
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR"
@@ -35,6 +36,24 @@ run:
         --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR"
 
       docker manifest push "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-$FLAVOR"
+
+      docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR" \
+        "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-amd64"
+      docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR" \
+        "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-s390x"
+      docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR" \
+        "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-arm64"
+
+      docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-amd64"
+      docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-s390x"
+      docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-arm64"
+
+      docker manifest create "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION" \
+        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-amd64" \
+        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-s390x" \
+        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-arm64"
+
+      docker manifest push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION"
 
       docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR" \
         "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-amd64-$FLAVOR"
