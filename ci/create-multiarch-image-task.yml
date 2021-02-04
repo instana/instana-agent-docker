@@ -9,6 +9,7 @@ params:
   DOCKER_CLI_EXPERIMENTAL: enabled
   COMMIT_SHA: ((commit-sha))
   FLAVOR: ((flavor))
+  VERSION: ((version))
   JSON_KEY: ((docker-json-key))
 run:
   path: entrypoint.sh
@@ -34,6 +35,24 @@ run:
         --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR"
 
       docker manifest push "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-$FLAVOR"
+
+      docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR" \
+        "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-amd64-$FLAVOR"
+      docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR" \
+        "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-s390x-$FLAVOR"
+      docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR" \
+        "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-arm64-$FLAVOR"
+
+      docker push "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-amd64-$FLAVOR"
+      docker push "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-s390x-$FLAVOR"
+      docker push "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-arm64-$FLAVOR"
+
+      docker manifest create "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-$FLAVOR" \
+        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-amd64-$FLAVOR" \
+        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-s390x-$FLAVOR" \
+        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-arm64-$FLAVOR"
+
+      docker manifest push "gcr.io/instana-agent-qa/instana-agent-docker:$VERSION-$FLAVOR"
 
       docker manifest create "gcr.io/instana-agent-qa/instana-agent-docker:latest-$FLAVOR" \
         --amend "gcr.io/instana-agent-qa/instana-agent-docker:latest-amd64-$FLAVOR" \
