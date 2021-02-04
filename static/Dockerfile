@@ -57,7 +57,7 @@ RUN microdnf install --nodocs iptables iproute util-linux python3 jq findutils \
 RUN ( \
         [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] \
         && echo -e '[docker-ce-stable]\nname=Docker CE Stable - $basearch\nbaseurl=https://download.docker.com/linux/centos/8/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=https://download.docker.com/linux/centos/gpg' > /etc/yum.repos.d/docker.repo \
-        && microdnf install --nodocs docker-ce-cli containerd.io \
+        && microdnf install --nodocs docker-ce-cli \
         && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
         && microdnf clean all \
     ) || true
