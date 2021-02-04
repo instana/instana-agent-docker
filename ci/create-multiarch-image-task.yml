@@ -91,6 +91,7 @@ run:
       containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-amd64
       containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-s390x
       containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-arm64
+      containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION
 
       containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-amd64
       containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-s390x
