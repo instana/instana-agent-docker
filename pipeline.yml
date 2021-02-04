@@ -46,7 +46,7 @@ resources:
   - name: slack-alert
     type: slack-notification
     source:
-      url: ((qa-notification-slack-hook))
+      url: ((tech-agent-delivery-slack-hook))
   ## amd64 packages
   - name: rpm-static-x86_64
     type: gcs-resource
@@ -467,6 +467,7 @@ jobs:
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
       - put: slack-alert
         params:
+          channel: '#tech-agent-delivery'
           text_file: message/text
   - name: build-multiarch-static
     max_in_flight: 1
@@ -503,4 +504,5 @@ jobs:
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
       - put: slack-alert
         params:
+          channel: '#tech-agent-delivery'
           text_file: message/text
