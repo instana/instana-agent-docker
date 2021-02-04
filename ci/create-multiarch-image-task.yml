@@ -77,7 +77,7 @@ run:
       docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-s390x"
       docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-arm64"
 
-      echo "---> Creatig multi-architectural images to containers.instana.io"
+      echo "---> Creating multi-architectural latest manifest containers.instana.io"
       docker manifest create "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest" \
         --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-amd64" \
         --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-s390x" \
