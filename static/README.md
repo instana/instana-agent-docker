@@ -7,7 +7,15 @@ This build of the Instana agent includes all sensors. It requires proxy settings
 Needs Docker 18.09 or higher:
 
 ```sh
-DOCKER_BUILDKIT=1 docker build --build-arg TARGETPLATFORM=<PLATFORM> --build-arg DOWNLOAD_KEY=<DOWNLOAD_KEY> --no-cache . -t containers.instana.io/instana/release/agent/static
+export TARGETPLATFORM=linux/s390x
+export DOWNLOAD_KEY=my-key
+
+docker buildx build --no-cache \
+  --build-arg DOWNLOAD_KEY="${DOWNLOAD_KEY}" \
+  --platform="${TARGETPLATFORM}" \
+  --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" \
+  -t containers.instana.io/instana/release/agent/static \
+  . 
 ```
 
 Supported values of `<PLATFORM>`:
@@ -16,7 +24,7 @@ Supported values of `<PLATFORM>`:
 * `linux/arm64`
 * `linux/s390x`
 
-**Note:** For backwards compatibility reasons, the `<DOWNLOAD_KEY>` can also be passed via the `FTP_PROXY` build argument, and using buildkit, which is activated via the `DOCKER_BUILDKIT=1` environment variable, is optional.
+**Note:** For backwards compatibility reasons, the `<DOWNLOAD_KEY>` can also be passed via the `FTP_PROXY` build argument.
 
 ## Download Prebuilt Image
 
