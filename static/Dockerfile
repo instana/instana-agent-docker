@@ -76,15 +76,17 @@ RUN ( \
         && microdnf clean all \
     ) || true
 
-# On s390x, out Agent packages do not carry a JVM, so we need to install an OpenJDK one
-# and teach run.sh where to find it
-RUN ( \
-        [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
-        && microdnf install --nodocs java-1.8.0-openjdk \
-        && rm -rf /tmp/* \
-        && microdnf clean all \
-        && echo "export JAVA_HOME=$(find / -name jre | grep openjdk)" >> /opt/instana/agent/bin/setenv \
-    ) || true
+# On s390x, our Agent packages do not carry a JVM, so we need to install an OpenJ9
+RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] || exit 0; \
+    ESUM='19e76ec32f6dd6820b3e1043b8b30984edc69174ddbc72d1b22f490f245ef0e4'; \
+    BINARY_URL='https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9_openj9-0.24.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.10_9_openj9-0.24.0.tar.gz'; \
+    INSTALL_DIR='/opt/instana/agent/jvm'; \
+    TMP_FILE='/tmp/openjdk.tar.gz'; \
+    curl -LfsS ${BINARY_URL} -o ${TMP_FILE}; \
+    echo "${ESUM} ${TMP_FILE}" | sha256sum -c - > /dev/null; \
+    mkdir -p ${INSTALL_DIR}; \
+    tar -xf ${TMP_FILE} -C ${INSTALL_DIR} --strip-components=1; \
+    rm -rf ${TMP_FILE};
 
 # Install runc on the x86_64, the other platforms are not supported
 RUN ( \
