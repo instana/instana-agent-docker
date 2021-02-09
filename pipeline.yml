@@ -46,7 +46,7 @@ resources:
   - name: slack-alert
     type: slack-notification
     source:
-      url: ((tech-agent-delivery-slack-hook))
+      url: ((tech-agent-delivery-notifications-slack-hook))
   ## amd64 packages
   - name: rpm-static-x86_64
     type: gcs-resource
