@@ -11,16 +11,12 @@ RUN apt-get update && \
     apt-get update && \
     apt-get install -y --no-install-recommends inotify-tools docker-ce-cli containerd python3-pip iptables iproute2 jq && \
     apt-get upgrade -y && \
+    curl -L https://github.com/hairyhenderson/gomplate/releases/download/v3.8.0/gomplate_linux-amd64-slim -o /usr/bin/gomplate && \
+    echo "847f7d9fc0dc74c33188c2b0d0e9e4ed9204f67c36da5aacbab324f8bfbf29c9 /usr/bin/gomplate" | sha256sum -c - > /dev/null && \
+    chmod 755 /usr/bin/gomplate && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Setup to install the Instana package
-RUN echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
-    apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends gomplate && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
 
 # Configuration up to this line needs to be in sync with dynamic/Dockerfile
 # Dynamic & static agent start to diverge here:
@@ -45,7 +41,10 @@ ENV LANG=C.UTF-8 \
     INSTANA_GIT_LOG_COUNT="10" \
     INSTANA_LOG_LEVEL=""
 
-RUN apt-get update && \
+# Setup to install the Instana package
+RUN echo "deb [arch=amd64] https://_:${FTP_PROXY}@packages.instana.io/agent/deb generic main" > /etc/apt/sources.list.d/instana-agent.list && \
+    apt-key adv --fetch-keys "https://packages.instana.io/Instana.gpg" && \
+    apt-get update && \
     apt-get install -y instana-agent-static && \
     apt-get purge -y gnupg2 && \
     apt-get autoremove -y && \
