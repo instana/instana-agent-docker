@@ -1,17 +1,8 @@
-## instana-agent-docker
+# Instana Agent Docker Images
 
-This repo contains the Dockerfiles relating to the various containers Instana
-supports.
+This repo contains the Dockerfiles relating to the various Instana agent containers.
 
- * dynamic - is the image used in the Helm chart and is suggested as the
-             preferred image for a standard install.
- * static - the static image that contains all run-time dependencies ideal for
-            network access restricted environments such as airgapped servers.
- * rhel - is the RHEL Atomic based image which is suggested for environments
-          where a RHEL base image is required.
+* [`dynamic`](./dynamic/) is the image used by default in the Helm chart and is suggested as the preferred image for a standard install; the `dynamic` image container a dynamic Instana agent, which is capable of updating itself automatically as new versions of its components are published.
+* [`static`](./static/) is an image that contains all run-time dependencies ideal for network access restricted environments such as airgapped servers.
 
-## Building
-
-The agent docker images are built on agent-jenkins and updates are posted to the private #tech-agent-delivery channel in Slack.  Ask SRE for access to that channel if needed.
-
-The QA team automatically builds PRs in [GCP Cloudbuild](https://console.cloud.google.com/cloud-build/builds?folder=&organizationId=&project=instana-qa) and the (eventually) built images land on [GCP GCR](https://gcr.io/instana-qa/github.com/instana/instana-agent-docker) for testing. Merges to master then get built on ops-jenkins again.
+For more information on dynamic and static agents, refer to the [Instana Host Agent Types](https://www.instana.com/docs/setup_and_manage/host_agent#host-agent-types) documentation.

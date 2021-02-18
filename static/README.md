@@ -1,31 +1,39 @@
-Instana Agent Static Docker
-===========================
+# Instana Agent Static Docker Image
 
-This build of the Instana agent includes all sensors. It requires proxy settings only for egress access to the `${INSTANA_AGENT_ENDPOINT}`, which may either be for your self hosted Instana installation or for the Instana SaaS.
+This build of the Instana agent includes all sensors. It requires proxy settings only for egress access to the `${INSTANA_AGENT_ENDPOINT}`, which may either be for your self-hosted Instana installation or for the Instana SaaS.
 
-Building
-========
+## Building
 
-Use the following command for a Ubuntu-based image:
+**Note**: Needs Docker 18.09 or higher. Also [Experimental
+features](https://github.com/docker/cli/blob/master/experimental/README.md) need to be enabled and
+[Buildx](https://github.com/docker/buildx/) CLI plugin needs to be installed.
+
+```sh
+export TARGETPLATFORM=linux/s390x
+export DOWNLOAD_KEY=my-key
+
+docker buildx build --no-cache \
+  --build-arg DOWNLOAD_KEY="${DOWNLOAD_KEY}" \
+  --platform="${TARGETPLATFORM}" \
+  --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" \
+  -t containers.instana.io/instana/release/agent/static \
+  .
 ```
-docker build ./ --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache
-```
 
-**Note:**
+Supported values of `<PLATFORM>`:
 
-`FTP_PROXY` is being abused to pass in the agent key for the package download during docker build, we are doing this until docker build time secrets issue is resolved: [issue GH33343](https://github.com/moby/moby/issues/33343)
+* `linux/amd64`
+* `linux/arm64`
+* `linux/s390x`
 
-Download Prebuilt Image
-=======================
+**Note:** For backwards compatibility reasons, the `<DOWNLOAD_KEY>` can also be passed via the `FTP_PROXY` build argument.
 
-The static image can be found on containers.instana.io and can be downloaded using the following commands:
-```
+## Download Prebuilt Image
+
+The Instana Agent static Docker image can be found on `containers.instana.io` and can be downloaded using the following commands:
+
+```sh
 docker login containers.instana.io -u _ -p <agent_key>
 
 docker pull containers.instana.io/instana/release/agent/static:latest
 ```
-
-OS Architecture Specifics
-=========================
-
-For Linux s390x see: [s390x Build Documentation](README_s390x.md)

@@ -41,20 +41,18 @@ if [ -n "${INSTANA_AGENT_PROXY_USE_DNS}" ]; then
   esac
 fi
 
-if [ -z "${INSTANA_DOWNLOAD_KEY}" ]; then
-  INSTANA_DOWNLOAD_KEY="${INSTANA_AGENT_KEY}"
+if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
+  INSTANA_LOG_LEVEL='INFO'
 fi
-
-if  [ -z "${INSTANA_MVN_REPOSITORY_URL}" ]; then
-  INSTANA_MVN_REPOSITORY_URL='https://artifact-public.instana.io'
-fi
-
-if  [ -z "${INSTANA_MVN_REPOSITORY_FEATURES_PATH}" ]; then
-  INSTANA_MVN_REPOSITORY_FEATURES_PATH='artifactory/features-public@id=features@snapshots@snapshotsUpdate=always'
-fi
-
-if  [ -z "${INSTANA_MVN_REPOSITORY_SHARED_PATH}" ]; then
-  INSTANA_MVN_REPOSITORY_SHARED_PATH='artifactory/shared@id=shared@snapshots@snapshotsUpdate=never'
+if [ -n "${INSTANA_LOG_LEVEL}" ]; then
+  case ${INSTANA_LOG_LEVEL} in
+    INFO|DEBUG|TRACE|ERROR|OFF)
+      ;;
+    *)
+      echo "Log level is set to '${INSTANA_LOG_LEVEL}' which is unsupported, falling back to 'INFO'"
+      INSTANA_LOG_LEVEL=INFO
+      ;;
+  esac
 fi
 
 if [ "${INSTANA_GIT_REMOTE_REPOSITORY}" == "" ]; then
@@ -72,18 +70,20 @@ fi
 # Empty string is a valid value for INSTANA_GIT_REMOTE_PASSWORD
 # so don't unset it like the other environment variables
 
-if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
-  INSTANA_LOG_LEVEL='INFO'
+if [ -z "${INSTANA_DOWNLOAD_KEY}" ]; then
+  INSTANA_DOWNLOAD_KEY="${INSTANA_AGENT_KEY}"
 fi
-if [ -n "${INSTANA_LOG_LEVEL}" ]; then
-  case ${INSTANA_LOG_LEVEL} in
-    INFO|DEBUG|TRACE|ERROR|OFF)
-      ;;
-    *)
-      echo "Log level is set to '${INSTANA_LOG_LEVEL}' which is unsupported, falling back to 'INFO'"
-      INSTANA_LOG_LEVEL=INFO
-      ;;
-  esac
+
+if  [ -z "${INSTANA_MVN_REPOSITORY_URL}" ]; then
+  INSTANA_MVN_REPOSITORY_URL='https://artifact-public.instana.io'
+fi
+
+if  [ -z "${INSTANA_MVN_REPOSITORY_FEATURES_PATH}" ]; then
+  INSTANA_MVN_REPOSITORY_FEATURES_PATH='artifactory/features-public@id=features@snapshots@snapshotsUpdate=always'
+fi
+
+if  [ -z "${INSTANA_MVN_REPOSITORY_SHARED_PATH}" ]; then
+  INSTANA_MVN_REPOSITORY_SHARED_PATH='artifactory/shared@id=shared@snapshots@snapshotsUpdate=never'
 fi
 
 # Take over Agent Proxy variables if no Repository Proxy is enabled
@@ -102,6 +102,7 @@ case ${INSTANA_REPOSITORY_PROXY_ENABLED} in
 esac
 
 readonly CANONICAL_DOCKER_SOCKET_PATH='/var/run/docker.sock'
+# Adjust Docker socket for VMware TKGI
 if [ ! -S "${CANONICAL_DOCKER_SOCKET_PATH}" ]; then
   echo "Docker socket not found at ${CANONICAL_DOCKER_SOCKET_PATH}"
 
@@ -115,17 +116,17 @@ fi
 
 rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
   /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg  \
-  /opt/instana/agent/etc/instana/configuration.yaml \
-  /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg \
-  /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
+  /opt/instana/agent/etc/instana/configuration.yaml
+
+cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.template /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 
 cp /root/configuration.yaml /opt/instana/agent/etc/instana
-cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.template /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 gomplate < /root/org.ops4j.pax.logging.cfg.tmpl > /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
-gomplate < /root/org.ops4j.pax.url.mvn.cfg.tmpl > /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg
-gomplate < /root/mvn-settings.xml.tmpl > /opt/instana/agent/etc/mvn-settings.xml
 gomplate < /root/com.instana.agent.main.sender.Backend-1.cfg.tmpl > \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
+
+gomplate < /root/org.ops4j.pax.url.mvn.cfg.tmpl > /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg
+gomplate < /root/mvn-settings.xml.tmpl > /opt/instana/agent/etc/mvn-settings.xml
 gomplate < /root/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl > \
   /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
 gomplate < /root/com.instana.agent.main.config.UpdateManager.cfg.tmpl > \
@@ -252,6 +253,9 @@ echo -e "\nmode = ${INSTANA_AGENT_MODE}" >> /opt/instana/agent/etc/instana/com.i
 if [ -d /host/proc ]; then
   export INSTANA_AGENT_PROC_PATH=/host/proc
 fi
+
+# Approximately 1/3 of container memory requests to allow for direct-buffer memory usage and JVM overhead
+echo "export JAVA_OPTS=\"-XX:+UseContainerSupport -XX:MaxRAMFraction=3 -XX:+ExitOnOutOfMemoryError ${JAVA_OPTS}\"" >> /opt/instana/agent/bin/setenv
 
 echo "Starting Instana Agent ..."
 exec /opt/instana/agent/bin/karaf server
