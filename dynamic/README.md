@@ -1,19 +1,48 @@
-Instana Agent Docker
-====================
+# Instana Agent Dynamic Docker Image
 
-This build of the instana agent includes requires access to the publicly hosted Instana maven repository in order to download sensors. It requires proxy settings for egress access to the ${INSTANA_AGENT_ENDPOINT}, which may either be for your self hosted Instana installation or for the Instana SaaS, and for access to the Instana maven repository.
+This build of the Instana agent requires access to the publicly hosted Instana maven repository in order to download sensors.
+It may require proxy settings for egress access to:
 
-Building
-========
+* the `${INSTANA_AGENT_ENDPOINT}`, which may either be for your self-hosted Instana installation or for the Instana SaaS
+* the [Instana Artifactory repository](https://artifact-public.instana.io/), unless you set up a mirror and use the `INSTANA_MVN_REPOSITORY_URL` to direct the Instana Agent to use it
 
-docker build ./ --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --no-cache
+Additional documentation about the usage of this image is available on the [Installing the Host Agent on Docker](https://www.instana.com/docs/setup_and_manage/host_agent/on/docker) documentation.
 
-*Note*
+## Building
 
-FTP_PROXY is being abused to pass in the agent key for the package download during docker build, we are doing this until docker build time secrets issue is resolved: [issue GH33343](https://github.com/moby/moby/issues/33343)
+**Note**: Needs Docker 18.09 or higher. Also [Experimental
+features](https://github.com/docker/cli/blob/master/experimental/README.md) need to be enabled and
+[Buildx](https://github.com/docker/buildx/) CLI plugin needs to be installed.
 
-Docker Hub
-==========
+```sh
+export TARGETPLATFORM=linux/s390x
+export DOWNLOAD_KEY=my-key
 
-The image can be found on docker hub [https://hub.docker.com/r/instana/agent/](https://hub.docker.com/r/instana/agent)
+docker buildx build --no-cache \
+  --build-arg DOWNLOAD_KEY="${DOWNLOAD_KEY}" \
+  --platform="${TARGETPLATFORM}" \
+  --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" \
+  -t instana/agent \
+  .
+```
 
+Supported values of `<PLATFORM>`:
+
+* `linux/amd64`
+* `linux/arm64`
+* `linux/s390x`
+
+**Note:** For backwards compatibility reasons, the `<DOWNLOAD_KEY>` can also be passed via the `FTP_PROXY` build argument.
+
+## Download Prebuilt Image
+
+The Instana Agent Dynamic Docker image can be found on:
+
+* Docker Hub as [https://hub.docker.com/r/instana/agent/](https://hub.docker.com/r/instana/agent)
+* `containers.instana.io` as `containers.instana.io/instana/release/agent/dynamic:latest`, which you can pull with the following commands:
+
+```sh
+docker login containers.instana.io -u _ -p <agent_key>
+
+docker pull containers.instana.io/instana/release/agent/dynamic:latest
+```

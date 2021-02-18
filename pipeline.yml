@@ -1,0 +1,508 @@
+---
+# see https://concourse-ci.org/pipelines.html
+resource_types:
+  - name: codebuild
+    type: registry-image
+    source:
+      repository: cedricziel/concourse-codebuild-resource
+      tag: "0.1.14"
+  - name: gcs-resource
+    type: registry-image
+    source:
+      repository: frodenas/gcs-resource
+  - name: instana-version
+    type: registry-image
+    source:
+      repository: instana/instana-version-resource
+      tag: latest
+  - name: slack-notification
+    type: registry-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
+resources:
+  - name: instana-agent-docker-git
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/instana/instana-agent-docker.git
+      branch: ((branch))
+      ignore_paths:
+        - README.md
+  - name: backend-version
+    type: instana-version
+    icon: airballoon
+    source:
+      endpoint: https://qa-instana.instana.io
+      api_token: ((qa-instana-api-token))
+      granularity: branch
+  - name: agent-version
+    type: semver
+    source:
+      driver: gcs
+      bucket: instana-agent-qa-versioning
+      key: agent/image
+      json_key: ((project-berlin-tests-gcp-instana-qa))
+  - name: slack-alert
+    type: slack-notification
+    source:
+      url: ((tech-agent-delivery-notifications-slack-hook))
+  ## amd64 packages
+  - name: rpm-static-x86_64
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-(2.*)\.x86_64\.rpm
+  - name: rpm-dynamic-x86_64
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-(2.*)\.x86_64\.rpm
+  ## aarch64 packages
+  - name: rpm-static-aarch64
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-(.*)\.aarch64\.rpm
+
+  - name: rpm-dynamic-aarch64
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-(.*)\.aarch64\.rpm
+
+  ## s390x packages
+  - name: rpm-static-s390x
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-(.*)\.s390x\.rpm
+
+  - name: rpm-dynamic-s390x
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-(.*)\.s390x\.rpm
+  - name: build-bundle
+    type: s3
+    icon: zip-disk
+    source:
+      bucket: instana-agent-images-codebuild
+      versioned_file: context.zip
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+      region_name: us-west-2
+      skip_download: true
+  - name: codebuild-dynamic-amd64
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-static-amd64
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-dynamic-arm64
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-static-arm64
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-dynamic-s390x
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-static-s390x
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: agent-dynamic-arm64
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-arm64-dynamic
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-arm64
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-arm64-static
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-dynamic-amd64
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-amd64-dynamic
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-amd64
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-amd64-static
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-dynamic-s390x
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-s390x-dynamic
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-s390x
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-s390x-static
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+jobs:
+  - name: bump-release-version
+    max_in_flight: 1
+    plan:
+      - get: backend-version
+        trigger: true
+      - put: agent-version
+        params: { bump: minor }
+#  - name: self-update
+#    max_in_flight: 1
+#    plan:
+#      - get: instana-agent-docker-git
+#        trigger: true
+#      - set_pipeline: self
+#        file: instana-agent-docker-git/pipeline.yml
+  - name: prepare-build-bundle
+    max_in_flight: 1
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+#        passed: [ self-update ]
+      - get: backend-version
+        trigger: true
+      - get: rpm-static-x86_64
+        trigger: true
+      - get: rpm-dynamic-x86_64
+        trigger: true
+      - get: rpm-static-aarch64
+        trigger: true
+      - get: rpm-dynamic-aarch64
+        trigger: true
+      - get: rpm-static-s390x
+        trigger: true
+      - get: rpm-dynamic-s390x
+        trigger: true
+      - put: agent-version
+        params: { bump: patch }
+      - task: package-build-bundle
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: ubuntu
+          inputs:
+            - name: instana-agent-docker-git
+              path: .
+            - name: agent-version
+          run:
+            path: bash
+            args:
+              - -ce
+              - |
+                date
+                apt-get update
+                apt-get install -yqq zip unzip
+                zip -r target/context.zip .
+          outputs:
+            - name: target
+      - put: build-bundle
+        params:
+          file: target/context.zip
+
+  - name: amd64-build
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: build-bundle
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - load_var: s3-artifact-version
+        file: build-bundle/version
+        reveal: true
+      - get: agent-version
+        passed: [prepare-build-bundle]
+        trigger: true
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: codebuild-static-amd64
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: amd64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/amd64
+            - put: codebuild-dynamic-amd64
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: amd64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/amd64
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: agent-dynamic-amd64
+              params:
+                  image: codebuild-dynamic-amd64/artifacts/image.tar
+                  additional_tags: codebuild-dynamic-amd64/artifacts/tag
+            - put: agent-static-amd64
+              params:
+                  image: codebuild-static-amd64/artifacts/image.tar
+                  additional_tags: codebuild-static-amd64/artifacts/tag
+
+  - name: arm64-build
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: build-bundle
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: agent-version
+        passed: [ prepare-build-bundle ]
+        trigger: true
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: s3-artifact-version
+        file: build-bundle/version
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: codebuild-static-arm64
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: arm64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/arm64
+            - put: codebuild-dynamic-arm64
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: arm64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/arm64
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: agent-dynamic-arm64
+              params:
+                  image: codebuild-dynamic-arm64/artifacts/image.tar
+                  additional_tags: codebuild-dynamic-arm64/artifacts/tag
+            - put: agent-static-arm64
+              params:
+                  image: codebuild-static-arm64/artifacts/image.tar
+                  additional_tags: codebuild-static-arm64/artifacts/tag
+
+  - name: s390x-build
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: build-bundle
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: agent-version
+        passed: [ prepare-build-bundle ]
+        trigger: true
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: s3-artifact-version
+        file: build-bundle/version
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: codebuild-static-s390x
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: s390x
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/s390x
+            - put: codebuild-dynamic-s390x
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: s390x
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/s390x
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: agent-dynamic-s390x
+              params:
+                  image: codebuild-dynamic-s390x/artifacts/image.tar
+                  additional_tags: codebuild-dynamic-s390x/artifacts/tag
+            - put: agent-static-s390x
+              params:
+                  image: codebuild-static-s390x/artifacts/image.tar
+                  additional_tags: codebuild-static-s390x/artifacts/tag
+  - name: build-multiarch-dynamic
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ s390x-build, arm64-build, amd64-build ]
+      - get: agent-version
+        passed: [ s390x-build, arm64-build, amd64-build ]
+        trigger: true
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - get: codebuild-dynamic-amd64
+        passed: [ amd64-build ]
+      - get: codebuild-dynamic-arm64
+        passed: [ arm64-build ]
+      - get: codebuild-dynamic-s390x
+        passed: [ s390x-build ]
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - task: build-dynamic-multiarch-manifest
+        privileged: true
+        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        output_mapping:
+          message: message
+        vars:
+          commit-sha: ((.:commit-sha))
+          flavor: dynamic
+          version: ((.:agent-version))
+          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+  - name: build-multiarch-static
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ s390x-build, arm64-build, amd64-build ]
+      - get: agent-version
+        passed: [ s390x-build, arm64-build, amd64-build ]
+        trigger: true
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - get: codebuild-static-amd64
+        passed: [ amd64-build ]
+      - get: codebuild-static-arm64
+        passed: [ arm64-build ]
+      - get: codebuild-static-s390x
+        passed: [ s390x-build ]
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - task: build-static-multiarch-manifest
+        privileged: true
+        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        output_mapping:
+          message: message
+        vars:
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          flavor: static
+          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text

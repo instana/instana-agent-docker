@@ -1,0 +1,38 @@
+version: 0.2
+
+env:
+  variables:
+    DOCKER_CLI_EXPERIMENTAL: enabled
+    DOCKERHUB_USER: _
+    DOCKERHUB_PASSWORD: _
+    DOWNLOAD_KEY: _
+    IMAGE_REPO_NAME: gcr.io/instana-agent-qa/instana-agent-docker
+    TARGETPLATFORM: _
+    ARCH: _
+    BRANCH: _
+    COMMIT_SHA: _
+    FLAVOR: dynamic
+    VERSION: _
+
+phases:
+  build:
+    commands:
+      - docker --version
+      - yum -y install qemu-user-static
+      - wget https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
+      - chmod a+x buildx-v0.5.1.linux-amd64
+      - mkdir -p ~/.docker/cli-plugins
+      - mv buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
+      - echo Build started on `date`
+      - echo "$DOWNLOAD_KEY" > download_key
+      - echo "${COMMIT_SHA}-${ARCH}-${FLAVOR}" > tag
+      - docker buildx create --name rosetta
+      - docker buildx use rosetta
+      - docker buildx inspect --bootstrap
+      - docker buildx build --load --platform ${TARGETPLATFORM} --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${ARCH}-${FLAVOR}" $FLAVOR
+      - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${ARCH}-${FLAVOR}" > image.tar
+artifacts:
+  name: $COMMIT_SHA-$ARCH-$FLAVOR
+  files:
+    - 'tag'
+    - 'image.tar'

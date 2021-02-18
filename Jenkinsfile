@@ -8,7 +8,6 @@ node {
 
   def STATIC_IMAGE_NAME = "instana/agent/static"
   def DYNAMIC_IMAGE_NAME = "instana/agent/dynamic"
-  def RHEL_IMAGE_NAME = "instana/agent/rhel"
 
   def releaseVersion = getNextPatchVersion(env.INSTANA_SAAS_RELEASE, BUILD_NUMBER)
   currentBuild.displayName = "#${BUILD_NUMBER}:${releaseVersion}"
@@ -28,11 +27,6 @@ node {
     buildImage(STATIC_IMAGE_NAME, "static", releaseVersion, "${DYNAMIC_IMAGE_NAME}:${releaseVersion}")
   }
 
-  stage ('Build RHEL Agent Docker Image') {
-    println "Building rhel agent docker image"
-    buildImage(RHEL_IMAGE_NAME, "rhel", releaseVersion, null)
-  }
-
   stage('Push to prerelease') {
     if (env.DRY_RUN.toBoolean()) {
       println "Skipping publish to prerelease!"
@@ -45,9 +39,6 @@ node {
 
       println "Push static agent docker image to prerelease"
       publishImage(STATIC_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/static", releaseVersion)
-
-      println "Push rhel agent docker image to prerelease"
-      publishImage(RHEL_IMAGE_NAME, "${DOCKER_REGISTRY_INTERNAL}/instana/prerelease/agent/rhel", releaseVersion)
     }
   }
 
@@ -88,11 +79,14 @@ def getNextPatchVersion(def saasVersion, def buildNumber) {
   }
 }
 
+// TODO Add support for other architectures passing `--build-arg <ARCH>`
 def buildImage(name, context, releaseVersion, cacheFromImage) {
   def cacheFlag = cacheFromImage != null ? "--cache-from ${cacheFromImage}" : "--no-cache"
   try {
     sh """
-      docker build --pull ./${context} ${cacheFlag} --build-arg FTP_PROXY=${INSTANA_AGENT_KEY} --label "version=${releaseVersion}" -t ${name}:${releaseVersion}
+      echo ${INSTANA_AGENT_KEY} > download_key
+      DOCKER_BUILDKIT=1 docker build --pull ./${context} ${cacheFlag} --secret id=download_key,src=download_key --label "version=${releaseVersion}" -t ${name}:${releaseVersion}
+      rm download_key
     """
   } catch(e) {
     slackSend channel: "#${SLACK_CHANNEL}",
