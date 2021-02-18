@@ -10,7 +10,9 @@ Additional documentation about the usage of this image is available on the [Inst
 
 ## Building
 
-Needs Docker 18.09 or higher:
+**Note**: Needs Docker 18.09 or higher. Also [Experimental
+features](https://github.com/docker/cli/blob/master/experimental/README.md) need to be enabled and
+[Buildx](https://github.com/docker/buildx/) CLI plugin needs to be installed.
 
 ```sh
 export TARGETPLATFORM=linux/s390x
@@ -21,7 +23,7 @@ docker buildx build --no-cache \
   --platform="${TARGETPLATFORM}" \
   --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" \
   -t instana/agent \
-  . 
+  .
 ```
 
 Supported values of `<PLATFORM>`:
