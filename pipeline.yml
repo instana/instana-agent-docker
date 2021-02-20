@@ -43,10 +43,10 @@ resources:
       bucket: instana-agent-qa-versioning
       key: agent/image
       json_key: ((project-berlin-tests-gcp-instana-qa))
-  - name: slack-alert
-    type: slack-notification
-    source:
-      url: ((tech-agent-delivery-notifications-slack-hook))
+#  - name: slack-alert
+#    type: slack-notification
+#    source:
+#      url: ((tech-agent-delivery-notifications-slack-hook))
   ## amd64 packages
   - name: rpm-static-x86_64
     type: gcs-resource
@@ -210,6 +210,9 @@ jobs:
 #        trigger: true
 #      - set_pipeline: self
 #        file: instana-agent-docker-git/pipeline.yml
+#        vars:
+#          gcp-zone: europe-west3-c
+#          gcp-project: instana-agent-qa
   - name: prepare-build-bundle
     max_in_flight: 1
     public: true
@@ -217,8 +220,6 @@ jobs:
       - get: instana-agent-docker-git
         trigger: true
 #        passed: [ self-update ]
-      - get: backend-version
-        trigger: true
       - get: rpm-static-x86_64
         trigger: true
       - get: rpm-dynamic-x86_64
@@ -432,24 +433,147 @@ jobs:
               params:
                   image: codebuild-static-s390x/artifacts/image.tar
                   additional_tags: codebuild-static-s390x/artifacts/tag
-  - name: build-multiarch-dynamic
+
+  - name: verify-amd64-static
     max_in_flight: 1
+    on_abort: &destroy-amd64-static-vm
+      do:
+        - task: destroy-vm
+          file: instana-agent-docker-git/ci/destroy-verification-vm-task.yml
+          vars:
+            instance-name: instana-agent-amd64-static
+            gcp-project: instana-agent-qa
+            gcp-zone: europe-west3-c
+    on_success:  *destroy-amd64-static-vm
+    on_error: *destroy-amd64-static-vm
+    on_failure:  *destroy-amd64-static-vm
+    plan:
+      - get: instana-agent-docker-git
+        passed: [ amd64-build ]
+      - get: agent-version
+        passed: [ amd64-build ]
+      - get: agent-static-amd64
+        trigger: true
+        passed: [amd64-build]
+      - load_var: digest
+        file: agent-static-amd64/digest
+      - task: start-vm
+        file: instana-agent-docker-git/ci/create-verification-vm-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        vars:
+          flavor: static
+          instana-agent-key: ((qa-instana-agent-key))
+          instance-name: instana-agent-amd64-static
+          instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          gcp-project: instana-agent-qa
+          gcp-zone: europe-west3-c
+      - task: verify-image
+        file: instana-agent-docker-git/ci/verify-e2e-task.yml
+        vars:
+          instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          instana-api-key: ((qa-instana-api-token))
+          instana-zone: agent-verification
+          instana-host: agent-verification
+          instance-name: instana-agent-amd64-static
+
+  - name: verify-amd64-dynamic
+    max_in_flight: 1
+    on_abort: &destroy-amd64-dynamic-vm
+      do:
+        - task: destroy-vm
+          file: instana-agent-docker-git/ci/destroy-verification-vm-task.yml
+          vars:
+            instance-name: instana-agent-amd64-dynamic
+            gcp-project: instana-agent-qa
+            gcp-zone: europe-west3-c
+    on_success:  *destroy-amd64-dynamic-vm
+    on_error: *destroy-amd64-dynamic-vm
+    on_failure:  *destroy-amd64-dynamic-vm
+    plan:
+      - get: instana-agent-docker-git
+        passed: [ amd64-build ]
+      - get: agent-version
+        passed: [ amd64-build ]
+      - get: agent-dynamic-amd64
+        trigger: true
+        passed: [amd64-build]
+      - load_var: digest
+        file: agent-dynamic-amd64/digest
+      - task: start-vm
+        file: instana-agent-docker-git/ci/create-verification-vm-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        vars:
+          flavor: static
+          instana-agent-key: ((qa-instana-agent-key))
+          instance-name: instana-agent-amd64-dynamic
+          instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          gcp-project: instana-agent-qa
+          gcp-zone: europe-west3-c
+      - task: verify-image
+        file: instana-agent-docker-git/ci/verify-e2e-task.yml
+        vars:
+          instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          instana-api-key: ((qa-instana-api-token))
+          instana-zone: agent-verification
+          instana-host: agent-verification
+          instance-name: instana-agent-amd64-dynamic
+
+  - name: verification-gate
     plan:
       - get: instana-agent-docker-git
         trigger: true
         passed: [ s390x-build, arm64-build, amd64-build ]
       - get: agent-version
         passed: [ s390x-build, arm64-build, amd64-build ]
+      - get: agent-dynamic-amd64
+        params:
+          skip_download: true
+        passed: [ verify-amd64-dynamic ]
+      - get: agent-dynamic-s390x
+        params:
+          skip_download: true
+      - get: agent-dynamic-arm64
+        params:
+          skip_download: true
+
+      - get: agent-static-amd64
+        params:
+          skip_download: true
+        passed: [ verify-amd64-static ]
+      - get: agent-static-arm64
+        params:
+          skip_download: true
+      - get: agent-static-s390x
+        params:
+          skip_download: true
+
+  - name: build-multiarch-dynamic
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
         trigger: true
+        passed: [ verification-gate ]
+      - get: agent-version
+        passed: [ verification-gate ]
+
+      - get: agent-dynamic-amd64
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-dynamic-s390x
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-dynamic-arm64
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+
       - load_var: agent-version
         file: agent-version/number
         reveal: true
-      - get: codebuild-dynamic-amd64
-        passed: [ amd64-build ]
-      - get: codebuild-dynamic-arm64
-        passed: [ arm64-build ]
-      - get: codebuild-dynamic-s390x
-        passed: [ s390x-build ]
       - load_var: commit-sha
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
@@ -465,28 +589,36 @@ jobs:
           flavor: dynamic
           version: ((.:agent-version))
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-      - put: slack-alert
-        params:
-          channel: '#tech-agent-delivery'
-          text_file: message/text
+#      - put: slack-alert
+#        params:
+#          channel: '#tech-agent-delivery'
+#          text_file: message/text
+
   - name: build-multiarch-static
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ s390x-build, arm64-build, amd64-build ]
+        passed: [ verification-gate ]
       - get: agent-version
-        passed: [ s390x-build, arm64-build, amd64-build ]
-        trigger: true
+        passed: [ verification-gate ]
+
+      - get: agent-static-amd64
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-static-arm64
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-static-s390x
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+
       - load_var: agent-version
         file: agent-version/number
         reveal: true
-      - get: codebuild-static-amd64
-        passed: [ amd64-build ]
-      - get: codebuild-static-arm64
-        passed: [ arm64-build ]
-      - get: codebuild-static-s390x
-        passed: [ s390x-build ]
       - load_var: commit-sha
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
@@ -502,7 +634,7 @@ jobs:
           version: ((.:agent-version))
           flavor: static
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-      - put: slack-alert
-        params:
-          channel: '#tech-agent-delivery'
-          text_file: message/text
+#      - put: slack-alert
+#        params:
+#          channel: '#tech-agent-delivery'
+#          text_file: message/text
