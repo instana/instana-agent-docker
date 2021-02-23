@@ -43,10 +43,10 @@ resources:
       bucket: instana-agent-qa-versioning
       key: agent/image
       json_key: ((project-berlin-tests-gcp-instana-qa))
-#  - name: slack-alert
-#    type: slack-notification
-#    source:
-#      url: ((tech-agent-delivery-notifications-slack-hook))
+  - name: slack-alert
+    type: slack-notification
+    source:
+      url: ((tech-agent-delivery-notifications-slack-hook))
   ## amd64 packages
   - name: rpm-static-x86_64
     type: gcs-resource
@@ -203,23 +203,24 @@ jobs:
         trigger: true
       - put: agent-version
         params: { bump: minor }
-#  - name: self-update
-#    max_in_flight: 1
-#    plan:
-#      - get: instana-agent-docker-git
-#        trigger: true
-#      - set_pipeline: self
-#        file: instana-agent-docker-git/pipeline.yml
-#        vars:
-#          gcp-zone: europe-west3-c
-#          gcp-project: instana-agent-qa
+  - name: self-update
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+      - set_pipeline: self
+        file: instana-agent-docker-git/pipeline.yml
+        vars:
+          branch: master
+          gcp-zone: europe-west3-c
+          gcp-project: instana-agent-qa
   - name: prepare-build-bundle
     max_in_flight: 1
     public: true
     plan:
       - get: instana-agent-docker-git
         trigger: true
-#        passed: [ self-update ]
+        passed: [ self-update ]
       - get: rpm-static-x86_64
         trigger: true
       - get: rpm-dynamic-x86_64
@@ -589,10 +590,10 @@ jobs:
           flavor: dynamic
           version: ((.:agent-version))
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-#      - put: slack-alert
-#        params:
-#          channel: '#tech-agent-delivery'
-#          text_file: message/text
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
 
   - name: build-multiarch-static
     max_in_flight: 1
@@ -634,7 +635,7 @@ jobs:
           version: ((.:agent-version))
           flavor: static
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-#      - put: slack-alert
-#        params:
-#          channel: '#tech-agent-delivery'
-#          text_file: message/text
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
