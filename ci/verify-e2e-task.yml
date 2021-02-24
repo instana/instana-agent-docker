@@ -1,0 +1,29 @@
+---
+# see https://concourse-ci.org/tasks.html
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ubuntu
+
+params:
+  INSTANA_AGENT_IMAGE: ((instana-agent-image))
+  INSTANA_API_KEY: ((instana-api-key))
+  INSTANA_API_HOST: qa-instana.instana.io
+  INSTANA_ZONE: 'agent-verification'
+  INSTANCE_NAME: ((instance-name))
+
+run:
+  path: bash
+  args:
+    - -ec
+    - |
+      apt-get update && apt-get install -yqq curl
+      curl -Lv https://storage.googleapis.com/instana-agent-qa-tools/instana-cli/0.1.6/instana-cli-linux-amd64 -o instana-cli
+      chmod +x instana-cli
+
+      echo "Checking for presence of the host"
+      ./instana-cli wait infra --zone="${INSTANA_ZONE}" --host="${INSTANCE_NAME}" --timeout 600
+      echo "Checking for infra entity representing the agent container"
+      ./instana-cli wait infra --plugin docker --query "entity.docker.image:\"${INSTANA_AGENT_IMAGE}\"" --timeout 600

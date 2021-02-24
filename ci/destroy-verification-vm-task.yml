@@ -1,0 +1,24 @@
+---
+# see https://concourse-ci.org/tasks.html
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: gcr.io/google.com/cloudsdktool/cloud-sdk
+    tag: alpine
+
+params:
+  INSTANCE_NAME: ((instance-name))
+  GOOGLE_SERVICE_ACCOUNT_JSON: ((concourse-at-instana-agent-qa-service-account))
+  CLOUDSDK_CORE_PROJECT: instana-agent-qa
+  CLOUDSDK_COMPUTE_ZONE: europe-west3-c
+
+run:
+  path: bash
+  args:
+    - -ec
+    - |
+      echo $GOOGLE_SERVICE_ACCOUNT_JSON > credentials.json
+      gcloud auth activate-service-account --key-file=credentials.json
+      gcloud compute instances delete "((instance-name))" --delete-disks=all --quiet
