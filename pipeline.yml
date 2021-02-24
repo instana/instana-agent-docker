@@ -200,7 +200,6 @@ jobs:
     max_in_flight: 1
     plan:
       - get: backend-version
-        trigger: true
       - put: agent-version
         params: { bump: minor }
   - name: self-update
