@@ -6,7 +6,7 @@ ENV LANG=C.UTF-8 \
     GOMPLATE_VERSION="3.8.0" \
     GOMPLATE_SHA256="d32817821a7b083b0aeadf29c2aea17e3384b6b619f3a6285150db1914b94c89  v3.8.0.tar.gz"
 
-RUN microdnf install tar gzip wget golang make findutils && \
+RUN microdnf install procps tar gzip wget golang make findutils && \
     mkdir -p /root/go/src/github.com/hairyhenderson && \
     cd /root/go/src/github.com/hairyhenderson && \
     wget https://github.com/hairyhenderson/gomplate/archive/v${GOMPLATE_VERSION}.tar.gz && \
