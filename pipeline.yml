@@ -93,7 +93,7 @@ resources:
     type: s3
     icon: zip-disk
     source:
-      bucket: instana-agent-images-concourse
+      bucket: instana-agent-images-codebuild
       versioned_file: context.zip
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
