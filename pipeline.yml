@@ -526,6 +526,7 @@ jobs:
         trigger: true
         passed: [ s390x-build, arm64-build, amd64-build ]
       - get: agent-version
+        trigger: true
         passed: [ s390x-build, arm64-build, amd64-build ]
       - get: agent-dynamic-amd64
         params:
@@ -556,6 +557,7 @@ jobs:
         trigger: true
         passed: [ verification-gate ]
       - get: agent-version
+        trigger: true
         passed: [ verification-gate ]
 
       - get: agent-dynamic-amd64
@@ -601,6 +603,7 @@ jobs:
         trigger: true
         passed: [ verification-gate ]
       - get: agent-version
+        trigger: true
         passed: [ verification-gate ]
 
       - get: agent-static-amd64
