@@ -107,7 +107,9 @@ ADD help.1 /help.1
 COPY --from=instana-agent /opt/instana /opt/instana
 COPY --from=instana-agent /usr/lib/tmpfiles.d/instana-agent.conf /usr/lib/tmpfiles.d/instana-agent.conf
 
-RUN ln -s /opt/instana/agent/licenses /licenses
+RUN mkdir /licenses \
+    && cp -r /opt/instana/agent/licenses/* /licenses/
+
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
