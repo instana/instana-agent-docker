@@ -36,6 +36,7 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     [[ -z "${FTP_PROXY}" ]] || DOWNLOAD_KEY="${FTP_PROXY}" && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${DOWNLOAD_KEY}@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf install instana-agent-dynamic && \
+    mv /opt/instana/agent/licenses /licenses && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf clean all
 
@@ -105,9 +106,8 @@ ADD help.1 /help.1
 
 # Configuration up to this line needs to be in sync with static/Dockerfile
 COPY --from=instana-agent /opt/instana /opt/instana
+COPY --from=instana-agent /licenses /licenses
 COPY --from=instana-agent /usr/lib/tmpfiles.d/instana-agent.conf /usr/lib/tmpfiles.d/instana-agent.conf
-
-RUN ln -s /opt/instana/agent/licenses /licenses
 
 ENV LANG=C.UTF-8 \
     INSTANA_AGENT_KEY="" \
