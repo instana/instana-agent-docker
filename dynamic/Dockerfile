@@ -36,8 +36,7 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     [[ -z "${FTP_PROXY}" ]] || DOWNLOAD_KEY="${FTP_PROXY}" && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${DOWNLOAD_KEY}@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf install instana-agent-dynamic && \
-    mkdir /licenses && \
-    mv /opt/instana/agent/licenses/* /licenses/ && \
+    mv /opt/instana/agent/licenses /licenses && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf clean all
 
