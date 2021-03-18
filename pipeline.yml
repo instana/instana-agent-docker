@@ -47,6 +47,7 @@ resources:
     type: slack-notification
     source:
       url: ((tech-agent-delivery-notifications-slack-hook))
+  
   ## amd64 packages
   - name: rpm-static-x86_64
     type: gcs-resource
@@ -60,20 +61,44 @@ resources:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
       regexp: packages/instana-agent-dynamic-(2.*)\.x86_64\.rpm
+  - name: rpm-static-x86_64-9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-j9-(2.*)\.x86_64\.rpm
+  - name: rpm-dynamic-x86_64-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-j9-(2.*)\.x86_64\.rpm
+  
   ## aarch64 packages
   - name: rpm-static-aarch64
     type: gcs-resource
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-(.*)\.aarch64\.rpm
-
+      regexp: packages/instana-agent-static-(2.*)\.aarch64\.rpm
   - name: rpm-dynamic-aarch64
     type: gcs-resource
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-(.*)\.aarch64\.rpm
+      regexp: packages/instana-agent-dynamic-(2.*)\.aarch64\.rpm
+  - name: rpm-static-aarch64-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-j9-(.*)\.aarch64\.rpm
+  - name: rpm-dynamic-aarch64-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-j9-(.*)\.aarch64\.rpm
 
   ## s390x packages
   - name: rpm-static-s390x
@@ -81,14 +106,26 @@ resources:
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-(.*)\.s390x\.rpm
-
+      regexp: packages/instana-agent-static-(2.*)\.s390x\.rpm
   - name: rpm-dynamic-s390x
     type: gcs-resource
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-(.*)\.s390x\.rpm
+      regexp: packages/instana-agent-dynamic-(2.*)\.s390x\.rpm
+  - name: rpm-static-s390x-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-j9-(2.*)\.s390x\.rpm
+  - name: rpm-dynamic-s390x-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-j9-(2.*)\.s390x\.rpm
+
   - name: build-bundle
     type: s3
     icon: zip-disk
@@ -99,6 +136,7 @@ resources:
       secret_access_key: ((codebuild-key.key_secret))
       region_name: us-west-2
       skip_download: true
+
   - name: codebuild-dynamic-amd64
     type: codebuild
     icon: aws
@@ -147,6 +185,7 @@ resources:
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
+  
   - name: agent-dynamic-arm64
     type: registry-image
     icon: docker
@@ -224,13 +263,25 @@ jobs:
         trigger: true
       - get: rpm-dynamic-x86_64
         trigger: true
+       - get: rpm-static-x86_64-j9
+        trigger: true
+      - get: rpm-dynamic-x86_64-j9
+        trigger: true
       - get: rpm-static-aarch64
         trigger: true
       - get: rpm-dynamic-aarch64
         trigger: true
+      - get: rpm-static-aarch64-j9
+        trigger: true
+      - get: rpm-dynamic-aarch64-j9
+        trigger: true
       - get: rpm-static-s390x
         trigger: true
       - get: rpm-dynamic-s390x
+        trigger: true
+      - get: rpm-static-s390x-j9
+        trigger: true
+      - get: rpm-dynamic-s390x-j9
         trigger: true
       - put: agent-version
         params: { bump: patch }
@@ -291,6 +342,7 @@ jobs:
                   ARCH: amd64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: static
+                  CLASSIFIER: ''
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -302,6 +354,31 @@ jobs:
                   ARCH: amd64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: dynamic
+                  CLASSIFIER: ''
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/amd64
+            - put: codebuild-static-amd64
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: amd64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  CLASSIFIER: j9
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/amd64
+            - put: codebuild-dynamic-amd64
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: amd64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  CLASSIFIER: j9
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
