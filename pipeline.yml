@@ -153,6 +153,23 @@ resources:
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-dynamic-amd64-j9
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-static-amd64-j9
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+
   - name: codebuild-dynamic-arm64
     type: codebuild
     icon: aws
@@ -169,6 +186,23 @@ resources:
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-dynamic-arm64-j9
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-static-arm64-j9
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+
   - name: codebuild-dynamic-s390x
     type: codebuild
     icon: aws
@@ -202,6 +236,23 @@ resources:
       tag: latest-arm64-static
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-dynamic-arm64-j9
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-arm64-dynamic-j9
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-arm64-j9
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-arm64-static-j9
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+
   - name: agent-dynamic-amd64
     type: registry-image
     icon: docker
@@ -218,6 +269,24 @@ resources:
       tag: latest-amd64-static
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-dynamic-amd64-j9
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-amd64-dynamic-j9
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-amd64-j9
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-amd64-static-j9
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+
+  ## s390x images are by default built on from the j9 RPMs and will not be flagged separately
   - name: agent-dynamic-s390x
     type: registry-image
     icon: docker
@@ -234,6 +303,7 @@ resources:
       tag: latest-s390x-static
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
+
 jobs:
   - name: bump-release-version
     max_in_flight: 1
@@ -359,26 +429,26 @@ jobs:
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
                   TARGETPLATFORM: linux/amd64
-            - put: codebuild-static-amd64
+            - put: codebuild-static-amd64-j9
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
                   ARCH: amd64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: static
-                  CLASSIFIER: j9
+                  CLASSIFIER: -j9
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
                   TARGETPLATFORM: linux/amd64
-            - put: codebuild-dynamic-amd64
+            - put: codebuild-dynamic-amd64-j9
               params:
                 source_version: ((.:s3-artifact-version))
                 env_var_overrides:
                   ARCH: amd64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: dynamic
-                  CLASSIFIER: j9
+                  CLASSIFIER: -j9
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -394,6 +464,14 @@ jobs:
               params:
                   image: codebuild-static-amd64/artifacts/image.tar
                   additional_tags: codebuild-static-amd64/artifacts/tag
+            - put: agent-dynamic-amd64-j9
+              params:
+                  image: codebuild-dynamic-amd64-j9/artifacts/image.tar
+                  additional_tags: codebuild-dynamic-amd64-j9/artifacts/tag
+            - put: agent-static-amd64-j9
+              params:
+                  image: codebuild-static-amd64-j9/artifacts/image.tar
+                  additional_tags: codebuild-static-amd64-j9/artifacts/tag
 
   - name: arm64-build
     public: true
@@ -426,6 +504,7 @@ jobs:
                   ARCH: arm64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: static
+                  CLASSIFIER: ''
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -437,6 +516,31 @@ jobs:
                   ARCH: arm64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: dynamic
+                  CLASSIFIER: ''
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/arm64
+            - put: codebuild-static-arm64-j9
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: arm64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  CLASSIFIER: -j9
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/arm64
+            - put: codebuild-dynamic-arm64-j9
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: arm64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  CLASSIFIER: -j9
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -452,6 +556,14 @@ jobs:
               params:
                   image: codebuild-static-arm64/artifacts/image.tar
                   additional_tags: codebuild-static-arm64/artifacts/tag
+            - put: agent-dynamic-arm64-j9
+              params:
+                  image: codebuild-dynamic-arm64-j9/artifacts/image.tar
+                  additional_tags: codebuild-dynamic-arm64-j9/artifacts/tag
+            - put: agent-static-arm64-j9
+              params:
+                  image: codebuild-static-arm64-j9/artifacts/image.tar
+                  additional_tags: codebuild-static-arm64-j9/artifacts/tag
 
   - name: s390x-build
     public: true
@@ -484,6 +596,7 @@ jobs:
                   ARCH: s390x
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: static
+                  CLASSIFIER: -j9
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -495,6 +608,7 @@ jobs:
                   ARCH: s390x
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: dynamic
+                  CLASSIFIER: -j9
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
