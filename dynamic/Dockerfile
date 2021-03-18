@@ -26,6 +26,7 @@ RUN microdnf install tar gzip wget golang make findutils && \
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS instana-agent
 
 ARG TARGETPLATFORM='linux/amd64'
+ARG CLASSIFIER=''
 ARG DOWNLOAD_KEY
 # This is for backwards compatibility for end users that build their own images
 ARG FTP_PROXY
@@ -35,7 +36,7 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     export arch=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'x86_64' ;; 'linux/arm64') echo 'aarch64' ;; 'linux/s390x') echo 's390x' ;; esac) && \
     [[ -z "${FTP_PROXY}" ]] || DOWNLOAD_KEY="${FTP_PROXY}" && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${DOWNLOAD_KEY}@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
-    microdnf install instana-agent-dynamic && \
+    microdnf install "instana-agent-dynamic${CLASSIFIER}" && \
     mv /opt/instana/agent/licenses /licenses && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf clean all
@@ -76,18 +77,6 @@ RUN ( \
         && microdnf remove tar gzip wget \
         && microdnf clean all \
     ) || true
-
-# On s390x, our Agent packages do not carry a JVM, so we need to install an OpenJ9
-RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] || exit 0; \
-    ESUM='19e76ec32f6dd6820b3e1043b8b30984edc69174ddbc72d1b22f490f245ef0e4'; \
-    BINARY_URL='https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9_openj9-0.24.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.10_9_openj9-0.24.0.tar.gz'; \
-    INSTALL_DIR='/opt/instana/agent/jvm'; \
-    TMP_FILE='/tmp/openjdk.tar.gz'; \
-    curl -LfsS ${BINARY_URL} -o ${TMP_FILE}; \
-    echo "${ESUM} ${TMP_FILE}" | sha256sum -c - > /dev/null; \
-    mkdir -p ${INSTALL_DIR}; \
-    tar -xf ${TMP_FILE} -C ${INSTALL_DIR} --strip-components=1; \
-    rm -rf ${TMP_FILE};
 
 # Install runc on the x86_64, the other platforms are not supported
 RUN ( \
