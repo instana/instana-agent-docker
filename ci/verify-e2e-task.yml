@@ -9,6 +9,7 @@ image_resource:
 
 params:
   INSTANA_AGENT_IMAGE: ((instana-agent-image))
+  INSTANA_AGENT_JDK: ((instana-agent-jdk))
   INSTANA_API_KEY: ((instana-api-key))
   INSTANA_API_HOST: qa-instana.instana.io
   INSTANA_ZONE: 'agent-verification'
@@ -27,3 +28,4 @@ run:
       ./instana-cli wait infra --zone="${INSTANA_ZONE}" --host="${INSTANCE_NAME}" --timeout 600
       echo "Checking for infra entity representing the agent container"
       ./instana-cli wait infra --plugin docker --query "entity.docker.image:\"${INSTANA_AGENT_IMAGE}\"" --timeout 600
+      ./instana-cli wait infra --plugin host --query "entity.agent.vm.name:\"*${INSTANA_AGENT_JDK}*\"" --timeout 600
