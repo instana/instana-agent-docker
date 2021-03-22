@@ -596,7 +596,7 @@ jobs:
                   ARCH: s390x
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: static
-                  CLASSIFIER: -j9
+                  CLASSIFIER: ''
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -608,7 +608,7 @@ jobs:
                   ARCH: s390x
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: dynamic
-                  CLASSIFIER: -j9
+                  CLASSIFIER: ''
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -860,15 +860,50 @@ jobs:
         params:
           skip_download: true
         passed: [ verification-gate ]
-      - get: agent-dynamic-amd64-j9
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
       - get: agent-dynamic-s390x
         params:
           skip_download: true
         passed: [ verification-gate ]
       - get: agent-dynamic-arm64
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - task: build-dynamic-multiarch-manifest
+        privileged: true
+        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        output_mapping:
+          message: message
+        vars:
+          commit-sha: ((.:commit-sha))
+          flavor: dynamic
+          classifier: ''
+          version: ((.:agent-version))
+          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+  
+  - name: build-multiarch-dynamic-j9
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ verification-gate ]
+      - get: agent-version
+        trigger: true
+        passed: [ verification-gate ]
+
+      - get: agent-dynamic-amd64-j9
         params:
           skip_download: true
         passed: [ verification-gate ]
@@ -893,6 +928,7 @@ jobs:
         vars:
           commit-sha: ((.:commit-sha))
           flavor: dynamic
+          classifier: j9
           version: ((.:agent-version))
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
       - put: slack-alert
@@ -914,15 +950,7 @@ jobs:
         params:
           skip_download: true
         passed: [ verification-gate ]
-      - get: agent-static-amd64-j9
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
       - get: agent-static-arm64
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
-      - get: agent-static-arm64-j9
         params:
           skip_download: true
         passed: [ verification-gate ]
@@ -948,6 +976,50 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           flavor: static
+          classifier: ''
+          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+
+  - name: build-multiarch-static-j9
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ verification-gate ]
+      - get: agent-version
+        trigger: true
+        passed: [ verification-gate ]
+
+      - get: agent-static-amd64-j9
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-static-arm64-j9
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - task: build-static-multiarch-manifest
+        privileged: true
+        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        output_mapping:
+          message: message
+        vars:
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          flavor: static
+          classifier: j9
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
       - put: slack-alert
         params:
