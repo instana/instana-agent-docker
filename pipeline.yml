@@ -61,7 +61,7 @@ resources:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
       regexp: packages/instana-agent-dynamic-(2.*)\.x86_64\.rpm
-  - name: rpm-static-x86_64-9
+  - name: rpm-static-x86_64-j9
     type: gcs-resource
     source:
       bucket: agent-ci
@@ -333,7 +333,7 @@ jobs:
         trigger: true
       - get: rpm-dynamic-x86_64
         trigger: true
-       - get: rpm-static-x86_64-j9
+      - get: rpm-static-x86_64-j9
         trigger: true
       - get: rpm-dynamic-x86_64-j9
         trigger: true
