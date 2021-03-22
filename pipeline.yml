@@ -319,7 +319,7 @@ jobs:
       - set_pipeline: self
         file: instana-agent-docker-git/pipeline.yml
         vars:
-          branch: master
+          branch: ((branch))
           gcp-zone: europe-west3-c
           gcp-project: instana-agent-qa
   - name: prepare-build-bundle
