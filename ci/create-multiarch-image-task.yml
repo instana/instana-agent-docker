@@ -29,9 +29,9 @@ run:
       # CLASSIFIER is used to distiguish OpenJDK (classic) agent images and OpenJ9 agent images. OpenJ9 images will use the CLASSIFIER "-j9".
       # Here we fix it in case only 'j9' is given.
       # Empty CLASSIFIER means classic OpenJDK based images.
-      
+
       # CLASSIFIER is not empty and does not start with a '-':
-      if [ "${CLASSIFIER}x" != 'x' ] && [ "${CLASSIFIER#-}" = "${CLASSIFIER}"]; then
+      if [ "${CLASSIFIER}x" != 'x' ] && [ "${CLASSIFIER#-}" = "${CLASSIFIER}" ]; then
         CLASSIFIER="-${CLASSIFIER}"
       fi
 
