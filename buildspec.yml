@@ -12,6 +12,7 @@ env:
     BRANCH: _
     COMMIT_SHA: _
     FLAVOR: dynamic
+    CLASSIFIER: ""
     VERSION: _
 
 phases:
@@ -25,14 +26,14 @@ phases:
       - mv buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
       - echo Build started on `date`
       - echo "$DOWNLOAD_KEY" > download_key
-      - echo "${COMMIT_SHA}-${ARCH}-${FLAVOR}" > tag
+      - echo "${COMMIT_SHA}-${ARCH}-${FLAVOR}${CLASSIFIER}" > tag
       - docker buildx create --name rosetta
       - docker buildx use rosetta
       - docker buildx inspect --bootstrap
-      - docker buildx build --load --platform ${TARGETPLATFORM} --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${ARCH}-${FLAVOR}" $FLAVOR
-      - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${ARCH}-${FLAVOR}" > image.tar
+      - docker buildx build --load --platform ${TARGETPLATFORM} --build-arg "DOWNLOAD_KEY=${DOWNLOAD_KEY}" --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" --build-arg "CLASSIFIER=${CLASSIFIER}" --label "version=${VERSION}" -t "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${ARCH}-${FLAVOR}${CLASSIFIER}" $FLAVOR
+      - docker save "${IMAGE_REPO_NAME}:${COMMIT_SHA}-${ARCH}-${FLAVOR}${CLASSIFIER}" > image.tar
 artifacts:
-  name: $COMMIT_SHA-$ARCH-$FLAVOR
+  name: $COMMIT_SHA-$ARCH-$FLAVOR${CLASSIFIER}
   files:
     - 'tag'
     - 'image.tar'

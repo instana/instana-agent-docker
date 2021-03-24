@@ -47,6 +47,7 @@ resources:
     type: slack-notification
     source:
       url: ((tech-agent-delivery-notifications-slack-hook))
+  
   ## amd64 packages
   - name: rpm-static-x86_64
     type: gcs-resource
@@ -60,20 +61,44 @@ resources:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
       regexp: packages/instana-agent-dynamic-(2.*)\.x86_64\.rpm
+  - name: rpm-static-x86_64-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-j9-(2.*)\.x86_64\.rpm
+  - name: rpm-dynamic-x86_64-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-j9-(2.*)\.x86_64\.rpm
+  
   ## aarch64 packages
   - name: rpm-static-aarch64
     type: gcs-resource
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-(.*)\.aarch64\.rpm
-
+      regexp: packages/instana-agent-static-(2.*)\.aarch64\.rpm
   - name: rpm-dynamic-aarch64
     type: gcs-resource
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-(.*)\.aarch64\.rpm
+      regexp: packages/instana-agent-dynamic-(2.*)\.aarch64\.rpm
+  - name: rpm-static-aarch64-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-j9-(.*)\.aarch64\.rpm
+  - name: rpm-dynamic-aarch64-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-j9-(.*)\.aarch64\.rpm
 
   ## s390x packages
   - name: rpm-static-s390x
@@ -81,14 +106,26 @@ resources:
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-(.*)\.s390x\.rpm
-
+      regexp: packages/instana-agent-static-(2.*)\.s390x\.rpm
   - name: rpm-dynamic-s390x
     type: gcs-resource
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-(.*)\.s390x\.rpm
+      regexp: packages/instana-agent-dynamic-(2.*)\.s390x\.rpm
+  - name: rpm-static-s390x-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-j9-(2.*)\.s390x\.rpm
+  - name: rpm-dynamic-s390x-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-j9-(2.*)\.s390x\.rpm
+
   - name: build-bundle
     type: s3
     icon: zip-disk
@@ -99,6 +136,7 @@ resources:
       secret_access_key: ((codebuild-key.key_secret))
       region_name: us-west-2
       skip_download: true
+
   - name: codebuild-dynamic-amd64
     type: codebuild
     icon: aws
@@ -115,6 +153,23 @@ resources:
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-dynamic-amd64-j9
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-static-amd64-j9
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+
   - name: codebuild-dynamic-arm64
     type: codebuild
     icon: aws
@@ -131,6 +186,23 @@ resources:
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-dynamic-arm64-j9
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-static-arm64-j9
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+
   - name: codebuild-dynamic-s390x
     type: codebuild
     icon: aws
@@ -147,6 +219,7 @@ resources:
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
+  
   - name: agent-dynamic-arm64
     type: registry-image
     icon: docker
@@ -163,6 +236,23 @@ resources:
       tag: latest-arm64-static
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-dynamic-arm64-j9
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-arm64-dynamic-j9
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-arm64-j9
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-arm64-static-j9
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+
   - name: agent-dynamic-amd64
     type: registry-image
     icon: docker
@@ -179,6 +269,24 @@ resources:
       tag: latest-amd64-static
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-dynamic-amd64-j9
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-amd64-dynamic-j9
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-amd64-j9
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-amd64-static-j9
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+
+  ## s390x images are by default built on from the j9 RPMs and will not be flagged separately
   - name: agent-dynamic-s390x
     type: registry-image
     icon: docker
@@ -195,6 +303,7 @@ resources:
       tag: latest-s390x-static
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
+
 jobs:
   - name: bump-release-version
     max_in_flight: 1
@@ -210,7 +319,7 @@ jobs:
       - set_pipeline: self
         file: instana-agent-docker-git/pipeline.yml
         vars:
-          branch: master
+          branch: ((branch))
           gcp-zone: europe-west3-c
           gcp-project: instana-agent-qa
   - name: prepare-build-bundle
@@ -224,13 +333,25 @@ jobs:
         trigger: true
       - get: rpm-dynamic-x86_64
         trigger: true
+      - get: rpm-static-x86_64-j9
+        trigger: true
+      - get: rpm-dynamic-x86_64-j9
+        trigger: true
       - get: rpm-static-aarch64
         trigger: true
       - get: rpm-dynamic-aarch64
         trigger: true
+      - get: rpm-static-aarch64-j9
+        trigger: true
+      - get: rpm-dynamic-aarch64-j9
+        trigger: true
       - get: rpm-static-s390x
         trigger: true
       - get: rpm-dynamic-s390x
+        trigger: true
+      - get: rpm-static-s390x-j9
+        trigger: true
+      - get: rpm-dynamic-s390x-j9
         trigger: true
       - put: agent-version
         params: { bump: patch }
@@ -291,6 +412,7 @@ jobs:
                   ARCH: amd64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: static
+                  CLASSIFIER: ''
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -302,6 +424,31 @@ jobs:
                   ARCH: amd64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: dynamic
+                  CLASSIFIER: ''
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/amd64
+            - put: codebuild-static-amd64-j9
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: amd64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  CLASSIFIER: -j9
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/amd64
+            - put: codebuild-dynamic-amd64-j9
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: amd64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  CLASSIFIER: -j9
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -317,6 +464,14 @@ jobs:
               params:
                   image: codebuild-static-amd64/artifacts/image.tar
                   additional_tags: codebuild-static-amd64/artifacts/tag
+            - put: agent-dynamic-amd64-j9
+              params:
+                  image: codebuild-dynamic-amd64-j9/artifacts/image.tar
+                  additional_tags: codebuild-dynamic-amd64-j9/artifacts/tag
+            - put: agent-static-amd64-j9
+              params:
+                  image: codebuild-static-amd64-j9/artifacts/image.tar
+                  additional_tags: codebuild-static-amd64-j9/artifacts/tag
 
   - name: arm64-build
     public: true
@@ -349,6 +504,7 @@ jobs:
                   ARCH: arm64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: static
+                  CLASSIFIER: ''
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -360,6 +516,31 @@ jobs:
                   ARCH: arm64
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: dynamic
+                  CLASSIFIER: ''
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/arm64
+            - put: codebuild-static-arm64-j9
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: arm64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  CLASSIFIER: -j9
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/arm64
+            - put: codebuild-dynamic-arm64-j9
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: arm64
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  CLASSIFIER: -j9
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -375,6 +556,14 @@ jobs:
               params:
                   image: codebuild-static-arm64/artifacts/image.tar
                   additional_tags: codebuild-static-arm64/artifacts/tag
+            - put: agent-dynamic-arm64-j9
+              params:
+                  image: codebuild-dynamic-arm64-j9/artifacts/image.tar
+                  additional_tags: codebuild-dynamic-arm64-j9/artifacts/tag
+            - put: agent-static-arm64-j9
+              params:
+                  image: codebuild-static-arm64-j9/artifacts/image.tar
+                  additional_tags: codebuild-static-arm64-j9/artifacts/tag
 
   - name: s390x-build
     public: true
@@ -407,6 +596,7 @@ jobs:
                   ARCH: s390x
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: static
+                  CLASSIFIER: ''
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -418,6 +608,7 @@ jobs:
                   ARCH: s390x
                   DOWNLOAD_KEY: ((qa-instana-agent-key))
                   FLAVOR: dynamic
+                  CLASSIFIER: ''
                   VERSION: ((.:agent-version))
                   BRANCH: ((.:commit-sha))
                   COMMIT_SHA: ((.:commit-sha))
@@ -472,10 +663,55 @@ jobs:
         file: instana-agent-docker-git/ci/verify-e2e-task.yml
         vars:
           instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          instana-agent-jdk: OpenJDK
           instana-api-key: ((qa-instana-api-token))
           instana-zone: agent-verification
           instana-host: agent-verification
           instance-name: instana-agent-amd64-static
+
+  - name: verify-amd64-static-j9
+    max_in_flight: 1
+    on_abort: &destroy-amd64-static-vm-j9
+      do:
+        - task: destroy-vm
+          file: instana-agent-docker-git/ci/destroy-verification-vm-task.yml
+          vars:
+            instance-name: instana-agent-amd64-static-j9
+            gcp-project: instana-agent-qa
+            gcp-zone: europe-west3-c
+    on_success:  *destroy-amd64-static-vm-j9
+    on_error: *destroy-amd64-static-vm-j9
+    on_failure:  *destroy-amd64-static-vm-j9
+    plan:
+      - get: instana-agent-docker-git
+        passed: [ amd64-build ]
+      - get: agent-version
+        passed: [ amd64-build ]
+      - get: agent-static-amd64-j9
+        trigger: true
+        passed: [amd64-build]
+      - load_var: digest
+        file: agent-static-amd64-j9/digest
+      - task: start-vm
+        file: instana-agent-docker-git/ci/create-verification-vm-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        vars:
+          flavor: static
+          instana-agent-key: ((qa-instana-agent-key))
+          instance-name: instana-agent-amd64-static-j9
+          instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          gcp-project: instana-agent-qa
+          gcp-zone: europe-west3-c
+      - task: verify-image
+        file: instana-agent-docker-git/ci/verify-e2e-task.yml
+        vars:
+          instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          instana-agent-jdk: OpenJ9
+          instana-api-key: ((qa-instana-api-token))
+          instana-zone: agent-verification
+          instana-host: agent-verification
+          instance-name: instana-agent-amd64-static-j9
 
   - name: verify-amd64-dynamic
     max_in_flight: 1
@@ -515,10 +751,54 @@ jobs:
         file: instana-agent-docker-git/ci/verify-e2e-task.yml
         vars:
           instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          instana-agent-jdk: OpenJDK
           instana-api-key: ((qa-instana-api-token))
           instana-zone: agent-verification
           instana-host: agent-verification
           instance-name: instana-agent-amd64-dynamic
+  - name: verify-amd64-dynamic-j9
+    max_in_flight: 1
+    on_abort: &destroy-amd64-dynamic-vm-j9
+      do:
+        - task: destroy-vm
+          file: instana-agent-docker-git/ci/destroy-verification-vm-task.yml
+          vars:
+            instance-name: instana-agent-amd64-dynamic-j9
+            gcp-project: instana-agent-qa
+            gcp-zone: europe-west3-c
+    on_success:  *destroy-amd64-dynamic-vm-j9
+    on_error: *destroy-amd64-dynamic-vm-j9
+    on_failure:  *destroy-amd64-dynamic-vm-j9
+    plan:
+      - get: instana-agent-docker-git
+        passed: [ amd64-build ]
+      - get: agent-version
+        passed: [ amd64-build ]
+      - get: agent-dynamic-amd64-j9
+        trigger: true
+        passed: [amd64-build]
+      - load_var: digest
+        file: agent-dynamic-amd64-j9/digest
+      - task: start-vm
+        file: instana-agent-docker-git/ci/create-verification-vm-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        vars:
+          flavor: static
+          instana-agent-key: ((qa-instana-agent-key))
+          instance-name: instana-agent-amd64-dynamic-j9
+          instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          gcp-project: instana-agent-qa
+          gcp-zone: europe-west3-c
+      - task: verify-image
+        file: instana-agent-docker-git/ci/verify-e2e-task.yml
+        vars:
+          instana-agent-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
+          instana-agent-jdk: OpenJ9
+          instana-api-key: ((qa-instana-api-token))
+          instana-zone: agent-verification
+          instana-host: agent-verification
+          instance-name: instana-agent-amd64-dynamic-j9
 
   - name: verification-gate
     plan:
@@ -528,22 +808,38 @@ jobs:
       - get: agent-version
         trigger: true
         passed: [ s390x-build, arm64-build, amd64-build ]
+      
       - get: agent-dynamic-amd64
         params:
           skip_download: true
         passed: [ verify-amd64-dynamic ]
-      - get: agent-dynamic-s390x
+      - get: agent-dynamic-amd64-j9
         params:
           skip_download: true
+        passed: [ verify-amd64-dynamic-j9 ]
       - get: agent-dynamic-arm64
         params:
           skip_download: true
+      - get: agent-dynamic-arm64-j9
+        params:
+          skip_download: true
+      - get: agent-dynamic-s390x
+        params:
+          skip_download: true
+      
 
       - get: agent-static-amd64
         params:
           skip_download: true
         passed: [ verify-amd64-static ]
+      - get: agent-static-amd64-j9
+        params:
+          skip_download: true
+        passed: [ verify-amd64-static-j9 ]
       - get: agent-static-arm64
+        params:
+          skip_download: true
+      - get: agent-static-arm64-j9
         params:
           skip_download: true
       - get: agent-static-s390x
@@ -589,6 +885,50 @@ jobs:
         vars:
           commit-sha: ((.:commit-sha))
           flavor: dynamic
+          classifier: ''
+          version: ((.:agent-version))
+          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+  
+  - name: build-multiarch-dynamic-j9
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ verification-gate ]
+      - get: agent-version
+        trigger: true
+        passed: [ verification-gate ]
+
+      - get: agent-dynamic-amd64-j9
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-dynamic-arm64-j9
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - task: build-dynamic-multiarch-manifest
+        privileged: true
+        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        output_mapping:
+          message: message
+        vars:
+          commit-sha: ((.:commit-sha))
+          flavor: dynamic
+          classifier: j9
           version: ((.:agent-version))
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
       - put: slack-alert
@@ -636,6 +976,50 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           flavor: static
+          classifier: ''
+          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+
+  - name: build-multiarch-static-j9
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ verification-gate ]
+      - get: agent-version
+        trigger: true
+        passed: [ verification-gate ]
+
+      - get: agent-static-amd64-j9
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-static-arm64-j9
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - task: build-static-multiarch-manifest
+        privileged: true
+        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
+        input_mapping:
+          code: instana-agent-docker-git
+        output_mapping:
+          message: message
+        vars:
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          flavor: static
+          classifier: j9
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
       - put: slack-alert
         params:
