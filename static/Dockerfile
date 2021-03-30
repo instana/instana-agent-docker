@@ -53,7 +53,7 @@ LABEL name="instana-agent" \
 
 ARG TARGETPLATFORM='linux/amd64'
 
-RUN microdnf install --nodocs procps iptables iproute util-linux python3 jq findutils less \
+RUN microdnf install --nodocs hostname procps iptables iproute util-linux python3 jq findutils less \
     && rm -rf /tmp/* \
     && microdnf clean all
 
