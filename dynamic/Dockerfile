@@ -53,7 +53,7 @@ LABEL name="instana-agent" \
 
 ARG TARGETPLATFORM='linux/amd64'
 
-RUN microdnf install --nodocs hostname procps iptables iproute util-linux python3 jq findutils less \
+RUN microdnf install --nodocs hostname procps iproute util-linux python3 jq findutils less \
     && rm -rf /tmp/* \
     && microdnf clean all
 
@@ -86,6 +86,15 @@ RUN ( \
         && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 -o /usr/bin/runc \
         && echo '256bd490a55a1939a4c9cd15c043404b79a86429ee04129c00d33dab8c0cf040 /usr/bin/runc' | sha256sum -c - > /dev/null \
         && chmod 755 /usr/bin/runc \
+    ) || true
+
+# Install iptables 1.4.2 on x86_64 to carry out service mesh bypass scripts. Other plattforms not supported.
+ENV IPTABLES_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm"
+RUN ( \
+        [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
+        && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o iptables-1.4.21-35.el7.x86_64.rpm \
+        && echo "${IPTABLES_SHA256}" | sha256sum --check > /dev/null \
+        && rpm -i iptables-1.4.21-35.el7.x86_64.rpm \
     ) || true
 
 COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
