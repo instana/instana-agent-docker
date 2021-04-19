@@ -59,7 +59,7 @@ RUN microdnf install --nodocs hostname procps iptables iproute util-linux python
 
 # Upgrade pip to 20.3.4 to get all the latest features
 # NOTE: 20.3.4 is the last version to support both Python 2.x & 3.x
-RUN pip install pip==20.3.4
+RUN pip3 install pip==20.3.4
 
 # s390x does not carry the Docker cli
 RUN ( \
