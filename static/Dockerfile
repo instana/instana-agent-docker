@@ -57,6 +57,10 @@ RUN microdnf install --nodocs hostname procps iproute util-linux python3 jq find
     && rm -rf /tmp/* \
     && microdnf clean all
 
+# Upgrade pip to 20.3.4 to get all the latest features
+# NOTE: 20.3.4 is the last version to support both Python 2.x & 3.x
+RUN pip3 install pip==20.3.4
+
 # s390x does not carry the Docker cli
 RUN ( \
         [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] \
