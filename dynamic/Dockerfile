@@ -92,13 +92,30 @@ RUN ( \
         && chmod 755 /usr/bin/runc \
     ) || true
 
-# Install iptables 1.4.2 on x86_64 to carry out service mesh bypass scripts. Other plattforms not supported.
-ENV IPTABLES_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm"
+# Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts.
+ENV IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm"
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
         && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o iptables-1.4.21-35.el7.x86_64.rpm \
-        && echo "${IPTABLES_SHA256}" | sha256sum --check > /dev/null \
+        && echo "${IPTABLES_X86_SHA256}" | sha256sum --check > /dev/null \
         && rpm -i iptables-1.4.21-35.el7.x86_64.rpm \
+    ) || true
+
+# Install iptables 1.4.21 on aarch64 to carry out service mesh bypass scripts.
+ENV IPTABLES_ARM64_SHA256="53cc2bd47614463eb76ffc727ec838b9d92e0239d68ab5cd38fb2e5f18380431  iptables-1.4.21-35.el7.aarch64.rpm"
+RUN ( \
+        [[ "${TARGETPLATFORM}" = 'linux/arm64' ]] \
+        && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o iptables-1.4.21-35.el7.aarch64.rpm \
+        && echo "${IPTABLES_ARM64_SHA256}" | sha256sum --check > /dev/null \
+        && rpm -i iptables-1.4.21-35.el7.aarch64.rpm \
+    ) || true
+
+# Install iptables for s390x, default version, since 1.4.21 is not available for s390x
+RUN ( \
+        [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
+        && microdnf install --nodocs iptables \
+        && rm -rf /tmp/* \
+        && microdnf clean all \
     ) || true
 
 COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
