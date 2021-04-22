@@ -382,6 +382,7 @@ jobs:
           file: target/context.zip
 
   - name: amd64-build
+    max_in_flight: 1
     public: true
     plan:
       - get: instana-agent-docker-git
@@ -474,6 +475,7 @@ jobs:
                   additional_tags: codebuild-static-amd64-j9/artifacts/tag
 
   - name: arm64-build
+    max_in_flight: 1
     public: true
     plan:
       - get: instana-agent-docker-git
@@ -566,6 +568,7 @@ jobs:
                   additional_tags: codebuild-static-arm64-j9/artifacts/tag
 
   - name: s390x-build
+    max_in_flight: 1
     public: true
     plan:
       - get: instana-agent-docker-git
@@ -756,6 +759,7 @@ jobs:
           instana-zone: agent-verification
           instana-host: agent-verification
           instance-name: instana-agent-amd64-dynamic
+
   - name: verify-amd64-dynamic-j9
     max_in_flight: 1
     on_abort: &destroy-amd64-dynamic-vm-j9
