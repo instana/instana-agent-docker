@@ -68,7 +68,7 @@ RUN ( \
         && microdnf install --nodocs docker-ce-cli \
         && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
         && microdnf clean all \
-    ) || true
+    )
 
 # containerd cli is only available for amd64
 ENV CONTAINERD_VERSION=1.4.3 \
@@ -82,7 +82,7 @@ RUN ( \
         && tar -xzf containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz  && mv bin/* /usr/local/bin \
         && microdnf remove tar gzip wget \
         && microdnf clean all \
-    ) || true
+    )
 
 # Install runc on the x86_64, the other platforms are not supported
 RUN ( \
@@ -90,16 +90,19 @@ RUN ( \
         && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 -o /usr/bin/runc \
         && echo '256bd490a55a1939a4c9cd15c043404b79a86429ee04129c00d33dab8c0cf040 /usr/bin/runc' | sha256sum -c - > /dev/null \
         && chmod 755 /usr/bin/runc \
-    ) || true
+    )
 
 # Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts.
 ENV IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm"
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
+        && microdnf install libnetfilter_conntrack \
         && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o iptables-1.4.21-35.el7.x86_64.rpm \
         && echo "${IPTABLES_X86_SHA256}" | sha256sum --check > /dev/null \
         && rpm -i iptables-1.4.21-35.el7.x86_64.rpm \
-    ) || true
+        && rm -rf /tmp/* \
+        && microdnf clean all \
+    )
 
 # Install iptables 1.4.21 on aarch64 to carry out service mesh bypass scripts.
 ENV IPTABLES_ARM64_SHA256="53cc2bd47614463eb76ffc727ec838b9d92e0239d68ab5cd38fb2e5f18380431  iptables-1.4.21-35.el7.aarch64.rpm"
@@ -111,7 +114,7 @@ RUN ( \
         && rpm -i iptables-1.4.21-35.el7.aarch64.rpm \
         && rm -rf /tmp/* \
         && microdnf clean all \
-    ) || true
+    )
 
 # Install iptables for s390x, default version, since 1.4.21 is not available for s390x
 RUN ( \
@@ -119,7 +122,7 @@ RUN ( \
         && microdnf install --nodocs iptables \
         && rm -rf /tmp/* \
         && microdnf clean all \
-    ) || true
+    )
 
 COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
 
