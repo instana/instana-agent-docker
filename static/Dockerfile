@@ -105,10 +105,10 @@ RUN ( \
 ENV IPTABLES_ARM64_SHA256="53cc2bd47614463eb76ffc727ec838b9d92e0239d68ab5cd38fb2e5f18380431  iptables-1.4.21-35.el7.aarch64.rpm"
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/arm64' ]] \
+        && microdnf install libnetfilter_conntrack \
         && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o iptables-1.4.21-35.el7.aarch64.rpm \
         && echo "${IPTABLES_ARM64_SHA256}" | sha256sum --check > /dev/null \
         && rpm -i iptables-1.4.21-35.el7.aarch64.rpm \
-        && microdnf install libnetfilter_conntrack \
         && rm -rf /tmp/* \
         && microdnf clean all \
     ) || true
