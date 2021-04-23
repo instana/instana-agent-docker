@@ -108,6 +108,9 @@ RUN ( \
         && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o iptables-1.4.21-35.el7.aarch64.rpm \
         && echo "${IPTABLES_ARM64_SHA256}" | sha256sum --check > /dev/null \
         && rpm -i iptables-1.4.21-35.el7.aarch64.rpm \
+        && microdnf install libnetfilter_conntrack \
+        && rm -rf /tmp/* \
+        && microdnf clean all \
     ) || true
 
 # Install iptables for s390x, default version, since 1.4.21 is not available for s390x
