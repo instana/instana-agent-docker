@@ -47,7 +47,7 @@ resources:
     type: slack-notification
     source:
       url: ((tech-agent-delivery-notifications-slack-hook))
-  
+
   ## amd64 packages
   - name: rpm-static-x86_64
     type: gcs-resource
@@ -73,7 +73,7 @@ resources:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
       regexp: packages/instana-agent-dynamic-j9-(2.*)\.x86_64\.rpm
-  
+
   ## aarch64 packages
   - name: rpm-static-aarch64
     type: gcs-resource
@@ -219,7 +219,7 @@ resources:
       region: us-west-2
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
-  
+
   - name: agent-dynamic-arm64
     type: registry-image
     icon: docker
@@ -362,6 +362,7 @@ jobs:
             type: registry-image
             source:
               repository: ubuntu
+              tag: focal
           inputs:
             - name: instana-agent-docker-git
               path: .
@@ -372,8 +373,8 @@ jobs:
               - -ce
               - |
                 date
-                apt-get update
-                apt-get install -yqq zip unzip
+                apt update
+                apt install -yqq zip unzip
                 zip -r target/context.zip .
           outputs:
             - name: target
@@ -812,7 +813,7 @@ jobs:
       - get: agent-version
         trigger: true
         passed: [ s390x-build, arm64-build, amd64-build ]
-      
+
       - get: agent-dynamic-amd64
         params:
           skip_download: true
@@ -830,7 +831,7 @@ jobs:
       - get: agent-dynamic-s390x
         params:
           skip_download: true
-      
+
 
       - get: agent-static-amd64
         params:
@@ -896,7 +897,7 @@ jobs:
         params:
           channel: '#tech-agent-delivery'
           text_file: message/text
-  
+
   - name: build-multiarch-dynamic-j9
     max_in_flight: 1
     plan:
