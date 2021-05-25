@@ -36,7 +36,7 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     export arch=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'x86_64' ;; 'linux/arm64') echo 'aarch64' ;; 'linux/s390x') echo 's390x' ;; esac) && \
     [[ -z "${FTP_PROXY}" ]] || DOWNLOAD_KEY="${FTP_PROXY}" && \
     [[ "${arch}" != "s390x" ]] || CLASSIFIER="-j9" && \
-    [[ "${CLASSIFIER}x" = 'x' ]] || [[ "${CLASSIFIER#-}" != "${CLASSIFIER}" ]] || CLASSIFIER="-${CLASSIFIER}" && \
+    [[ "${CLASSIFIER}x" = "x" ]] || [[ "${CLASSIFIER#-}" != "${CLASSIFIER}" ]] || CLASSIFIER="-${CLASSIFIER}" && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${DOWNLOAD_KEY}@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf install "instana-agent-dynamic${CLASSIFIER}" && \
     mv /opt/instana/agent/licenses /licenses && \
@@ -80,6 +80,7 @@ RUN ( \
         && wget https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
         && echo "${CONTAINERD_SHA256}" | sha256sum --check \
         && tar -xzf containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz  && mv bin/* /usr/local/bin \
+        && rm -rf /tmp/* \
         && microdnf remove tar gzip wget \
         && microdnf clean all \
     ) || true
@@ -92,14 +93,29 @@ RUN ( \
         && chmod 755 /usr/bin/runc \
     ) || true
 
+# On s390x install docker ce, runc and containerd from docker static s390x build
+RUN ( \
+        [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
+        && microdnf install --nodocs tar gzip wget \
+        && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
+        && tar -xzf /tmp/docker-18.06.3-ce.tgz \
+        && mv docker/docker /usr/local/bin/docker \
+        && mv docker/docker-runc /usr/local/bin/runc \
+        && mv docker/docker-containerd /usr/local/bin/containerd \
+        && mv docker/docker-containerd-shim /usr/local/bin/containerd-shim \
+        && rm -rf docker /tmp/* \
+        && microdnf remove tar gzip wget \
+        && microdnf clean all \
+    ) || true
+
 # Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts.
 ENV IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm"
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
         && microdnf install libnetfilter_conntrack \
-        && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o iptables-1.4.21-35.el7.x86_64.rpm \
+        && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
         && echo "${IPTABLES_X86_SHA256}" | sha256sum --check > /dev/null \
-        && rpm -i iptables-1.4.21-35.el7.x86_64.rpm \
+        && rpm -i /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
         && rm -rf /tmp/* \
         && microdnf clean all \
     ) || true
@@ -109,9 +125,9 @@ ENV IPTABLES_ARM64_SHA256="53cc2bd47614463eb76ffc727ec838b9d92e0239d68ab5cd38fb2
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/arm64' ]] \
         && microdnf install libnetfilter_conntrack \
-        && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o iptables-1.4.21-35.el7.aarch64.rpm \
+        && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
         && echo "${IPTABLES_ARM64_SHA256}" | sha256sum --check > /dev/null \
-        && rpm -i iptables-1.4.21-35.el7.aarch64.rpm \
+        && rpm -i /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
         && rm -rf /tmp/* \
         && microdnf clean all \
     ) || true
