@@ -97,13 +97,14 @@ RUN ( \
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
         && microdnf install --nodocs tar gzip wget \
-        && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
-        && tar -xzf /tmp/docker-18.06.3-ce.tgz \
+        && cd /tmp \
+        && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o docker-18.06.3-ce.tgz \
+        && tar -xzf docker-18.06.3-ce.tgz \
         && mv docker/docker /usr/local/bin/docker \
         && mv docker/docker-runc /usr/local/bin/runc \
         && mv docker/docker-containerd /usr/local/bin/containerd \
         && mv docker/docker-containerd-shim /usr/local/bin/containerd-shim \
-        && rm -rf docker /tmp/* \
+        && rm -rf /tmp/* \
         && microdnf remove tar gzip wget \
         && microdnf clean all \
     ) || true
