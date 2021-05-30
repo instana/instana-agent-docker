@@ -88,8 +88,8 @@ RUN ( \
 # Install runc on the x86_64, the other platforms are not supported
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
-        && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 -o /usr/bin/runc \
-        && echo '256bd490a55a1939a4c9cd15c043404b79a86429ee04129c00d33dab8c0cf040 /usr/bin/runc' | sha256sum -c - > /dev/null \
+        && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 -o /usr/bin/runc \
+        && echo '685a28ac9d548c69512adfb0e301416b41e9a4f5ff30194c7e651b00d8d91a4f /usr/bin/runc' | sha256sum -c - > /dev/null \
         && chmod 755 /usr/bin/runc \
     ) || true
 
