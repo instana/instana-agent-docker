@@ -5,23 +5,30 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: ubuntu
-    tag: focal
+    repository: gcr.io/google.com/cloudsdktool/cloud-sdk
+    tag: alpine
 
 params:
+  INSTANCE_NAME: ((instance-name))
+  GOOGLE_SERVICE_ACCOUNT_JSON: ((concourse-at-instana-agent-qa-service-account))
+  CLOUDSDK_CORE_PROJECT: instana-agent-qa
+  CLOUDSDK_COMPUTE_ZONE: europe-west3-c
   INSTANA_AGENT_IMAGE: ((instana-agent-image))
   INSTANA_AGENT_JDK: ((instana-agent-jdk))
   INSTANA_API_KEY: ((instana-api-key))
   INSTANA_API_HOST: qa-instana.instana.io
   INSTANA_ZONE: 'agent-verification'
-  INSTANCE_NAME: ((instance-name))
 
 run:
   path: bash
   args:
     - -ec
     - |
-      apt-get update && apt-get install -yqq curl
+      echo "Checking if Agent container has necessary tools installed..."
+      echo $GOOGLE_SERVICE_ACCOUNT_JSON > credentials.json
+      gcloud auth activate-service-account --key-file=credentials.json
+      gcloud compute ssh "((instance-name))" --command="docker exec -it instana-agent /bin/bash -c 'command -v iptables && command -v nsenter && command -v docker && command -v containerd && command -v runc'"
+
       curl -Lv https://storage.googleapis.com/instana-agent-qa-tools/instana-cli/0.1.6/instana-cli-linux-amd64 -o instana-cli
       chmod +x instana-cli
 

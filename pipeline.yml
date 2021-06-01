@@ -672,6 +672,8 @@ jobs:
           instana-zone: agent-verification
           instana-host: agent-verification
           instance-name: instana-agent-amd64-static
+          gcp-project: instana-agent-qa
+          gcp-zone: europe-west3-c
 
   - name: verify-amd64-static-j9
     max_in_flight: 1
@@ -716,6 +718,8 @@ jobs:
           instana-zone: agent-verification
           instana-host: agent-verification
           instance-name: instana-agent-amd64-static-j9
+          gcp-project: instana-agent-qa
+          gcp-zone: europe-west3-c
 
   - name: verify-amd64-dynamic
     max_in_flight: 1
@@ -760,6 +764,8 @@ jobs:
           instana-zone: agent-verification
           instana-host: agent-verification
           instance-name: instana-agent-amd64-dynamic
+          gcp-project: instana-agent-qa
+          gcp-zone: europe-west3-c
 
   - name: verify-amd64-dynamic-j9
     max_in_flight: 1
@@ -804,6 +810,8 @@ jobs:
           instana-zone: agent-verification
           instana-host: agent-verification
           instance-name: instana-agent-amd64-dynamic-j9
+          gcp-project: instana-agent-qa
+          gcp-zone: europe-west3-c
 
   - name: verification-gate
     plan:
