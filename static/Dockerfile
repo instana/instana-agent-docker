@@ -61,21 +61,23 @@ RUN microdnf install --nodocs hostname procps iproute util-linux python3 jq find
 # NOTE: 20.3.4 is the last version to support both Python 2.x & 3.x
 RUN pip3 install pip==20.3.4
 
+
+# !! NOTE: the following sections contain inverse IF-statements to make sure commands succeed
+# when not applicable but breaks when any command fails. The regular " IF ... && <command> || true " won't work.
+
 # s390x does not carry the Docker cli
-RUN ( \
-        [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] \
-        && echo -e '[docker-ce-stable]\nname=Docker CE Stable - $basearch\nbaseurl=https://download.docker.com/linux/centos/8/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=https://download.docker.com/linux/centos/gpg' > /etc/yum.repos.d/docker.repo \
+RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] || ( \
+        echo -e '[docker-ce-stable]\nname=Docker CE Stable - $basearch\nbaseurl=https://download.docker.com/linux/centos/8/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=https://download.docker.com/linux/centos/gpg' > /etc/yum.repos.d/docker.repo \
         && microdnf install --nodocs docker-ce-cli \
         && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
         && microdnf clean all \
-    ) || true
+    )
 
 # containerd cli is only available for amd64
 ENV CONTAINERD_VERSION=1.4.3 \
     CONTAINERD_SHA256="34a161e3f459fd337b03141a339eeb1a56c5c811922fe72012d2dac9fa5542f1  containerd-1.4.3-linux-amd64.tar.gz"
-RUN ( \
-        [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
-        && microdnf install --nodocs tar gzip wget \
+RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
+        microdnf install --nodocs tar gzip wget \
         && cd /tmp \
         && wget https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
         && echo "${CONTAINERD_SHA256}" | sha256sum --check \
@@ -83,20 +85,18 @@ RUN ( \
         && rm -rf /tmp/* \
         && microdnf remove tar gzip wget \
         && microdnf clean all \
-    ) || true
+    )
 
 # Install runc on the x86_64, the other platforms are not supported
-RUN ( \
-        [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
-        && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 -o /usr/bin/runc \
+RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
+        curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 -o /usr/bin/runc \
         && echo '685a28ac9d548c69512adfb0e301416b41e9a4f5ff30194c7e651b00d8d91a4f /usr/bin/runc' | sha256sum -c - > /dev/null \
         && chmod 755 /usr/bin/runc \
-    ) || true
+    )
 
 # On s390x install docker ce, runc and containerd from docker static s390x build
-RUN ( \
-        [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
-        && microdnf install --nodocs tar gzip wget \
+RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
+        microdnf install --nodocs tar gzip wget \
         && cd /tmp \
         && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o docker-18.06.3-ce.tgz \
         && tar -xzf docker-18.06.3-ce.tgz \
@@ -107,41 +107,38 @@ RUN ( \
         && rm -rf /tmp/* \
         && microdnf remove tar gzip wget \
         && microdnf clean all \
-    ) || true
+    )
 
 # Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts.
 ENV IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm"
-RUN ( \
-        [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
-        && microdnf install libnetfilter_conntrack \
+RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
+        microdnf install libnetfilter_conntrack \
         && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
         && echo "${IPTABLES_X86_SHA256}" | sha256sum --check > /dev/null \
         && rpm -i /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
         && rm -rf /tmp/* \
         && microdnf clean all \
-    ) || true
+    )
 
 # Install iptables 1.4.21 on aarch64 to carry out service mesh bypass scripts.
 ENV IPTABLES_ARM64_SHA256="53cc2bd47614463eb76ffc727ec838b9d92e0239d68ab5cd38fb2e5f18380431  iptables-1.4.21-35.el7.aarch64.rpm"
-RUN ( \
-        [[ "${TARGETPLATFORM}" = 'linux/arm64' ]] \
-        && microdnf install libnetfilter_conntrack \
+RUN [[ "${TARGETPLATFORM}" != 'linux/arm64' ]] || ( \
+        microdnf install libnetfilter_conntrack \
         && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
         && echo "${IPTABLES_ARM64_SHA256}" | sha256sum --check > /dev/null \
         && rpm -i /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
         && rm -rf /tmp/* \
         && microdnf clean all \
-    ) || true
+    )
 
 # Install iptables for s390x, default version, since 1.4.21 is not available for s390x
-RUN ( \
-        [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] \
-        && microdnf install --nodocs iptables \
+RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
+        microdnf install --nodocs iptables \
         && rm -rf /tmp/* \
         && microdnf clean all \
-    ) || true
+    )
 
 COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
 

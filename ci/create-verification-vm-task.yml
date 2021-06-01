@@ -42,7 +42,7 @@ run:
       gcloud compute instances create ${INSTANCE_NAME} \
         --machine-type=e2-standard-2 \
         --tags=http-server,https-server \
-        --image=ubuntu-minimal-2004-focal-v20210130 \
+        --image=ubuntu-minimal-2004-focal-v20210511 \
         --image-project=ubuntu-os-cloud \
         --boot-disk-size=50GB \
         --boot-disk-type=pd-ssd \
