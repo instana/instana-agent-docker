@@ -114,6 +114,7 @@ ENV IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/amd64' ]] \
         && microdnf install libnetfilter_conntrack \
+        && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
         && echo "${IPTABLES_X86_SHA256}" | sha256sum --check > /dev/null \
         && rpm -i /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
@@ -126,6 +127,7 @@ ENV IPTABLES_ARM64_SHA256="53cc2bd47614463eb76ffc727ec838b9d92e0239d68ab5cd38fb2
 RUN ( \
         [[ "${TARGETPLATFORM}" = 'linux/arm64' ]] \
         && microdnf install libnetfilter_conntrack \
+        && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
         && echo "${IPTABLES_ARM64_SHA256}" | sha256sum --check > /dev/null \
         && rpm -i /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
