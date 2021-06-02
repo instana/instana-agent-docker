@@ -96,8 +96,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         cd /tmp \
         && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
         && gunzip docker-18.06.3-ce.tgz \
-        && ls -la /tmp/ \
-        && tar -xvf docker-18.06.3-ce.* \
+        && tar -xvf docker-18.06.3-ce.tar \
         && mv docker/docker /usr/local/bin/docker \
         && mv docker/docker-runc /usr/local/bin/runc \
         && mv docker/docker-containerd /usr/local/bin/containerd \
