@@ -53,7 +53,7 @@ LABEL name="instana-agent" \
 
 ARG TARGETPLATFORM='linux/amd64'
 
-RUN microdnf install --nodocs hostname procps iproute util-linux python3 jq findutils less \
+RUN microdnf install --nodocs hostname procps iproute util-linux python3 jq findutils less tar gzip \
     && rm -rf /tmp/* \
     && microdnf clean all
 
@@ -74,17 +74,14 @@ RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] || ( \
     )
 
 # containerd cli is only available for amd64
-ENV CONTAINERD_VERSION=1.4.3 \
-    CONTAINERD_SHA256="34a161e3f459fd337b03141a339eeb1a56c5c811922fe72012d2dac9fa5542f1  containerd-1.4.3-linux-amd64.tar.gz"
+ENV CONTAINERD_VERSION=1.5.2 \
+    CONTAINERD_SHA256="1d6d53ce7f6f9b9b51e4898e2bd8126354854b7bb436fd73e13f12f798cb1431  containerd-1.5.2-linux-amd64.tar.gz"
 RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
-        microdnf install --nodocs tar gzip wget \
-        && cd /tmp \
-        && wget https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
+        cd /tmp \
+        && curl -L --fail --show-error --silent https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz -o containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
         && echo "${CONTAINERD_SHA256}" | sha256sum --check \
         && tar -xzf containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz  && mv bin/* /usr/local/bin \
         && rm -rf /tmp/* \
-        && microdnf remove tar gzip wget \
-        && microdnf clean all \
     )
 
 # Install runc on the x86_64, the other platforms are not supported
@@ -96,8 +93,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
 
 # On s390x install docker ce, runc and containerd from docker static s390x build
 RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
-        microdnf install --nodocs tar gzip wget \
-        && cd /tmp \
+        cd /tmp \
         && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o docker-18.06.3-ce.tgz \
         && tar -xzf docker-18.06.3-ce.tgz \
         && mv docker/docker /usr/local/bin/docker \
@@ -105,8 +101,6 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         && mv docker/docker-containerd /usr/local/bin/containerd \
         && mv docker/docker-containerd-shim /usr/local/bin/containerd-shim \
         && rm -rf /tmp/* \
-        && microdnf remove tar gzip wget \
-        && microdnf clean all \
     )
 
 # Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts.
