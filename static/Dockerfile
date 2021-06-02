@@ -94,8 +94,8 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
 # On s390x install docker ce, runc and containerd from docker static s390x build
 RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         cd /tmp \
-        && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o docker-18.06.3-ce.tgz \
-        && tar -xzf docker-18.06.3-ce.tgz \
+        && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
+        && tar -xzvf docker-18.06.3-ce.tgz \
         && mv docker/docker /usr/local/bin/docker \
         && mv docker/docker-runc /usr/local/bin/runc \
         && mv docker/docker-containerd /usr/local/bin/containerd \
