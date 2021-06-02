@@ -11,8 +11,8 @@ image_resource:
 params:
   INSTANCE_NAME: ((instance-name))
   GOOGLE_SERVICE_ACCOUNT_JSON: ((concourse-at-instana-agent-qa-service-account))
-  CLOUDSDK_CORE_PROJECT: instana-agent-qa
-  CLOUDSDK_COMPUTE_ZONE: europe-west3-c
+  CLOUDSDK_CORE_PROJECT: ((gcp-project))
+  CLOUDSDK_COMPUTE_ZONE: ((gcp-zone))
   INSTANA_AGENT_IMAGE: ((instana-agent-image))
   INSTANA_AGENT_JDK: ((instana-agent-jdk))
   INSTANA_API_KEY: ((instana-api-key))
