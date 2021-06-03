@@ -25,6 +25,8 @@ run:
     - -ec
     - |
       echo "Checking if Agent container has necessary tools installed..."
+      ssh-keygen -b 2048 -t rsa -f /root/.ssh/google_compute_engine -q -N ""
+
       echo $GOOGLE_SERVICE_ACCOUNT_JSON > credentials.json
       gcloud auth activate-service-account --key-file=credentials.json
       gcloud compute ssh "((instance-name))" --force-key-file-overwrite --ssh-key-expire-after=5m --command="docker exec -it instana-agent /bin/bash -c 'command -v iptables && command -v nsenter && command -v docker && command -v containerd && command -v runc'"
