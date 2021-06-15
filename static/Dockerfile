@@ -53,7 +53,8 @@ LABEL name="instana-agent" \
 
 ARG TARGETPLATFORM='linux/amd64'
 
-RUN microdnf install --nodocs hostname procps iproute util-linux python3 jq findutils less tar gzip \
+RUN microdnf module enable container-tools \
+    && microdnf install --nodocs hostname procps iproute util-linux runc python3 jq findutils less tar gzip \
     && rm -rf /tmp/* \
     && microdnf clean all
 
@@ -61,11 +62,10 @@ RUN microdnf install --nodocs hostname procps iproute util-linux python3 jq find
 # NOTE: 20.3.4 is the last version to support both Python 2.x & 3.x
 RUN pip3 install pip==20.3.4
 
-
 # !! NOTE: the following sections contain inverse IF-statements to make sure commands succeed
 # when not applicable but breaks when any command fails. The regular " IF ... && <command> || true " won't work.
 
-# s390x does not carry the Docker cli
+# s390x does not carry the Docker cli (and neither do RHEL official repositories)
 RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] || ( \
         echo -e '[docker-ce-stable]\nname=Docker CE Stable - $basearch\nbaseurl=https://download.docker.com/linux/centos/8/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=https://download.docker.com/linux/centos/gpg' > /etc/yum.repos.d/docker.repo \
         && microdnf install --nodocs docker-ce-cli \
@@ -80,15 +80,9 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
         cd /tmp \
         && curl -L --fail --show-error --silent https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz -o containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
         && echo "${CONTAINERD_SHA256}" | sha256sum --check \
-        && tar -xzf containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz  && mv bin/* /usr/local/bin \
+        && tar -xzf containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
+        && mv bin/* /usr/local/bin \
         && rm -rf /tmp/* \
-    )
-
-# Install runc on the x86_64, the other platforms are not supported
-RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
-        curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 -o /usr/bin/runc \
-        && echo '685a28ac9d548c69512adfb0e301416b41e9a4f5ff30194c7e651b00d8d91a4f /usr/bin/runc' | sha256sum -c - > /dev/null \
-        && chmod 755 /usr/bin/runc \
     )
 
 # On s390x install docker ce, runc and containerd from docker static s390x build
@@ -98,7 +92,6 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         && gunzip docker-18.06.3-ce.tgz \
         && tar -xvf docker-18.06.3-ce.tar \
         && mv docker/docker /usr/local/bin/docker \
-        && mv docker/docker-runc /usr/local/bin/runc \
         && mv docker/docker-containerd /usr/local/bin/containerd \
         && mv docker/docker-containerd-shim /usr/local/bin/containerd-shim \
         && rm -rf /tmp/* \
@@ -134,6 +127,18 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         && rm -rf /tmp/* \
         && microdnf clean all \
     )
+
+# Install Tini, to handle signals (SIGTERM / SIGKILL) correctly in our container since we need to run the Agent from a
+# script and cannot 'exec' to replace it. That would kill the container on restarts of the Agent.
+RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'linux/arm64') echo 'arm64' ;; 'linux/s390x') echo 's390x' ;; esac) \
+    && export TINI_VERSION=$(curl -L -s -H 'Accept: application/json' https://github.com/krallin/tini/releases/latest | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
+    && cd /tmp \
+    && curl -L --fail --show-error --silent https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-${ARCH} -o tini-${ARCH} \
+    && echo $(curl -L --fail --show-error --silent https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-${ARCH}.sha256sum) | sha256sum --check \
+    && mv tini-${ARCH} /usr/local/bin/tini \
+    && chmod +x /usr/local/bin/tini \
+    && rm -rf /tmp/*
+
 
 COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
 
@@ -179,4 +184,4 @@ ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent
 
-ENTRYPOINT ["./bin/run.sh"]
+ENTRYPOINT ["/usr/local/bin/tini", "-s", "-g", "--", "./bin/run.sh"]
