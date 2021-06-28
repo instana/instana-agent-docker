@@ -8,3 +8,5 @@ every = {{ getenv "INSTANA_AGENT_UPDATES_FREQUENCY" "DAY" }}
 # Time is hh:mm in 24 hours format.
 at = {{ getenv "INSTANA_AGENT_UPDATES_TIME" "4:30" }}
 {{- end }}
+# Extend default jitter to -45 / +45 minutes to spread update load on backend infrastructure
+jitter = 90
