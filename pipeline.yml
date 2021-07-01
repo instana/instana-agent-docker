@@ -304,6 +304,20 @@ resources:
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
 
+  - name: internal-tools
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/instana/internal-tools.git
+      username: ((instanacd-github-api-token))
+      password: x-oauth-basic
+      branch: master
+      paths:
+      - ci-utility-images/instana-twistcli
+      ignore_paths:
+      - ci-utility-images/instana-twistcli/README.md
+      - ci-utility-images/instana-twistcli/VERSION
+
 jobs:
   - name: bump-release-version
     max_in_flight: 1
@@ -629,6 +643,30 @@ jobs:
                   image: codebuild-static-s390x/artifacts/image.tar
                   additional_tags: codebuild-static-s390x/artifacts/tag
 
+  - name: twistlock-security-scan-amd64-static
+    max_in_flight: 1
+    plan:
+      - get: agent-static-amd64
+        trigger: true
+        passed: [amd64-build]
+      - get: agent-version
+        trigger: true
+      - get: internal-tools
+
+      - load_var: digest
+        file: agent-static-amd64/digest
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+
+      - task: scan-image
+        privileged: true
+        file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
+        vars:
+          target-image-repo: gcr.io/instana-agent-qa/instana-agent-docker@
+          target-image-tag: ((.:digest))
+          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+
   - name: verify-amd64-static
     max_in_flight: 1
     on_abort: &destroy-amd64-static-vm
@@ -844,7 +882,7 @@ jobs:
       - get: agent-static-amd64
         params:
           skip_download: true
-        passed: [ verify-amd64-static ]
+        passed: [ verify-amd64-static, twistlock-security-scan-amd64-static ]
       - get: agent-static-amd64-j9
         params:
           skip_download: true
