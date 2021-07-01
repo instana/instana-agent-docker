@@ -878,7 +878,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
+        passed: [ s390x-build, arm64-build, amd64-build ]
       - get: agent-version
         trigger: true
         passed: [ s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
