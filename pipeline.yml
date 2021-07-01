@@ -663,8 +663,7 @@ jobs:
         privileged: true
         file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
         vars:
-          target-image-repo: gcr.io/instana-agent-qa/instana-agent-docker@
-          target-image-tag: ((.:digest))
+          target-image-repo: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest))
           docker-json-key: ((project-berlin-tests-gcp-instana-qa))
 
   - name: verify-amd64-static
