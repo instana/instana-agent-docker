@@ -311,7 +311,7 @@ resources:
       uri: https://github.com/instana/internal-tools.git
       username: ((instanacd-github-api-token))
       password: x-oauth-basic
-      branch: e31129a3c9d121960b89b5bc74feaf38a1ec1ad4
+      branch: master
       paths:
       - ci-utility-images/instana-twistcli
       ignore_paths:
