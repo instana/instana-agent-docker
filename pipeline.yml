@@ -677,12 +677,12 @@ jobs:
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-          - task: scan-image-arm64-static
-            privileged: true
-            file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
-            vars:
-              target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-arm64))
-              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+              #- task: scan-image-arm64-static
+              #  privileged: true
+              #  file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
+              #  vars:
+              #    target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-arm64))
+              #    docker-json-key: ((project-berlin-tests-gcp-instana-qa))
           - task: scan-image-s390x-static
             privileged: true
             file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
