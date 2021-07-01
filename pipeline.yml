@@ -304,6 +304,20 @@ resources:
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
 
+  - name: internal-tools
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/instana/internal-tools.git
+      username: ((instanacd-github-api-token))
+      password: x-oauth-basic
+      branch: master
+      paths:
+      - ci-utility-images/instana-twistcli
+      ignore_paths:
+      - ci-utility-images/instana-twistcli/README.md
+      - ci-utility-images/instana-twistcli/VERSION
+
 jobs:
   - name: bump-release-version
     max_in_flight: 1
@@ -629,6 +643,53 @@ jobs:
                   image: codebuild-static-s390x/artifacts/image.tar
                   additional_tags: codebuild-static-s390x/artifacts/tag
 
+  - name: twistlock-security-scan
+    max_in_flight: 1
+    plan:
+      - get: agent-static-amd64
+        trigger: true
+        passed: [amd64-build]
+      - get: agent-static-arm64
+        trigger: true
+        passed: [arm64-build]
+      - get: agent-static-s390x
+        trigger: true
+        passed: [s390x-build]
+      - get: agent-version
+        trigger: true
+      - get: internal-tools
+
+      - load_var: digest-amd64
+        file: agent-static-amd64/digest
+      - load_var: digest-arm64
+        file: agent-static-arm64/digest
+      - load_var: digest-s390x
+        file: agent-static-s390x/digest
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+
+      - in_parallel:
+          steps:
+          - task: scan-image-amd64-static
+            privileged: true
+            file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
+            vars:
+              target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
+              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+              #- task: scan-image-arm64-static
+              #  privileged: true
+              #  file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
+              #  vars:
+              #    target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-arm64))
+              #    docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+          - task: scan-image-s390x-static
+            privileged: true
+            file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
+            vars:
+              target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-s390x))
+              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+
   - name: verify-amd64-static
     max_in_flight: 1
     on_abort: &destroy-amd64-static-vm
@@ -820,7 +881,7 @@ jobs:
         passed: [ s390x-build, arm64-build, amd64-build ]
       - get: agent-version
         trigger: true
-        passed: [ s390x-build, arm64-build, amd64-build ]
+        passed: [ s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
 
       - get: agent-dynamic-amd64
         params:
