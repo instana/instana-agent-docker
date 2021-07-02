@@ -649,22 +649,17 @@ jobs:
       - get: agent-static-amd64
         trigger: true
         passed: [amd64-build]
-      - get: agent-static-arm64
+      - get: agent-static-amd64-j9
         trigger: true
         passed: [arm64-build]
-      - get: agent-static-s390x
-        trigger: true
-        passed: [s390x-build]
       - get: agent-version
         trigger: true
       - get: internal-tools
 
       - load_var: digest-amd64
         file: agent-static-amd64/digest
-      - load_var: digest-arm64
-        file: agent-static-arm64/digest
-      - load_var: digest-s390x
-        file: agent-static-s390x/digest
+      - load_var: digest-amd64-j9
+        file: agent-static-amd64-j9/digest
       - load_var: agent-version
         file: agent-version/number
         reveal: true
@@ -677,17 +672,11 @@ jobs:
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-              #- task: scan-image-arm64-static
-              #  privileged: true
-              #  file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
-              #  vars:
-              #    target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-arm64))
-              #    docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-          - task: scan-image-s390x-static
+          - task: scan-image-amd64-j9-static
             privileged: true
             file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
             vars:
-              target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-s390x))
+              target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
 
   - name: verify-amd64-static
