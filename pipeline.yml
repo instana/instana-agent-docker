@@ -651,7 +651,7 @@ jobs:
         passed: [amd64-build]
       - get: agent-static-amd64-j9
         trigger: true
-        passed: [arm64-build]
+        passed: [amd64-build]
       - get: agent-version
         trigger: true
       - get: internal-tools
