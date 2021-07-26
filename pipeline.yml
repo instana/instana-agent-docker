@@ -1,5 +1,12 @@
 ---
 # see https://concourse-ci.org/pipelines.html
+
+var_sources:
+  - name: local-vars
+    type: dummy
+    config:
+      vars:
+        instana-twistcli-version: '0.0.10'
 resource_types:
   - name: codebuild
     type: registry-image
@@ -304,19 +311,15 @@ resources:
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
 
-  - name: internal-tools
-    type: git
-    icon: github
+  - name: instana-twistcli-build-artifacts
+    type: s3
+    icon: zip-disk
     source:
-      uri: https://github.com/instana/internal-tools.git
-      username: ((instanacd-github-api-token))
-      password: x-oauth-basic
-      branch: master
-      paths:
-      - ci-utility-images/instana-twistcli
-      ignore_paths:
-      - ci-utility-images/instana-twistcli/README.md
-      - ci-utility-images/instana-twistcli/VERSION
+      bucket: instana-twistcli-build-artifacts
+      versioned_file: instana-twistcli-((local-vars:instana-twistcli-version)).tar.gz
+      access_key_id: ((codebuild-s3-user-devinfra-key.key_id))
+      secret_access_key: ((codebuild-s3-user-devinfra-key.key_secret))
+      region_name: us-west-2
 
 jobs:
   - name: bump-release-version
@@ -654,7 +657,6 @@ jobs:
         passed: [amd64-build]
       - get: agent-version
         trigger: true
-      - get: internal-tools
 
       - load_var: digest-amd64
         file: agent-static-amd64/digest
@@ -663,18 +665,22 @@ jobs:
       - load_var: agent-version
         file: agent-version/number
         reveal: true
+      - task: copy-scan-image-file
+        file: instana-agent-docker-git/ci/copy-scan-image-file-task.yml
+        vars:
+          instana-twistcli-version: ((local-vars:instana-twistcli-version))
 
       - in_parallel:
           steps:
           - task: scan-image-amd64-static
             privileged: true
-            file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
+            file: scan-image-file/scan-image.yml
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
           - task: scan-image-amd64-j9-static
             privileged: true
-            file: internal-tools/ci-utility-images/instana-twistcli/ci/tasks/scan-image.yml
+            file: scan-image-file/scan-image.yml
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))

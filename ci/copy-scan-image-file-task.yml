@@ -1,0 +1,21 @@
+---
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: ubuntu
+    tag: 20.04
+inputs:
+  - name: instana-twistcli-build-artifacts
+outputs:
+  - name: scan-image-file
+run:
+  path: bash
+  args:
+    - -o
+    - errexit
+    - -c
+    - |
+      mkdir -p instana-twistcli
+      tar xfz instana-twistcli-build-artifacts/instana-twistcli-((instana-twistcli-version)).tar.gz -C instana-twistcli --strip-components=1
+      cp instana-twistcli/scan-image.yml scan-image-file
