@@ -657,6 +657,7 @@ jobs:
         passed: [amd64-build]
       - get: agent-version
         trigger: true
+      - get: instana-twistcli-build-artifacts
 
       - load_var: digest-amd64
         file: agent-static-amd64/digest
