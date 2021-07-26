@@ -658,6 +658,7 @@ jobs:
       - get: agent-version
         trigger: true
       - get: instana-twistcli-build-artifacts
+      - get: instana-agent-docker-git
 
       - load_var: digest-amd64
         file: agent-static-amd64/digest
