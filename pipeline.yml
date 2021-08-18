@@ -898,7 +898,6 @@ jobs:
         params:
           skip_download: true
 
-
       - get: agent-static-amd64
         params:
           skip_download: true
