@@ -1,5 +1,10 @@
 # syntax=docker/dockerfile:experimental
 
+#
+# (c) Copyright IBM Corp. 2021
+# (c) Copyright Instana Inc.
+#
+
 FROM --platform=linux/amd64 registry.access.redhat.com/ubi8/ubi-minimal:latest AS build-gomplate
 
 ENV LANG=C.UTF-8 \

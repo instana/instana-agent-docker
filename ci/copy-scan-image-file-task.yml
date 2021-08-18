@@ -1,4 +1,10 @@
 ---
+#
+# (c) Copyright IBM Corp. 2021
+# (c) Copyright Instana Inc.
+#
+
+# see https://concourse-ci.org/tasks.html
 platform: linux
 image_resource:
   type: registry-image

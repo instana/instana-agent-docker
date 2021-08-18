@@ -1,6 +1,11 @@
 ## template: jinja
 #cloud-config
 
+#
+# (c) Copyright IBM Corp. 2021
+# (c) Copyright Instana Inc.
+#
+
 package_update: true
 package_upgrade: true
 package_reboot_if_required: true

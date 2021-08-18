@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# (c) Copyright IBM Corp. 2021
+# (c) Copyright Instana Inc.
+#
+
 if [[ "${INSTANA_KEY}" == "" ]] && [[ "${INSTANA_AGENT_KEY}" == "" ]]; then
   echo "Please add the INSTANA_AGENT_KEY environment variable and provide your Agent Key!"
   exit 1
