@@ -30,9 +30,7 @@ For a list of the maintainers, see the [MAINTAINERS.md](MAINTAINERS.md) page.
 
 ## Legal
 
-Each source file must include a license header. Easiest is probably to use the Maven command:
-`mvn validate com.mycila:license-maven-plugin:4.0.rc2:format`, which will automatically add the
-license to all necessary files.
+Each source file must include a license header, see [license-header.txt](license-header.txt) for a template.
 
 We have tried to make it as easy as possible to make contributions. This
 applies to how we handle the legal aspects of contribution. We use the
