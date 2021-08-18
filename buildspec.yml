@@ -1,5 +1,10 @@
 version: 0.2
 
+#
+# (c) Copyright IBM Corp. 2021
+# (c) Copyright Instana Inc.
+#
+
 env:
   variables:
     DOCKER_CLI_EXPERIMENTAL: enabled

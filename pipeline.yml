@@ -1,6 +1,10 @@
 ---
-# see https://concourse-ci.org/pipelines.html
+#
+# (c) Copyright IBM Corp. 2021
+# (c) Copyright Instana Inc.
+#
 
+# see https://concourse-ci.org/pipelines.html
 var_sources:
   - name: local-vars
     type: dummy
