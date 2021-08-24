@@ -1,4 +1,4 @@
-CVE-2008-5358
-CVE-2008-5352
-CVE-2008-3103
-CVE-2007-3716
+CVE-2008-5358  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
+CVE-2008-5352  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
+CVE-2008-3103  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
+CVE-2007-3716  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
