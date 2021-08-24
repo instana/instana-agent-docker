@@ -10,7 +10,7 @@ var_sources:
     type: dummy
     config:
       vars:
-        instana-twistcli-version: '0.0.10'
+        instana-twistcli-version: '0.1.2'
 resource_types:
   - name: codebuild
     type: registry-image
@@ -671,8 +671,8 @@ jobs:
       - load_var: agent-version
         file: agent-version/number
         reveal: true
-      - task: copy-scan-image-file
-        file: instana-agent-docker-git/ci/copy-scan-image-file-task.yml
+      - task: prepare-instana-twistcli-inputs
+        file: instana-agent-docker-git/ci/prepare-instana-twistcli-inputs-task.yml
         vars:
           instana-twistcli-version: ((local-vars:instana-twistcli-version))
 
@@ -680,16 +680,20 @@ jobs:
           steps:
           - task: scan-image-amd64-static
             privileged: true
-            file: scan-image-file/scan-image.yml
+            file: instana-twistcli-inputs/scan-image.yml
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+              ignorefile: instana-agent-docker-git/.twistlockignore-amd64-static
+              min-vuln-severity: ''
           - task: scan-image-amd64-j9-static
             privileged: true
-            file: scan-image-file/scan-image.yml
+            file: instana-twistcli-inputs/scan-image.yml
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+              ignorefile: ''
+              min-vuln-severity: ''
 
   - name: verify-amd64-static
     max_in_flight: 1

@@ -5,6 +5,7 @@
 #
 
 # see https://concourse-ci.org/tasks.html
+---
 platform: linux
 image_resource:
   type: registry-image
@@ -14,7 +15,7 @@ image_resource:
 inputs:
   - name: instana-twistcli-build-artifacts
 outputs:
-  - name: scan-image-file
+  - name: instana-twistcli-inputs
 run:
   path: bash
   args:
@@ -24,4 +25,4 @@ run:
     - |
       mkdir -p instana-twistcli
       tar xfz instana-twistcli-build-artifacts/instana-twistcli-((instana-twistcli-version)).tar.gz -C instana-twistcli --strip-components=1
-      cp instana-twistcli/scan-image.yml scan-image-file
+      cp instana-twistcli/scan-image.yml instana-twistcli-inputs
