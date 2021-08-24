@@ -13,6 +13,7 @@ image_resource:
     tag: 20.04
 inputs:
   - name: instana-twistcli-build-artifacts
+  - name: instana-agent-docker-git
 outputs:
   - name: instana-twistcli-inputs
 run:
@@ -25,3 +26,4 @@ run:
       mkdir -p instana-twistcli
       tar xfz instana-twistcli-build-artifacts/instana-twistcli-((instana-twistcli-version)).tar.gz -C instana-twistcli --strip-components=1
       cp instana-twistcli/scan-image.yml instana-twistcli-inputs
+      cp instana-agent-docker-git/.twistlockignore-amd64-static instana-twistcli-inputs
