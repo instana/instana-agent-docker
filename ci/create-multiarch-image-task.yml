@@ -37,6 +37,8 @@ run:
       # Here we fix it in case only 'j9' is given.
       # Empty CLASSIFIER means classic OpenJDK based images.
 
+      # NOTE: for s390x, ppc64le J9 is the default runtime, RPM/DEB packages for s390x, ppc64le with Azul 8 Java are unavailable
+
       # CLASSIFIER is not empty and does not start with a '-':
       if [ "${CLASSIFIER}x" != 'x' ] && [ "${CLASSIFIER#-}" = "${CLASSIFIER}" ]; then
         CLASSIFIER="-${CLASSIFIER}"
@@ -46,16 +48,19 @@ run:
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR$CLASSIFIER"
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR"
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR$CLASSIFIER"
+      docker pull "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-ppc64le-$FLAVOR"
 
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:latest-amd64-$FLAVOR$CLASSIFIER"
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:latest-s390x-$FLAVOR"
       docker pull "gcr.io/instana-agent-qa/instana-agent-docker:latest-arm64-$FLAVOR$CLASSIFIER"
+      docker pull "gcr.io/instana-agent-qa/instana-agent-docker:latest-ppc64le-$FLAVOR"
 
       echo "---> Building multi-architectural manifest"
       docker manifest create "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-$FLAVOR$CLASSIFIER" \
         --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-amd64-$FLAVOR$CLASSIFIER" \
         --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-s390x-$FLAVOR" \
-        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR$CLASSIFIER"
+        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR$CLASSIFIER" \
+        --amend "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-ppc64le-$FLAVOR"
 
       echo "---> Pushing multi-architectural manifest"
       docker manifest push "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-$FLAVOR$CLASSIFIER"
@@ -67,17 +72,21 @@ run:
         "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-s390x"
       docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR$CLASSIFIER" \
         "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER-arm64"
+      docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-ppc64le-$FLAVOR" \
+        "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-ppc64le"
 
       echo "Pushing containers to containers.instana.io"
       docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER-amd64"
       docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-s390x"
       docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER-arm64"
+      docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-ppc64le"
 
       echo "Creating multi-architectural manifest for containers.instana.io"
       docker manifest create "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER" \
         --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER-amd64" \
         --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-s390x" \
-        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER-arm64"
+        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER-arm64" \
+        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-ppc64le"
 
       echo "---> Pushing multi-architectural image to containers.instana.io"
       docker manifest push "containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER"
@@ -89,17 +98,21 @@ run:
         "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-s390x"
       docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-arm64-$FLAVOR$CLASSIFIER" \
         "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER-arm64"
+      docker tag "gcr.io/instana-agent-qa/instana-agent-docker:$COMMIT_SHA-ppc64le-$FLAVOR" \
+        "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-ppc64le"
 
       echo "---> Pushing latest containers to containers.instana.io"
       docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER-amd64"
       docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-s390x"
       docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER-arm64"
+      docker push "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-ppc64le"
 
       echo "---> Creating multi-architectural latest manifest containers.instana.io"
       docker manifest create "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER" \
         --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER-amd64" \
         --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-s390x" \
-        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER-arm64"
+        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER-arm64" \
+        --amend "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-ppc64le"
 
       echo "---> Pushing latest manifest to containers.instana.io"
       docker manifest push "containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER"
@@ -109,10 +122,12 @@ run:
       containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER-amd64
       containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-s390x
       containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER-arm64
+      containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION-ppc64le
       containers.instana.io/instana/prerelease/agent/$FLAVOR:$VERSION$CLASSIFIER
 
       containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER-amd64
       containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-s390x
       containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER-arm64
+      containers.instana.io/instana/prerelease/agent/$FLAVOR:latest-ppc64le
       containers.instana.io/instana/prerelease/agent/$FLAVOR:latest$CLASSIFIER
       EOF

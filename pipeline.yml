@@ -137,6 +137,20 @@ resources:
       json_key: ((gcloud-agent-ci-account-key))
       regexp: packages/instana-agent-dynamic-j9-(2.*)\.s390x\.rpm
 
+  ## ppc64le packages
+  - name: rpm-static-ppc64le-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-static-j9-(2.*)\.ppc64le\.rpm
+  - name: rpm-dynamic-ppc64le-j9
+    type: gcs-resource
+    source:
+      bucket: agent-ci
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: packages/instana-agent-dynamic-j9-(2.*)\.ppc64le\.rpm
+
   - name: build-bundle
     type: s3
     icon: zip-disk
@@ -231,6 +245,23 @@ resources:
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
 
+  - name: codebuild-dynamic-ppc64le
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+  - name: codebuild-static-ppc64le
+    type: codebuild
+    icon: aws
+    source:
+      project: instana-agent-images-s390x
+      region: us-west-2
+      access_key_id: ((codebuild-key.key_id))
+      secret_access_key: ((codebuild-key.key_secret))
+
   - name: agent-dynamic-arm64
     type: registry-image
     icon: docker
@@ -315,6 +346,23 @@ resources:
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
 
+  - name: agent-dynamic-ppc64le
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-ppc64le-dynamic
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: agent-static-ppc64le
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/instana-agent-qa/instana-agent-docker
+      tag: latest-ppc64le-static
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+
   - name: instana-twistcli-build-artifacts
     type: s3
     icon: zip-disk
@@ -373,6 +421,10 @@ jobs:
       - get: rpm-static-s390x-j9
         trigger: true
       - get: rpm-dynamic-s390x-j9
+        trigger: true
+      - get: rpm-static-ppc64le-j9
+        trigger: true
+      - get: rpm-dynamic-ppc64le-j9
         trigger: true
       - put: agent-version
         params: { bump: patch }
@@ -650,6 +702,67 @@ jobs:
                   image: codebuild-static-s390x/artifacts/image.tar
                   additional_tags: codebuild-static-s390x/artifacts/tag
 
+  - name: ppc64le-build
+    max_in_flight: 1
+    public: true
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: build-bundle
+        trigger: true
+        passed: [ prepare-build-bundle ]
+      - get: agent-version
+        passed: [ prepare-build-bundle ]
+        trigger: true
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: s3-artifact-version
+        file: build-bundle/version
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: codebuild-static-ppc64le
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: ppc64le
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: static
+                  CLASSIFIER: ''
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/ppc64le
+            - put: codebuild-dynamic-ppc64le
+              params:
+                source_version: ((.:s3-artifact-version))
+                env_var_overrides:
+                  ARCH: ppc64le
+                  DOWNLOAD_KEY: ((qa-instana-agent-key))
+                  FLAVOR: dynamic
+                  CLASSIFIER: ''
+                  VERSION: ((.:agent-version))
+                  BRANCH: ((.:commit-sha))
+                  COMMIT_SHA: ((.:commit-sha))
+                  TARGETPLATFORM: linux/ppc64le
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - put: agent-dynamic-ppc64le
+              params:
+                  image: codebuild-dynamic-ppc64le/artifacts/image.tar
+                  additional_tags: codebuild-dynamic-ppc64le/artifacts/tag
+            - put: agent-static-ppc64le
+              params:
+                  image: codebuild-static-ppc64le/artifacts/image.tar
+                  additional_tags: codebuild-static-ppc64le/artifacts/tag
+
   - name: twistlock-security-scan
     max_in_flight: 1
     plan:
@@ -883,10 +996,10 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ s390x-build, arm64-build, amd64-build ]
+        passed: [ ppc64le-build, s390x-build, arm64-build, amd64-build ]
       - get: agent-version
         trigger: true
-        passed: [ s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
+        passed: [ ppc64le-build, s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
 
       - get: agent-dynamic-amd64
         params:
@@ -905,6 +1018,9 @@ jobs:
       - get: agent-dynamic-s390x
         params:
           skip_download: true
+      - get: agent-dynamic-ppc64le
+        params:
+          skip_download: true
 
       - get: agent-static-amd64
         params:
@@ -921,6 +1037,9 @@ jobs:
         params:
           skip_download: true
       - get: agent-static-s390x
+        params:
+          skip_download: true
+      - get: agent-static-ppc64le
         params:
           skip_download: true
 
@@ -943,6 +1062,10 @@ jobs:
           skip_download: true
         passed: [ verification-gate ]
       - get: agent-dynamic-arm64
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-dynamic-ppc64le
         params:
           skip_download: true
         passed: [ verification-gate ]
@@ -1033,6 +1156,10 @@ jobs:
           skip_download: true
         passed: [ verification-gate ]
       - get: agent-static-s390x
+        params:
+          skip_download: true
+        passed: [ verification-gate ]
+      - get: agent-static-ppc64le
         params:
           skip_download: true
         passed: [ verification-gate ]

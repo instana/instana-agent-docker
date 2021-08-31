@@ -22,11 +22,13 @@ RUN microdnf install tar gzip wget golang make findutils socat && \
     GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o gomplate_amd64 ./cmd/gomplate && \
     GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o gomplate_arm64 ./cmd/gomplate && \
     GOOS=linux GOARCH=s390x CGO_ENABLED=0 go build -o gomplate_s390x ./cmd/gomplate && \
-    mkdir -p /usr/bin/linux/{amd64,arm64,s390x} && \
+    GOOS=linux GOARCH=ppc64le CGO_ENABLED=0 go build -o gomplate_ppc64le ./cmd/gomplate && \
+    mkdir -p /usr/bin/linux/{amd64,arm64,s390x,ppc64le} && \
     chmod u+x gomplate_* && \
     cp gomplate_amd64 /usr/bin/linux/amd64/gomplate && \
     cp gomplate_arm64 /usr/bin/linux/arm64/gomplate && \
-    cp gomplate_s390x /usr/bin/linux/s390x/gomplate
+    cp gomplate_s390x /usr/bin/linux/s390x/gomplate && \
+    cp gomplate_ppc64le /usr/bin/linux/ppc64le/gomplate
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS instana-agent
 
@@ -38,9 +40,9 @@ ARG FTP_PROXY
 
 RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
-    export arch=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'x86_64' ;; 'linux/arm64') echo 'aarch64' ;; 'linux/s390x') echo 's390x' ;; esac) && \
+    export arch=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'x86_64' ;; 'linux/arm64') echo 'aarch64' ;; 'linux/s390x') echo 's390x' ;; 'linux/ppc64le') echo 'ppc64le' ;; esac) && \
     [[ -z "${FTP_PROXY}" ]] || DOWNLOAD_KEY="${FTP_PROXY}" && \
-    [[ "${arch}" != "s390x" ]] || CLASSIFIER="-j9" && \
+    [[ "${arch}" != "s390x" && "${arch}" != "ppc64le" ]] || CLASSIFIER="-j9" && \
     [[ "${CLASSIFIER}x" = "x" ]] || [[ "${CLASSIFIER#-}" != "${CLASSIFIER}" ]] || CLASSIFIER="-${CLASSIFIER}" && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${DOWNLOAD_KEY}@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf install "instana-agent-static${CLASSIFIER}" && \
@@ -70,8 +72,8 @@ RUN pip3 install pip==20.3.4
 # !! NOTE: the following sections contain inverse IF-statements to make sure commands succeed
 # when not applicable but breaks when any command fails. The regular " IF ... && <command> || true " won't work.
 
-# s390x does not carry the Docker cli (and neither do RHEL official repositories)
-RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' ]] || ( \
+# s390x and ppc64le do not carry the Docker cli (and neither do RHEL official repositories)
+RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' || "${TARGETPLATFORM}" = 'linux/ppc64le' ]] || ( \
         echo -e '[docker-ce-stable]\nname=Docker CE Stable - $basearch\nbaseurl=https://download.docker.com/linux/centos/8/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=https://download.docker.com/linux/centos/gpg' > /etc/yum.repos.d/docker.repo \
         && microdnf install --nodocs docker-ce-cli \
         && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
@@ -94,6 +96,18 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
 RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         cd /tmp \
         && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
+        && gunzip docker-18.06.3-ce.tgz \
+        && tar -xvf docker-18.06.3-ce.tar \
+        && mv docker/docker /usr/local/bin/docker \
+        && mv docker/docker-containerd /usr/local/bin/containerd \
+        && mv docker/docker-containerd-shim /usr/local/bin/containerd-shim \
+        && rm -rf /tmp/* \
+    )
+
+# On ppc64le, install docker ce, runc and containerd from docker static ppc64le build
+RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
+        cd /tmp \
+        && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/ppc64le/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
         && gunzip docker-18.06.3-ce.tgz \
         && tar -xvf docker-18.06.3-ce.tar \
         && mv docker/docker /usr/local/bin/docker \
@@ -133,9 +147,21 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         && microdnf clean all \
     )
 
+# Install iptables 1.4.21 on ppc64le to carry out service mesh bypass scripts.
+ENV IPTABLES_PPC64LE_SHA256="1eb70870bd717d010127a0d6a6bd61d1e621120b770d7c9e9bde125b08d9bd71  iptables-1.4.21-35.el7.ppc64le.rpm"
+RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
+        microdnf install libnetfilter_conntrack \
+        && cd /tmp \
+        && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/ppc64le/Packages/iptables-1.4.21-35.el7.ppc64le.rpm -o /tmp/iptables-1.4.21-35.el7.ppc64le.rpm \
+        && echo "${IPTABLES_PPC64LE_SHA256}" | sha256sum --check > /dev/null \
+        && rpm -i /tmp/iptables-1.4.21-35.el7.ppc64le.rpm \
+        && rm -rf /tmp/* \
+        && microdnf clean all \
+    )
+
 # Install Tini, to handle signals (SIGTERM / SIGKILL) correctly in our container since we need to run the Agent from a
 # script and cannot 'exec' to replace it. That would kill the container on restarts of the Agent.
-RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'linux/arm64') echo 'arm64' ;; 'linux/s390x') echo 's390x' ;; esac) \
+RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'linux/arm64') echo 'arm64' ;; 'linux/s390x') echo 's390x' ;; 'linux/ppc64le') echo 'ppc64le' ;; esac) \
     && export TINI_VERSION=$(curl -L -s -H 'Accept: application/json' https://github.com/krallin/tini/releases/latest | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
     && cd /tmp \
     && curl -L --fail --show-error --silent https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-${ARCH} -o tini-${ARCH} \
