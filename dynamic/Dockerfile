@@ -116,7 +116,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
         && rm -rf /tmp/* \
     )
 
-RUN export ARCH=${TARGETPLATFORM////-} \
+RUN export ARCH=${TARGETPLATFORM////-} \  # Does variable substitution, replacing '/' with '-' in targetplatform
     && export CRICTL_VERSION=v$(curl -L -s -H 'Accept: application/json' https://github.com/kubernetes-sigs/cri-tools/releases/latest | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
     && export CRICTL_BINARY="crictl-${CRICTL_VERSION}-${ARCH}.tar.gz" \
     && cd /tmp \
