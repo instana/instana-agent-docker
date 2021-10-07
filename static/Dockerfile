@@ -46,6 +46,7 @@ RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     [[ "${CLASSIFIER}x" = "x" ]] || [[ "${CLASSIFIER#-}" != "${CLASSIFIER}" ]] || CLASSIFIER="-${CLASSIFIER}" && \
     echo -e "[instana-agent]\nname=Instana\nbaseurl=https://_:${DOWNLOAD_KEY}@packages.instana.io/agent/generic/${arch}\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.instana.io/Instana.gpg\nsslverify=1" > /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf install "instana-agent-static${CLASSIFIER}" && \
+    sed -i 's/package[[:space:]]static/static_docker/' /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg && \
     mv /opt/instana/agent/licenses /licenses && \
     rm -rf /tmp/* /etc/yum.repos.d/Instana-Agent.repo && \
     microdnf clean all
@@ -208,7 +209,6 @@ ENV LANG=C.UTF-8 \
 COPY org.ops4j.pax.logging.cfg.tmpl \
     configuration.yaml \
     com.instana.agent.main.sender.Backend-1.cfg.tmpl \
-    com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
     /root/
 
 ADD run.sh /opt/instana/agent/bin
