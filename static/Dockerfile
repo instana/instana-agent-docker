@@ -117,6 +117,18 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
         && rm -rf /tmp/* \
     )
 
+# ARCH=${TARGETPLATFORM////-} \  # Does variable substitution, replacing '/' with '-' in targetplatform
+RUN export ARCH=${TARGETPLATFORM////-} \
+    && export CRICTL_VERSION=v$(curl -w '\n' -L -s -H 'Accept: application/json' https://github.com/kubernetes-sigs/cri-tools/releases/latest | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
+    && export CRICTL_BINARY="crictl-${CRICTL_VERSION}-${ARCH}.tar.gz" \
+    && cd /tmp \
+    && curl -L --fail --show-error --silent https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/${CRICTL_BINARY} --output ${CRICTL_BINARY} \
+    && echo $(curl -L --fail --show-error --silent https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/${CRICTL_BINARY}.sha256 | awk '{print $1}') ${CRICTL_BINARY} | sha256sum --check \
+    && tar -xzf ${CRICTL_BINARY} \
+    && mv crictl /usr/local/bin/crictl \
+    && chmod +x /usr/local/bin/crictl \
+    && rm -rf /tmp/*
+
 # Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts.
 ENV IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm"
 RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
