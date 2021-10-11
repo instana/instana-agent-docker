@@ -116,14 +116,16 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
         && rm -rf /tmp/* \
     )
 
-# ARCH=${TARGETPLATFORM////-} \  # Does variable substitution, replacing '/' with '-' in targetplatform
-RUN export ARCH=${TARGETPLATFORM////-} \
+# "//" -> replace all of "\/" (escaped slash) next "/" is the delimiter between pattern and replacement "-"
+# e.g. linux/amd64 -> linux-amd64
+RUN export ARCH=${TARGETPLATFORM//\//-} \
     && export CRICTL_VERSION=v$(curl -w '\n' -L -s -H 'Accept: application/json' https://github.com/kubernetes-sigs/cri-tools/releases/latest | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
     && export CRICTL_BINARY="crictl-${CRICTL_VERSION}-${ARCH}.tar.gz" \
     && cd /tmp \
-    && curl -L --fail --show-error --silent https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/${CRICTL_BINARY} --output ${CRICTL_BINARY} \
-    && echo $(curl -L --fail --show-error --silent https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/${CRICTL_BINARY}.sha256 | awk '{print $1}') ${CRICTL_BINARY} | sha256sum --check \
-    && tar -xzf ${CRICTL_BINARY} \
+    && curl -L --fail --show-error --silent https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/${CRICTL_BINARY} --output crictl.tar.gz \
+    && echo $(curl -L --fail --show-error --silent https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/${CRICTL_BINARY}.sha256 | awk '{print $1}') crictl.tar.gz | sha256sum --check \
+    && gunzip crictl.tar.gz \
+    && tar xf crictl.tar \
     && mv crictl /usr/local/bin/crictl \
     && chmod +x /usr/local/bin/crictl \
     && rm -rf /tmp/*
