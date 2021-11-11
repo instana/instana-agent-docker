@@ -10,7 +10,7 @@ var_sources:
     type: dummy
     config:
       vars:
-        instana-twistcli-version: '0.1.2'
+        instana-twistcli-version: '0.2.1'
 resource_types:
   - name: codebuild
     type: registry-image
