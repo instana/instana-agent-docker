@@ -137,7 +137,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
         && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
         && echo "${IPTABLES_X86_SHA256}" | sha256sum --check > /dev/null \
-        && rpm -i /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
+        && rpm --force -i /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
         && rm -rf /tmp/* \
         && microdnf clean all \
     )
@@ -149,7 +149,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/arm64' ]] || ( \
         && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
         && echo "${IPTABLES_ARM64_SHA256}" | sha256sum --check > /dev/null \
-        && rpm -i /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
+        && rpm --force -i /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
         && rm -rf /tmp/* \
         && microdnf clean all \
     )
@@ -168,7 +168,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
         && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/ppc64le/Packages/iptables-1.4.21-35.el7.ppc64le.rpm -o /tmp/iptables-1.4.21-35.el7.ppc64le.rpm \
         && echo "${IPTABLES_PPC64LE_SHA256}" | sha256sum --check > /dev/null \
-        && rpm -i /tmp/iptables-1.4.21-35.el7.ppc64le.rpm \
+        && rpm --force -i /tmp/iptables-1.4.21-35.el7.ppc64le.rpm \
         && rm -rf /tmp/* \
         && microdnf clean all \
     )
