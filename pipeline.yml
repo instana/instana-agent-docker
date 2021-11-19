@@ -31,6 +31,15 @@ resource_types:
     source:
       repository: cfcommunity/slack-notification-resource
       tag: latest
+  - name: docker-manifest
+    type: registry-image
+    source:
+      repository: gcr.io/instana-agent-qa/concourse-docker-manifest-resource
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+
+#############
+# Resources #
 resources:
   - name: instana-agent-docker-git
     type: git
@@ -161,7 +170,8 @@ resources:
       secret_access_key: ((codebuild-key.key_secret))
       region_name: us-west-2
       skip_download: true
-
+#############
+# Codebuild #
   - name: codebuild-dynamic-amd64
     type: codebuild
     icon: aws
@@ -262,6 +272,8 @@ resources:
       access_key_id: ((codebuild-key.key_id))
       secret_access_key: ((codebuild-key.key_secret))
 
+#################
+# gcr.io images #
   - name: agent-dynamic-arm64
     type: registry-image
     icon: docker
@@ -372,7 +384,112 @@ resources:
       access_key_id: ((codebuild-s3-user-devinfra-key.key_id))
       secret_access_key: ((codebuild-s3-user-devinfra-key.key_secret))
       region_name: us-west-2
+  
+#################
+# container.instana.io/instana images
 
+# We don't need to differentiate different arch tags on those resources since 
+# this is push-only. We don't run other jobs/tasks depending on those images.
+
+# Dynamic pre-release images will be pushed to containers.instana.io & icr.io.
+# Static pre-release images will only be pushed to containers.instana.io due to the lack
+# of authorisation on icr.io.
+
+# pre-release dynamic images & manifest:
+  - name: agent-dynamic-prerelease-instana
+    type: registry-image
+    icon: docker
+    source: &containers-instana-io-prerelease
+      repository: containers.instana.io/instana/prerelease/agent/dynamic
+      username: ((containers-instana-io-creds.username))
+      password: ((containers-instana-io-creds.password))
+  - name: manifest-dynamic-prerelease-instana
+    type: docker-manifest
+    icon: docker
+    source: *containers-instana-io-prerelease
+  
+# pre-release static images & manifest:
+  - name: agent-static-prerelease-instana
+    type: registry-image
+    icon: docker
+    source: &containers-instana-io-prerelease-static
+      repository: containers.instana.io/instana/prerelease/agent/static
+      username: ((containers-instana-io-creds.username))
+      password: ((containers-instana-io-creds.password))
+  - name: manifest-static-prerelease-instana
+    type: docker-manifest
+    icon: docker
+    source: *containers-instana-io-prerelease-static
+#
+# release dynamic images & manifest:
+  - name: agent-dynamic-release-instana
+    type: registry-image
+    icon: docker
+    source: &containers-instana-io-release
+      repository: containers.instana.io/instana/release/agent/dynamic
+      username: ((containers-instana-io-creds.username))
+      password: ((containers-instana-io-creds.password))
+  - name: manifest-dynamic-release-instana
+    type: docker-manifest
+    icon: docker
+    source: *containers-instana-io-release
+  
+# release static images & manifest:
+  - name: agent-static-release-instana
+    type: registry-image
+    icon: docker
+    source: &containers-instana-io-release-static
+      repository: containers.instana.io/instana/release/agent/static
+      username: ((containers-instana-io-creds.username))
+      password: ((containers-instana-io-creds.password))
+  - name: manifest-static-release-instana
+    type: docker-manifest
+    icon: docker
+    source: *containers-instana-io-release-static
+
+#################
+# icr.io images, release dynamic images & manifest:
+  - name: agent-dynamic-release-icr
+    type: registry-image
+    icon: docker
+    source: &icr-io-release
+      repository: icr.io/instana/agent
+      username: iamapikey
+      password: ((concourse-icr-containers-public.password))
+  - name: manifest-dynamic-release-icr
+    type: docker-manifest
+    icon: docker
+    source: *icr-io-release
+############################################################
+# Red Hat registry images, release dynamic images & manifest
+  - name: agent-dynamic-release-redhat
+    type: registry-image
+    icon: docker
+    source: &redhat-release
+      repository: scan.connect.redhat.com/p608397615952a4600fdbf53550772c07c9533e46f/agent
+      username: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.user))
+      password: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.password))
+  # - name: manifest-dynamic-release-redhat
+  #   type: docker-manifest
+  #   icon: docker
+  #   source: *redhat-release
+##############################################################
+# Docker.io registry images, release dynamic images & manifest
+  - name: agent-dynamic-release-docker
+    type: registry-image
+    icon: docker
+    source: &docker-release
+      repository: docker.io/instana/agent
+      username: ((dockerhub-instanacicd.user))
+      password: ((dockerhub-instanacicd.password))
+  - name: manifest-dynamic-release-docker
+    type: docker-manifest
+    icon: docker
+    source: *docker-release
+
+########
+########
+# Jobs #
 jobs:
   - name: bump-release-version
     max_in_flight: 1
@@ -398,34 +515,35 @@ jobs:
       - get: instana-agent-docker-git
         trigger: true
         passed: [ self-update ]
-      - get: rpm-static-x86_64
-        trigger: true
-      - get: rpm-dynamic-x86_64
-        trigger: true
-      - get: rpm-static-x86_64-j9
-        trigger: true
-      - get: rpm-dynamic-x86_64-j9
-        trigger: true
-      - get: rpm-static-aarch64
-        trigger: true
-      - get: rpm-dynamic-aarch64
-        trigger: true
-      - get: rpm-static-aarch64-j9
-        trigger: true
-      - get: rpm-dynamic-aarch64-j9
-        trigger: true
-      - get: rpm-static-s390x
-        trigger: true
-      - get: rpm-dynamic-s390x
-        trigger: true
-      - get: rpm-static-s390x-j9
-        trigger: true
-      - get: rpm-dynamic-s390x-j9
-        trigger: true
-      - get: rpm-static-ppc64le-j9
-        trigger: true
-      - get: rpm-dynamic-ppc64le-j9
-        trigger: true
+      - in_parallel:
+        - get: rpm-static-x86_64
+          trigger: true
+        - get: rpm-dynamic-x86_64
+          trigger: true
+        - get: rpm-static-x86_64-j9
+          trigger: true
+        - get: rpm-dynamic-x86_64-j9
+          trigger: true
+        - get: rpm-static-aarch64
+          trigger: true
+        - get: rpm-dynamic-aarch64
+          trigger: true
+        - get: rpm-static-aarch64-j9
+          trigger: true
+        - get: rpm-dynamic-aarch64-j9
+          trigger: true
+        - get: rpm-static-s390x
+          trigger: true
+        - get: rpm-dynamic-s390x
+          trigger: true
+        - get: rpm-static-s390x-j9
+          trigger: true
+        - get: rpm-dynamic-s390x-j9
+          trigger: true
+        - get: rpm-static-ppc64le-j9
+          trigger: true
+        - get: rpm-dynamic-ppc64le-j9
+          trigger: true
       - put: agent-version
         params: { bump: patch }
       - task: package-build-bundle
@@ -1043,7 +1161,11 @@ jobs:
         params:
           skip_download: true
 
-  - name: build-multiarch-dynamic
+###################################
+# Pre-release                     #
+# Build & publish image manifests #
+# containers.instana.io           #
+  - name: prerelease-multiarch-dynamic
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
@@ -1052,117 +1174,403 @@ jobs:
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: dynamic-multiarch-manifest-tags
+        privileged: true
+        file: instana-agent-docker-git/ci/create-tag-file.yml
+        output_mapping:
+          message: message
+          version: version
+        vars:
+          flavor: dynamic
+          classifier: ''
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          release-tree: 'prerelease'
+     
+      - in_parallel:
+        - get: agent-dynamic-amd64
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-dynamic-s390x
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-dynamic-arm64
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-dynamic-ppc64le
+          params:
+            format: oci
+          passed: [ verification-gate ]
+            
+      - in_parallel:
+        - put: agent-dynamic-prerelease-instana
+          params:
+            image: agent-dynamic-amd64/image.tar
+            additional_tags: agent-dynamic-amd64/tag
+        - put: agent-dynamic-prerelease-instana
+          params:
+            image: agent-dynamic-arm64/image.tar
+            additional_tags: agent-dynamic-arm64/tag
+        - put: agent-dynamic-prerelease-instana
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-prerelease-instana
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-prerelease-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+
+  - name: prerelease-multiarch-dynamic-j9
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ verification-gate ]
+      - get: agent-version
+        trigger: true
+        passed: [ verification-gate ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: dynamic-multiarch-manifest-tags-j9
+        privileged: true
+        file: instana-agent-docker-git/ci/create-tag-file.yml
+        output_mapping:
+          message: message
+          version: version
+        vars:
+          flavor: dynamic
+          classifier: '-j9'
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          release-tree: 'prerelease'
+     
+      - in_parallel:
+        - get: agent-dynamic-amd64-j9
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-dynamic-s390x
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-dynamic-arm64-j9
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-dynamic-ppc64le
+          params:
+            format: oci
+          passed: [ verification-gate ]
+            
+      - in_parallel:
+        - put: agent-dynamic-prerelease-instana
+          params:
+            image: agent-dynamic-amd64-j9/image.tar
+            additional_tags: agent-dynamic-amd64-j9/tag
+        - put: agent-dynamic-prerelease-instana
+          params:
+            image: agent-dynamic-arm64-j9/image.tar
+            additional_tags: agent-dynamic-arm64-j9/tag
+        - put: agent-dynamic-prerelease-instana
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-prerelease-instana
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-prerelease-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+
+  - name: prerelease-multiarch-static
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ verification-gate ]
+      - get: agent-version
+        trigger: true
+        passed: [ verification-gate ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: static-multiarch-manifest-tags
+        privileged: true
+        file: instana-agent-docker-git/ci/create-tag-file.yml
+        output_mapping:
+          message: message
+          version: version
+        vars:
+          flavor: static
+          classifier: ''
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          release-tree: 'prerelease'
+
+      - in_parallel:
+        - get: agent-static-amd64
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-static-s390x
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-static-arm64
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-static-ppc64le
+          params:
+            format: oci
+          passed: [ verification-gate ]
+            
+      - in_parallel:
+        - put: agent-static-prerelease-instana
+          params:
+            image: agent-static-amd64/image.tar
+            additional_tags: agent-static-amd64/tag
+        - put: agent-static-prerelease-instana
+          params:
+            image: agent-static-arm64/image.tar
+            additional_tags: agent-static-arm64/tag
+        - put: agent-static-prerelease-instana
+          params:
+            image: agent-static-s390x/image.tar
+            additional_tags: agent-static-s390x/tag
+        - put: agent-static-prerelease-instana
+          params:
+            image: agent-static-ppc64le/image.tar
+            additional_tags: agent-static-ppc64le/tag
+
+      - put: manifest-static-prerelease-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-static-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-static-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-static-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-static-ppc64le/digest
+    
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+
+  - name: prerelease-multiarch-static-j9
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ verification-gate ]
+      - get: agent-version
+        trigger: true
+        passed: [ verification-gate ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: static-multiarch-manifest-tags-j9
+        privileged: true
+        file: instana-agent-docker-git/ci/create-tag-file.yml
+        output_mapping:
+          message: message
+          version: version
+        vars:
+          flavor: static
+          classifier: '-j9'
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          release-tree: 'prerelease'
+     
+      - in_parallel:
+        - get: agent-static-amd64-j9
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-static-s390x
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-static-arm64-j9
+          params:
+            format: oci
+          passed: [ verification-gate ]
+        - get: agent-static-ppc64le
+          params:
+            format: oci
+          passed: [ verification-gate ]
+            
+      - in_parallel:
+        - put: agent-static-prerelease-instana
+          params:
+            image: agent-static-amd64-j9/image.tar
+            additional_tags: agent-static-amd64-j9/tag
+        - put: agent-static-prerelease-instana
+          params:
+            image: agent-static-arm64-j9/image.tar
+            additional_tags: agent-static-arm64-j9/tag
+        - put: agent-static-prerelease-instana
+          params:
+            image: agent-static-s390x/image.tar
+            additional_tags: agent-static-s390x/tag
+        - put: agent-static-prerelease-instana
+          params:
+            image: agent-static-ppc64le/image.tar
+            additional_tags: agent-static-ppc64le/tag
+
+      - put: manifest-static-prerelease-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-static-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-static-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-static-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-static-ppc64le/digest
+   
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+########################################################################
+# Release                                                              #
+# Build & publish image manifests                                      #
+# containers.instana.io + docker.io + icr.io + scan.connect.redhat.com #
+  - name: agent-release-trigger
+    plan:
+      - get: instana-agent-docker-git
+        params: &release-trigger-params
+          skip_download: true
+        passed: [ prerelease-multiarch-dynamic, prerelease-multiarch-static, prerelease-multiarch-dynamic-j9, prerelease-multiarch-static-j9 ]
+      - get: agent-version
+        params: *release-trigger-params
 
       - get: agent-dynamic-amd64
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
-      - get: agent-dynamic-s390x
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
-      - get: agent-dynamic-arm64
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
-      - get: agent-dynamic-ppc64le
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
-
-      - load_var: agent-version
-        file: agent-version/number
-        reveal: true
-      - load_var: commit-sha
-        file: instana-agent-docker-git/.git/short_ref
-        reveal: true
-      - task: build-dynamic-multiarch-manifest
-        privileged: true
-        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
-        input_mapping:
-          code: instana-agent-docker-git
-        output_mapping:
-          message: message
-        vars:
-          commit-sha: ((.:commit-sha))
-          flavor: dynamic
-          classifier: ''
-          version: ((.:agent-version))
-          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-      - put: slack-alert
-        params:
-          channel: '#tech-agent-delivery'
-          text_file: message/text
-
-  - name: build-multiarch-dynamic-j9
-    max_in_flight: 1
-    plan:
-      - get: instana-agent-docker-git
-        trigger: true
-        passed: [ verification-gate ]
-      - get: agent-version
-        trigger: true
-        passed: [ verification-gate ]
-
+        params: *release-trigger-params
       - get: agent-dynamic-amd64-j9
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
+        params: *release-trigger-params
+      - get: agent-dynamic-arm64
+        params: *release-trigger-params
       - get: agent-dynamic-arm64-j9
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
-
-      - load_var: agent-version
-        file: agent-version/number
-        reveal: true
-      - load_var: commit-sha
-        file: instana-agent-docker-git/.git/short_ref
-        reveal: true
-      - task: build-dynamic-multiarch-manifest
-        privileged: true
-        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
-        input_mapping:
-          code: instana-agent-docker-git
-        output_mapping:
-          message: message
-        vars:
-          commit-sha: ((.:commit-sha))
-          flavor: dynamic
-          classifier: j9
-          version: ((.:agent-version))
-          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-      - put: slack-alert
-        params:
-          channel: '#tech-agent-delivery'
-          text_file: message/text
-
-  - name: build-multiarch-static
-    max_in_flight: 1
-    plan:
-      - get: instana-agent-docker-git
-        trigger: true
-        passed: [ verification-gate ]
-      - get: agent-version
-        trigger: true
-        passed: [ verification-gate ]
+        params: *release-trigger-params
+      - get: agent-dynamic-s390x
+        params: *release-trigger-params
+      - get: agent-dynamic-ppc64le
+        params: *release-trigger-params
 
       - get: agent-static-amd64
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
+        params: *release-trigger-params
+      - get: agent-static-amd64-j9
+        params: *release-trigger-params
       - get: agent-static-arm64
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
+        params: *release-trigger-params
+      - get: agent-static-arm64-j9
+        params: *release-trigger-params
       - get: agent-static-s390x
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
+        params: *release-trigger-params
       - get: agent-static-ppc64le
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
+        params: *release-trigger-params
+#
+  - name: release-multiarch-dynamic
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ agent-release-trigger ]
+      - get: agent-version
+        trigger: true
+        passed: [ agent-release-trigger ]
 
       - load_var: agent-version
         file: agent-version/number
@@ -1170,42 +1578,201 @@ jobs:
       - load_var: commit-sha
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
-      - task: build-static-multiarch-manifest
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: dynamic-multiarch-manifest-tags
         privileged: true
-        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
-        input_mapping:
-          code: instana-agent-docker-git
+        file: instana-agent-docker-git/ci/create-tag-file.yml
         output_mapping:
           message: message
+          version: version
         vars:
+          flavor: dynamic
+          classifier: ''
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
-          flavor: static
-          classifier: ''
-          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+          release-tree: 'release'
+     
+      - in_parallel:
+        - get: agent-dynamic-amd64
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-dynamic-s390x
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-dynamic-arm64
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-dynamic-ppc64le
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+            
+      - in_parallel:
+        - put: agent-dynamic-release-instana
+          params:
+            image: agent-dynamic-amd64/image.tar
+            additional_tags: agent-dynamic-amd64/tag
+        - put: agent-dynamic-release-instana
+          params:
+            image: agent-dynamic-arm64/image.tar
+            additional_tags: agent-dynamic-arm64/tag
+        - put: agent-dynamic-release-instana
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-release-instana
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+      
+      - in_parallel:
+        - put: agent-dynamic-release-icr
+          params:
+            image: agent-dynamic-amd64/image.tar
+            additional_tags: agent-dynamic-amd64/tag
+        - put: agent-dynamic-release-icr
+          params:
+            image: agent-dynamic-arm64/image.tar
+            additional_tags: agent-dynamic-arm64/tag
+        - put: agent-dynamic-release-icr
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-release-icr
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-icr
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      - in_parallel:
+        - put: agent-dynamic-release-docker
+          params:
+            image: agent-dynamic-amd64/image.tar
+            additional_tags: agent-dynamic-amd64/tag
+        - put: agent-dynamic-release-docker
+          params:
+            image: agent-dynamic-arm64/image.tar
+            additional_tags: agent-dynamic-arm64/tag
+        - put: agent-dynamic-release-docker
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-release-docker
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-docker
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      # Docker manifest is currently usupported by Red Hat container registry
+      # Only push amd64 with manifest tags (latest & version)
+      - put: agent-dynamic-release-redhat
+        params:
+          image: agent-dynamic-amd64/image.tar
+          additional_tags: version/manifest-tags
+      # - in_parallel:
+      #   - put: agent-dynamic-release-redhat
+      #     params:
+      #       image: agent-dynamic-amd64/image.tar
+      #       additional_tags: agent-dynamic-amd64/tag
+      #   - put: agent-dynamic-release-redhat
+      #     params:
+      #       image: agent-dynamic-arm64/image.tar
+      #       additional_tags: agent-dynamic-arm64/tag
+      #   - put: agent-dynamic-release-redhat
+      #     params:
+      #       image: agent-dynamic-s390x/image.tar
+      #       additional_tags: agent-dynamic-s390x/tag
+      #   - put: agent-dynamic-release-redhat
+      #     params:
+      #       image: agent-dynamic-ppc64le/image.tar
+      #       additional_tags: agent-dynamic-ppc64le/tag
+
+      
+      # - put: manifest-dynamic-release-redhat
+      #   params:
+      #     tag_file: version/manifest-tags
+      #     manifests:
+      #       - arch: amd64
+      #         os: linux
+      #         digest_file: agent-dynamic-amd64/digest
+      #       - arch: arm64
+      #         os: linux
+      #         digest_file: agent-dynamic-arm64/digest
+      #       - arch: s390x
+      #         os: linux
+      #         digest_file: agent-dynamic-s390x/digest
+      #       - arch: ppc64le
+      #         os: linux
+      #         digest_file: agent-dynamic-ppc64le/digest
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
           text_file: message/text
 
-  - name: build-multiarch-static-j9
+  - name: release-multiarch-dynamic-j9
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ verification-gate ]
+        passed: [ agent-release-trigger ]
       - get: agent-version
         trigger: true
-        passed: [ verification-gate ]
-
-      - get: agent-static-amd64-j9
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
-      - get: agent-static-arm64-j9
-        params:
-          skip_download: true
-        passed: [ verification-gate ]
+        passed: [ agent-release-trigger ]
 
       - load_var: agent-version
         file: agent-version/number
@@ -1213,19 +1780,367 @@ jobs:
       - load_var: commit-sha
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
-      - task: build-static-multiarch-manifest
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: dynamic-multiarch-manifest-tags-j9
         privileged: true
-        file: instana-agent-docker-git/ci/create-multiarch-image-task.yml
-        input_mapping:
-          code: instana-agent-docker-git
+        file: instana-agent-docker-git/ci/create-tag-file.yml
         output_mapping:
           message: message
+          version: version
         vars:
+          flavor: dynamic
+          classifier: '-j9'
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
+          release-tree: 'release'
+     
+      - in_parallel:
+        - get: agent-dynamic-amd64-j9
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-dynamic-s390x
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-dynamic-arm64-j9
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-dynamic-ppc64le
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+            
+      - in_parallel:
+        - put: agent-dynamic-release-instana
+          params:
+            image: agent-dynamic-amd64-j9/image.tar
+            additional_tags: agent-dynamic-amd64-j9/tag
+        - put: agent-dynamic-release-instana
+          params:
+            image: agent-dynamic-arm64-j9/image.tar
+            additional_tags: agent-dynamic-arm64-j9/tag
+        - put: agent-dynamic-release-instana
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-release-instana
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+      
+      - in_parallel:
+        - put: agent-dynamic-release-icr
+          params:
+            image: agent-dynamic-amd64-j9/image.tar
+            additional_tags: agent-dynamic-amd64-j9/tag
+        - put: agent-dynamic-release-icr
+          params:
+            image: agent-dynamic-arm64-j9/image.tar
+            additional_tags: agent-dynamic-arm64-j9/tag
+        - put: agent-dynamic-release-icr
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-release-icr
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-icr
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      - in_parallel:
+        - put: agent-dynamic-release-docker
+          params:
+            image: agent-dynamic-amd64-j9/image.tar
+            additional_tags: agent-dynamic-amd64-j9/tag
+        - put: agent-dynamic-release-docker
+          params:
+            image: agent-dynamic-arm64-j9/image.tar
+            additional_tags: agent-dynamic-arm64-j9/tag
+        - put: agent-dynamic-release-docker
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-release-docker
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-docker
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      # Docker manifest is currently usupported by Red Hat container registry
+      # Only push amd64 with manifest tags (latest-j9 & <version>-j9)
+      - put: agent-dynamic-release-redhat
+        params:
+          image: agent-dynamic-amd64-j9/image.tar
+          additional_tags: version/manifest-tags
+      # - in_parallel:
+      #   - put: agent-dynamic-release-redhat
+      #     params:
+      #       image: agent-dynamic-amd64-j9/image.tar
+      #       additional_tags: agent-dynamic-amd64-j9/tag
+      #   - put: agent-dynamic-release-redhat
+      #     params:
+      #       image: agent-dynamic-arm64-j9/image.tar
+      #       additional_tags: agent-dynamic-arm64-j9/tag
+      #   - put: agent-dynamic-release-redhat
+      #     params:
+      #       image: agent-dynamic-s390x/image.tar
+      #       additional_tags: agent-dynamic-s390x/tag
+      #   - put: agent-dynamic-release-redhat
+      #     params:
+      #       image: agent-dynamic-ppc64le/image.tar
+      #       additional_tags: agent-dynamic-ppc64le/tag
+
+      
+      # - put: manifest-dynamic-release-redhat
+      #   params:
+      #     tag_file: version/manifest-tags
+      #     manifests:
+      #       - arch: amd64
+      #         os: linux
+      #         digest_file: agent-dynamic-amd64-j9/digest
+      #       - arch: arm64
+      #         os: linux
+      #         digest_file: agent-dynamic-arm64-j9/digest
+      #       - arch: s390x
+      #         os: linux
+      #         digest_file: agent-dynamic-s390x/digest
+      #       - arch: ppc64le
+      #         os: linux
+      #         digest_file: agent-dynamic-ppc64le/digest
+
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+
+  - name: release-multiarch-static
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ agent-release-trigger ]
+      - get: agent-version
+        trigger: true
+        passed: [ agent-release-trigger ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: static-multiarch-manifest-tags
+        privileged: true
+        file: instana-agent-docker-git/ci/create-tag-file.yml
+        output_mapping:
+          message: message
+          version: version
+        vars:
           flavor: static
-          classifier: j9
-          docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+          classifier: ''
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          release-tree: 'release'
+
+      - in_parallel:
+        - get: agent-static-amd64
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-static-s390x
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-static-arm64
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-static-ppc64le
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+            
+      - in_parallel:
+        - put: agent-static-release-instana
+          params:
+            image: agent-static-amd64/image.tar
+            additional_tags: agent-static-amd64/tag
+        - put: agent-static-release-instana
+          params:
+            image: agent-static-arm64/image.tar
+            additional_tags: agent-static-arm64/tag
+        - put: agent-static-release-instana
+          params:
+            image: agent-static-s390x/image.tar
+            additional_tags: agent-static-s390x/tag
+        - put: agent-static-release-instana
+          params:
+            image: agent-static-ppc64le/image.tar
+            additional_tags: agent-static-ppc64le/tag
+
+      - put: manifest-static-release-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-static-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-static-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-static-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-static-ppc64le/digest
+    
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+
+  - name: release-multiarch-static-j9
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        trigger: true
+        passed: [ agent-release-trigger ]
+      - get: agent-version
+        trigger: true
+        passed: [ agent-release-trigger ]
+
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: static-multiarch-manifest-tags-j9
+        privileged: true
+        file: instana-agent-docker-git/ci/create-tag-file.yml
+        output_mapping:
+          message: message
+          version: version
+        vars:
+          flavor: static
+          classifier: '-j9'
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          release-tree: 'release'
+     
+      - in_parallel:
+        - get: agent-static-amd64-j9
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-static-s390x
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-static-arm64-j9
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+        - get: agent-static-ppc64le
+          params:
+            format: oci
+          passed: [ agent-release-trigger ]
+            
+      - in_parallel:
+        - put: agent-static-release-instana
+          params:
+            image: agent-static-amd64-j9/image.tar
+            additional_tags: agent-static-amd64-j9/tag
+        - put: agent-static-release-instana
+          params:
+            image: agent-static-arm64-j9/image.tar
+            additional_tags: agent-static-arm64-j9/tag
+        - put: agent-static-release-instana
+          params:
+            image: agent-static-s390x/image.tar
+            additional_tags: agent-static-s390x/tag
+        - put: agent-static-release-instana
+          params:
+            image: agent-static-ppc64le/image.tar
+            additional_tags: agent-static-ppc64le/tag
+
+      - put: manifest-static-release-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-static-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-static-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-static-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-static-ppc64le/digest
+   
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'

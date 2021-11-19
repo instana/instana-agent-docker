@@ -131,7 +131,7 @@ RUN export ARCH=${TARGETPLATFORM//\//-} \
     && chmod +x /usr/local/bin/crictl \
     && rm -rf /tmp/*
 
-# Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts.
+# Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts. See https://www.notion.so/instana/ServiceMesh-Bypass-435d8f15300140aa80468b52aef1bf4a
 ENV IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm"
 RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
         microdnf install libnetfilter_conntrack \
@@ -143,7 +143,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
         && microdnf clean all \
     )
 
-# Install iptables 1.4.21 on aarch64 to carry out service mesh bypass scripts.
+# Install iptables 1.4.21 on aarch64 to carry out service mesh bypass scripts. See https://www.notion.so/instana/ServiceMesh-Bypass-435d8f15300140aa80468b52aef1bf4a
 ENV IPTABLES_ARM64_SHA256="53cc2bd47614463eb76ffc727ec838b9d92e0239d68ab5cd38fb2e5f18380431  iptables-1.4.21-35.el7.aarch64.rpm"
 RUN [[ "${TARGETPLATFORM}" != 'linux/arm64' ]] || ( \
         microdnf install libnetfilter_conntrack \
@@ -162,7 +162,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         && microdnf clean all \
     )
 
-# Install iptables 1.4.21 on ppc64le to carry out service mesh bypass scripts.
+# Install iptables 1.4.21 on ppc64le to carry out service mesh bypass scripts. See https://www.notion.so/instana/ServiceMesh-Bypass-435d8f15300140aa80468b52aef1bf4a
 ENV IPTABLES_PPC64LE_SHA256="1eb70870bd717d010127a0d6a6bd61d1e621120b770d7c9e9bde125b08d9bd71  iptables-1.4.21-35.el7.ppc64le.rpm"
 RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
         microdnf install libnetfilter_conntrack \
