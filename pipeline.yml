@@ -1719,28 +1719,23 @@ jobs:
 
       # Docker manifest is currently usupported by Red Hat container registry
       # Only push amd64 with manifest tags (latest & version)
-      - put: agent-dynamic-release-redhat
-        params:
-          image: agent-dynamic-amd64/image.tar
-          additional_tags: version/manifest-tags
-      # - in_parallel:
-      #   - put: agent-dynamic-release-redhat
-      #     params:
-      #       image: agent-dynamic-amd64/image.tar
-      #       additional_tags: agent-dynamic-amd64/tag
-      #   - put: agent-dynamic-release-redhat
-      #     params:
-      #       image: agent-dynamic-arm64/image.tar
-      #       additional_tags: agent-dynamic-arm64/tag
-      #   - put: agent-dynamic-release-redhat
-      #     params:
-      #       image: agent-dynamic-s390x/image.tar
-      #       additional_tags: agent-dynamic-s390x/tag
-      #   - put: agent-dynamic-release-redhat
-      #     params:
-      #       image: agent-dynamic-ppc64le/image.tar
-      #       additional_tags: agent-dynamic-ppc64le/tag
-
+      - in_parallel:
+        - put: agent-dynamic-release-redhat
+          params:
+            image: agent-dynamic-amd64/image.tar
+            additional_tags: version/redhat-tag-amd64
+        - put: agent-dynamic-release-redhat
+          params:
+            image: agent-dynamic-arm64/image.tar
+            additional_tags: version/redhat-tag-arm64
+        - put: agent-dynamic-release-redhat
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: version/redhat-tag-s390x
+        - put: agent-dynamic-release-redhat
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: version/redhat-tag-ppc64le
       
       # - put: manifest-dynamic-release-redhat
       #   params:
