@@ -384,11 +384,11 @@ resources:
       access_key_id: ((codebuild-s3-user-devinfra-key.key_id))
       secret_access_key: ((codebuild-s3-user-devinfra-key.key_secret))
       region_name: us-west-2
-  
+
 #################
 # container.instana.io/instana images
 
-# We don't need to differentiate different arch tags on those resources since 
+# We don't need to differentiate different arch tags on those resources since
 # this is push-only. We don't run other jobs/tasks depending on those images.
 
 # Dynamic pre-release images will be pushed to containers.instana.io & icr.io.
@@ -407,7 +407,7 @@ resources:
     type: docker-manifest
     icon: docker
     source: *containers-instana-io-prerelease
-  
+
 # pre-release static images & manifest:
   - name: agent-static-prerelease-instana
     type: registry-image
@@ -433,7 +433,7 @@ resources:
     type: docker-manifest
     icon: docker
     source: *containers-instana-io-release
-  
+
 # release static images & manifest:
   - name: agent-static-release-instana
     type: registry-image
@@ -923,7 +923,7 @@ jobs:
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-              ignorefile: ''
+              ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
               min-vuln-severity: ''
 
   - name: verify-amd64-static
@@ -1182,7 +1182,7 @@ jobs:
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
 
-      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
       # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
       - task: dynamic-multiarch-manifest-tags
         privileged: true
@@ -1196,7 +1196,7 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           release-tree: 'prerelease'
-     
+
       - in_parallel:
         - get: agent-dynamic-amd64
           params:
@@ -1214,7 +1214,7 @@ jobs:
           params:
             format: oci
           passed: [ verification-gate ]
-            
+
       - in_parallel:
         - put: agent-dynamic-prerelease-instana
           params:
@@ -1271,7 +1271,7 @@ jobs:
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
 
-      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
       # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
       - task: dynamic-multiarch-manifest-tags-j9
         privileged: true
@@ -1285,7 +1285,7 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           release-tree: 'prerelease'
-     
+
       - in_parallel:
         - get: agent-dynamic-amd64-j9
           params:
@@ -1303,7 +1303,7 @@ jobs:
           params:
             format: oci
           passed: [ verification-gate ]
-            
+
       - in_parallel:
         - put: agent-dynamic-prerelease-instana
           params:
@@ -1361,7 +1361,7 @@ jobs:
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
 
-      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
       # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
       - task: static-multiarch-manifest-tags
         privileged: true
@@ -1393,7 +1393,7 @@ jobs:
           params:
             format: oci
           passed: [ verification-gate ]
-            
+
       - in_parallel:
         - put: agent-static-prerelease-instana
           params:
@@ -1428,7 +1428,7 @@ jobs:
             - arch: ppc64le
               os: linux
               digest_file: agent-static-ppc64le/digest
-    
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
@@ -1451,7 +1451,7 @@ jobs:
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
 
-      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
       # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
       - task: static-multiarch-manifest-tags-j9
         privileged: true
@@ -1465,7 +1465,7 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           release-tree: 'prerelease'
-     
+
       - in_parallel:
         - get: agent-static-amd64-j9
           params:
@@ -1483,7 +1483,7 @@ jobs:
           params:
             format: oci
           passed: [ verification-gate ]
-            
+
       - in_parallel:
         - put: agent-static-prerelease-instana
           params:
@@ -1518,7 +1518,7 @@ jobs:
             - arch: ppc64le
               os: linux
               digest_file: agent-static-ppc64le/digest
-   
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
@@ -1579,7 +1579,7 @@ jobs:
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
 
-      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
       # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
       - task: dynamic-multiarch-manifest-tags
         privileged: true
@@ -1593,7 +1593,7 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           release-tree: 'release'
-     
+
       - in_parallel:
         - get: agent-dynamic-amd64
           params:
@@ -1611,7 +1611,7 @@ jobs:
           params:
             format: oci
           passed: [ agent-release-trigger ]
-            
+
       - in_parallel:
         - put: agent-dynamic-release-instana
           params:
@@ -1646,7 +1646,7 @@ jobs:
             - arch: ppc64le
               os: linux
               digest_file: agent-dynamic-ppc64le/digest
-      
+
       - in_parallel:
         - put: agent-dynamic-release-icr
           params:
@@ -1736,7 +1736,7 @@ jobs:
           params:
             image: agent-dynamic-ppc64le/image.tar
             additional_tags: version/redhat-tag-ppc64le
-      
+
       # - put: manifest-dynamic-release-redhat
       #   params:
       #     tag_file: version/manifest-tags
@@ -1776,7 +1776,7 @@ jobs:
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
 
-      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
       # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
       - task: dynamic-multiarch-manifest-tags-j9
         privileged: true
@@ -1790,7 +1790,7 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           release-tree: 'release'
-     
+
       - in_parallel:
         - get: agent-dynamic-amd64-j9
           params:
@@ -1808,7 +1808,7 @@ jobs:
           params:
             format: oci
           passed: [ agent-release-trigger ]
-            
+
       - in_parallel:
         - put: agent-dynamic-release-instana
           params:
@@ -1843,7 +1843,7 @@ jobs:
             - arch: ppc64le
               os: linux
               digest_file: agent-dynamic-ppc64le/digest
-      
+
       - in_parallel:
         - put: agent-dynamic-release-icr
           params:
@@ -1938,7 +1938,7 @@ jobs:
       #       image: agent-dynamic-ppc64le/image.tar
       #       additional_tags: agent-dynamic-ppc64le/tag
 
-      
+
       # - put: manifest-dynamic-release-redhat
       #   params:
       #     tag_file: version/manifest-tags
@@ -1978,7 +1978,7 @@ jobs:
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
 
-      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
       # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
       - task: static-multiarch-manifest-tags
         privileged: true
@@ -2010,7 +2010,7 @@ jobs:
           params:
             format: oci
           passed: [ agent-release-trigger ]
-            
+
       - in_parallel:
         - put: agent-static-release-instana
           params:
@@ -2045,7 +2045,7 @@ jobs:
             - arch: ppc64le
               os: linux
               digest_file: agent-static-ppc64le/digest
-    
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
@@ -2068,7 +2068,7 @@ jobs:
         file: instana-agent-docker-git/.git/short_ref
         reveal: true
 
-      # create "latest"/"latest-j9", "<version>"/"<version>-j9" 
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
       # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
       - task: static-multiarch-manifest-tags-j9
         privileged: true
@@ -2082,7 +2082,7 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           release-tree: 'release'
-     
+
       - in_parallel:
         - get: agent-static-amd64-j9
           params:
@@ -2100,7 +2100,7 @@ jobs:
           params:
             format: oci
           passed: [ agent-release-trigger ]
-            
+
       - in_parallel:
         - put: agent-static-release-instana
           params:
@@ -2135,7 +2135,7 @@ jobs:
             - arch: ppc64le
               os: linux
               digest_file: agent-static-ppc64le/digest
-   
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
