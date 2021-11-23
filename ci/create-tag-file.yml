@@ -63,10 +63,10 @@ run:
       # "latest" tag is unsupported on Red Hat Container Registry.
       if [ "${DYNAMIC_RELEASE}" = 'true' ]; then
         RED_HAT_VERSION=${VERSION}${CLASSIFIER}
-        cat "${RED_HAT_VERSION}-amd64"   > version/redhat-tag-amd64
-        cat "${RED_HAT_VERSION}-arm64"   > version/redhat-tag-arm64
-        cat "${RED_HAT_VERSION}-s390x"   > version/redhat-tag-s390x
-        cat "${RED_HAT_VERSION}-ppcle64" > version/redhat-tag-ppc64le
+        echo "${RED_HAT_VERSION}-amd64"   > version/redhat-tag-amd64
+        echo "${RED_HAT_VERSION}-arm64"   > version/redhat-tag-arm64
+        echo "${RED_HAT_VERSION}-s390x"   > version/redhat-tag-s390x
+        echo "${RED_HAT_VERSION}-ppcle64" > version/redhat-tag-ppc64le
       fi
 
       # Build Slack message:
