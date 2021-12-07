@@ -62,6 +62,7 @@ LABEL name="instana-agent" \
 ARG TARGETPLATFORM='linux/amd64'
 
 RUN microdnf module enable container-tools \
+    && microdnf upgrade \
     && microdnf install --nodocs hostname procps iproute util-linux runc python3 jq findutils less tar gzip \
     && rm -rf /tmp/* \
     && microdnf clean all
