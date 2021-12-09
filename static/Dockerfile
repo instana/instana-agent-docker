@@ -84,8 +84,8 @@ RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' || "${TARGETPLATFORM}" = 'linux/ppc64
 
 # containerd cli is only available for amd64
 RUN export CONTAINERD_VERSION=1.5.2 \
-    export CONTAINERD_SHA256="1d6d53ce7f6f9b9b51e4898e2bd8126354854b7bb436fd73e13f12f798cb1431  containerd-1.5.2-linux-amd64.tar.gz" \
-    [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
+    && export CONTAINERD_SHA256="1d6d53ce7f6f9b9b51e4898e2bd8126354854b7bb436fd73e13f12f798cb1431  containerd-1.5.2-linux-amd64.tar.gz" \
+    && [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
         cd /tmp \
         && curl -L --fail --show-error --silent https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz -o containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
         && echo "${CONTAINERD_SHA256}" | sha256sum --check \
@@ -134,7 +134,7 @@ RUN export ARCH=${TARGETPLATFORM//\//-} \
 
 # Install iptables 1.4.21 on x86_64 to carry out service mesh bypass scripts. See https://www.notion.so/instana/ServiceMesh-Bypass-435d8f15300140aa80468b52aef1bf4a
 RUN export IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f38a9f22f774f5d01  iptables-1.4.21-35.el7.x86_64.rpm" \
-    [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
+    && [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
         microdnf install libnetfilter_conntrack \
         && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/centos/7/os/x86_64/Packages/iptables-1.4.21-35.el7.x86_64.rpm -o /tmp/iptables-1.4.21-35.el7.x86_64.rpm \
@@ -146,7 +146,7 @@ RUN export IPTABLES_X86_SHA256="c260f06c1e71850dc7d69a4fc54f05a6edf5dfac7bc7e27f
 
 # Install iptables 1.4.21 on aarch64 to carry out service mesh bypass scripts. See https://www.notion.so/instana/ServiceMesh-Bypass-435d8f15300140aa80468b52aef1bf4a
 RUN export IPTABLES_ARM64_SHA256="53cc2bd47614463eb76ffc727ec838b9d92e0239d68ab5cd38fb2e5f18380431  iptables-1.4.21-35.el7.aarch64.rpm" \
-    [[ "${TARGETPLATFORM}" != 'linux/arm64' ]] || ( \
+    && [[ "${TARGETPLATFORM}" != 'linux/arm64' ]] || ( \
         microdnf install libnetfilter_conntrack \
         && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/aarch64/Packages/iptables-1.4.21-35.el7.aarch64.rpm -o /tmp/iptables-1.4.21-35.el7.aarch64.rpm \
@@ -165,7 +165,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
 
 # Install iptables 1.4.21 on ppc64le to carry out service mesh bypass scripts. See https://www.notion.so/instana/ServiceMesh-Bypass-435d8f15300140aa80468b52aef1bf4a
 RUN export IPTABLES_PPC64LE_SHA256="1eb70870bd717d010127a0d6a6bd61d1e621120b770d7c9e9bde125b08d9bd71  iptables-1.4.21-35.el7.ppc64le.rpm" \
-    [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
+    && [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
         microdnf install libnetfilter_conntrack \
         && cd /tmp \
         && curl -L --fail --show-error --silent http://mirror.centos.org/altarch/7/os/ppc64le/Packages/iptables-1.4.21-35.el7.ppc64le.rpm -o /tmp/iptables-1.4.21-35.el7.ppc64le.rpm \
