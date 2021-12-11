@@ -3,3 +3,4 @@ CVE-2008-5352  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for 
 CVE-2008-3103  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
 CVE-2007-3716  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
 CVE-2021-41269 # Cron Utils CVE, but not applicable as we don't use @cron and don't allow external config
+CVE-2021-44228 # Issue is patched by removing the `JndiLookup` class internally
