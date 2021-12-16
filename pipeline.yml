@@ -448,6 +448,20 @@ resources:
     source: *containers-instana-io-release-static
 
 #################
+# gcr.io/instana-public images, release dynamic images & manifest:
+  - name: agent-dynamic-release-gcr-instana-public
+    type: registry-image
+    icon: docker
+    source: &gcr-io-instana-public-release
+      repository: gcr.io/instana-public
+      username: _json_key
+      password: ((project-berlin-tests-gcp-instana-qa))
+  - name: manifest-dynamic-release-gcr-instana-public
+    type: docker-manifest
+    icon: docker
+    source: *gcr-io-instana-public-release
+
+#################
 # icr.io images, release dynamic images & manifest:
   - name: agent-dynamic-release-icr
     type: registry-image
@@ -1648,6 +1662,41 @@ jobs:
               digest_file: agent-dynamic-ppc64le/digest
 
       - in_parallel:
+          - put: agent-dynamic-release-gcr-instana-public
+            params:
+              image: agent-dynamic-amd64/image.tar
+              additional_tags: agent-dynamic-amd64/tag
+          - put: agent-dynamic-release-gcr-instana-public
+            params:
+              image: agent-dynamic-arm64/image.tar
+              additional_tags: agent-dynamic-arm64/tag
+          - put: agent-dynamic-release-gcr-instana-public
+            params:
+              image: agent-dynamic-s390x/image.tar
+              additional_tags: agent-dynamic-s390x/tag
+          - put: agent-dynamic-release-gcr-instana-public
+            params:
+              image: agent-dynamic-ppc64le/image.tar
+              additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-gcr-instana-public
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      - in_parallel:
         - put: agent-dynamic-release-icr
           params:
             image: agent-dynamic-amd64/image.tar
@@ -1828,6 +1877,41 @@ jobs:
             additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-release-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      - in_parallel:
+          - put: agent-dynamic-release-gcr-instana-public
+            params:
+              image: agent-dynamic-amd64-j9/image.tar
+              additional_tags: agent-dynamic-amd64-j9/tag
+          - put: agent-dynamic-release-gcr-instana-public
+            params:
+              image: agent-dynamic-arm64-j9/image.tar
+              additional_tags: agent-dynamic-arm64-j9/tag
+          - put: agent-dynamic-release-gcr-instana-public
+            params:
+              image: agent-dynamic-s390x/image.tar
+              additional_tags: agent-dynamic-s390x/tag
+          - put: agent-dynamic-release-gcr-instana-public
+            params:
+              image: agent-dynamic-ppc64le/image.tar
+              additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-gcr-instana-public
         params:
           tag_file: version/manifest-tags
           manifests:
