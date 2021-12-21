@@ -68,97 +68,15 @@ resources:
     source:
       url: ((tech-agent-delivery-notifications-slack-hook))
 
-  ## amd64 packages
-  - name: rpm-static-x86_64
+ ## deb dynamic trigger package
+ # only used to trigger the pipeline
+ # deb-dynamic-amd64-j9 is the latest package which will be uploaded
+  - name: package-pipeline-trigger
     type: gcs-resource
     source:
       bucket: agent-ci
       json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-(2.*)\.x86_64\.rpm
-  - name: rpm-dynamic-x86_64
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-(2.*)\.x86_64\.rpm
-  - name: rpm-static-x86_64-j9
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-j9-(2.*)\.x86_64\.rpm
-  - name: rpm-dynamic-x86_64-j9
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-j9-(2.*)\.x86_64\.rpm
-
-  ## aarch64 packages
-  - name: rpm-static-aarch64
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-(2.*)\.aarch64\.rpm
-  - name: rpm-dynamic-aarch64
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-(2.*)\.aarch64\.rpm
-  - name: rpm-static-aarch64-j9
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-j9-(.*)\.aarch64\.rpm
-  - name: rpm-dynamic-aarch64-j9
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-j9-(.*)\.aarch64\.rpm
-
-  ## s390x packages
-  - name: rpm-static-s390x
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-(2.*)\.s390x\.rpm
-  - name: rpm-dynamic-s390x
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-(2.*)\.s390x\.rpm
-  - name: rpm-static-s390x-j9
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-j9-(2.*)\.s390x\.rpm
-  - name: rpm-dynamic-s390x-j9
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-j9-(2.*)\.s390x\.rpm
-
-  ## ppc64le packages
-  - name: rpm-static-ppc64le-j9
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-static-j9-(2.*)\.ppc64le\.rpm
-  - name: rpm-dynamic-ppc64le-j9
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-j9-(2.*)\.ppc64le\.rpm
+      regexp: packages/instana-agent-dynamic-j9_(2.*)_amd64\.deb
 
   - name: build-bundle
     type: s3
@@ -529,35 +447,12 @@ jobs:
       - get: instana-agent-docker-git
         trigger: true
         passed: [ self-update ]
-      - in_parallel:
-        - get: rpm-static-x86_64
-          trigger: true
-        - get: rpm-dynamic-x86_64
-          trigger: true
-        - get: rpm-static-x86_64-j9
-          trigger: true
-        - get: rpm-dynamic-x86_64-j9
-          trigger: true
-        - get: rpm-static-aarch64
-          trigger: true
-        - get: rpm-dynamic-aarch64
-          trigger: true
-        - get: rpm-static-aarch64-j9
-          trigger: true
-        - get: rpm-dynamic-aarch64-j9
-          trigger: true
-        - get: rpm-static-s390x
-          trigger: true
-        - get: rpm-dynamic-s390x
-          trigger: true
-        - get: rpm-static-s390x-j9
-          trigger: true
-        - get: rpm-dynamic-s390x-j9
-          trigger: true
-        - get: rpm-static-ppc64le-j9
-          trigger: true
-        - get: rpm-dynamic-ppc64le-j9
-          trigger: true
+        # this trigger is only needed to start this pipeline,
+        # after the latest deb/rpm package is released
+      - get: package-pipeline-trigger
+        trigger: true
+        params:
+          skip_download: true
       - put: agent-version
         params: { bump: patch }
       - task: package-build-bundle
@@ -592,8 +487,7 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ prepare-build-bundle ]
+        passed: [ self-update, prepare-build-bundle ]
       - get: build-bundle
         trigger: true
         passed: [ prepare-build-bundle ]
@@ -602,7 +496,6 @@ jobs:
         reveal: true
       - get: agent-version
         passed: [prepare-build-bundle]
-        trigger: true
       - load_var: agent-version
         file: agent-version/number
         reveal: true
@@ -685,14 +578,12 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ prepare-build-bundle ]
+        passed: [ self-update, prepare-build-bundle ]
       - get: build-bundle
         trigger: true
         passed: [ prepare-build-bundle ]
       - get: agent-version
         passed: [ prepare-build-bundle ]
-        trigger: true
       - load_var: agent-version
         file: agent-version/number
         reveal: true
@@ -778,14 +669,12 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ prepare-build-bundle ]
+        passed: [ self-update, prepare-build-bundle ]
       - get: build-bundle
         trigger: true
         passed: [ prepare-build-bundle ]
       - get: agent-version
         passed: [ prepare-build-bundle ]
-        trigger: true
       - load_var: agent-version
         file: agent-version/number
         reveal: true
@@ -839,14 +728,12 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ prepare-build-bundle ]
+        passed: [ self-update, prepare-build-bundle ]
       - get: build-bundle
         trigger: true
         passed: [ prepare-build-bundle ]
       - get: agent-version
         passed: [ prepare-build-bundle ]
-        trigger: true
       - load_var: agent-version
         file: agent-version/number
         reveal: true
@@ -905,7 +792,6 @@ jobs:
         trigger: true
         passed: [amd64-build]
       - get: agent-version
-        trigger: true
       - get: instana-twistcli-build-artifacts
       - get: instana-agent-docker-git
 
@@ -1127,17 +1013,15 @@ jobs:
   - name: verification-gate
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ ppc64le-build, s390x-build, arm64-build, amd64-build ]
+        passed: [ self-update, prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build ]
       - get: agent-version
-        trigger: true
-        passed: [ ppc64le-build, s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
-
+        passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
       - get: agent-dynamic-amd64
         params:
           skip_download: true
         passed: [ verify-amd64-dynamic ]
       - get: agent-dynamic-amd64-j9
+        trigger: true # should be the latest verify task
         params:
           skip_download: true
         passed: [ verify-amd64-dynamic-j9 ]
@@ -1184,7 +1068,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ verification-gate ]
+        passed: [ self-update, verification-gate ]
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
@@ -1273,7 +1157,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ verification-gate ]
+        passed: [ self-update, verification-gate ]
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
@@ -1363,7 +1247,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ verification-gate ]
+        passed: [ self-update, verification-gate ]
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
@@ -1453,7 +1337,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ verification-gate ]
+        passed: [ self-update, verification-gate ]
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
@@ -1581,7 +1465,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ agent-release-trigger ]
+        passed: [ self-update, agent-release-trigger ]
       - get: agent-version
         trigger: true
         passed: [ agent-release-trigger ]
@@ -1813,7 +1697,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ agent-release-trigger ]
+        passed: [ self-update, agent-release-trigger ]
       - get: agent-version
         trigger: true
         passed: [ agent-release-trigger ]
@@ -2050,7 +1934,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ agent-release-trigger ]
+        passed: [ self-update, agent-release-trigger ]
       - get: agent-version
         trigger: true
         passed: [ agent-release-trigger ]
@@ -2140,7 +2024,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         trigger: true
-        passed: [ agent-release-trigger ]
+        passed: [ self-update, agent-release-trigger ]
       - get: agent-version
         trigger: true
         passed: [ agent-release-trigger ]
