@@ -1767,7 +1767,7 @@ jobs:
               digest_file: agent-dynamic-ppc64le/digest
 
       # Docker manifest is currently usupported by Red Hat container registry
-      # Only push amd64 with manifest tags (latest & version)
+      # latest tag is not allowed during image certification
       - in_parallel:
         - put: agent-dynamic-release-redhat
           params:
@@ -1999,11 +1999,11 @@ jobs:
               digest_file: agent-dynamic-ppc64le/digest
 
       # Docker manifest is currently usupported by Red Hat container registry
-      # Only push amd64 with manifest tags (latest-j9 & <version>-j9)
+      # latest tag is not allowed during image certification
       - put: agent-dynamic-release-redhat
         params:
           image: agent-dynamic-amd64-j9/image.tar
-          additional_tags: version/manifest-tags
+          additional_tags: version/redhat-tag-amd64
       # - in_parallel:
       #   - put: agent-dynamic-release-redhat
       #     params:
