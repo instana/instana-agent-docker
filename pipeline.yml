@@ -445,7 +445,6 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        trigger: true
         passed: [ self-update ]
         # this trigger is only needed to start this pipeline,
         # after the latest deb/rpm package is released
@@ -487,7 +486,7 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        passed: [ self-update, prepare-build-bundle ]
+        passed: [ prepare-build-bundle ]
       - get: build-bundle
         trigger: true
         passed: [ prepare-build-bundle ]
@@ -578,7 +577,7 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        passed: [ self-update, prepare-build-bundle ]
+        passed: [ prepare-build-bundle ]
       - get: build-bundle
         trigger: true
         passed: [ prepare-build-bundle ]
@@ -669,7 +668,7 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        passed: [ self-update, prepare-build-bundle ]
+        passed: [ prepare-build-bundle ]
       - get: build-bundle
         trigger: true
         passed: [ prepare-build-bundle ]
@@ -728,7 +727,7 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
-        passed: [ self-update, prepare-build-bundle ]
+        passed: [ prepare-build-bundle ]
       - get: build-bundle
         trigger: true
         passed: [ prepare-build-bundle ]
@@ -786,7 +785,6 @@ jobs:
     max_in_flight: 1
     plan:
       - get: agent-static-amd64
-        trigger: true
         passed: [amd64-build]
       - get: agent-static-amd64-j9
         trigger: true
@@ -1013,7 +1011,7 @@ jobs:
   - name: verification-gate
     plan:
       - get: instana-agent-docker-git
-        passed: [ self-update, prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build ]
+        passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build ]
       - get: agent-version
         passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
       - get: agent-dynamic-amd64
@@ -1067,8 +1065,7 @@ jobs:
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ self-update, verification-gate ]
+        passed: [ verification-gate ]
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
@@ -1156,8 +1153,7 @@ jobs:
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ self-update, verification-gate ]
+        passed: [ verification-gate ]
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
@@ -1246,8 +1242,7 @@ jobs:
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ self-update, verification-gate ]
+        passed: [ verification-gate ]
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
@@ -1336,8 +1331,7 @@ jobs:
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ self-update, verification-gate ]
+        passed: [ verification-gate ]
       - get: agent-version
         trigger: true
         passed: [ verification-gate ]
@@ -1464,8 +1458,7 @@ jobs:
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ self-update, agent-release-trigger ]
+        passed: [ agent-release-trigger ]
       - get: agent-version
         trigger: true
         passed: [ agent-release-trigger ]
@@ -1696,8 +1689,7 @@ jobs:
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ self-update, agent-release-trigger ]
+        passed: [ agent-release-trigger ]
       - get: agent-version
         trigger: true
         passed: [ agent-release-trigger ]
@@ -1933,8 +1925,7 @@ jobs:
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ self-update, agent-release-trigger ]
+        passed: [ agent-release-trigger ]
       - get: agent-version
         trigger: true
         passed: [ agent-release-trigger ]
@@ -2023,8 +2014,7 @@ jobs:
     max_in_flight: 1
     plan:
       - get: instana-agent-docker-git
-        trigger: true
-        passed: [ self-update, agent-release-trigger ]
+        passed: [ agent-release-trigger ]
       - get: agent-version
         trigger: true
         passed: [ agent-release-trigger ]
