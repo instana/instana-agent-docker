@@ -67,17 +67,6 @@ resources:
     type: slack-notification
     source:
       url: ((tech-agent-delivery-notifications-slack-hook))
-
- ## deb dynamic trigger package
- # only used to trigger the pipeline
- # deb-dynamic-amd64-j9 is the latest package which will be uploaded
-  - name: package-pipeline-trigger
-    type: gcs-resource
-    source:
-      bucket: agent-ci
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: packages/instana-agent-dynamic-j9_(2.*)_amd64\.deb
-
   - name: build-bundle
     type: s3
     icon: zip-disk
@@ -446,14 +435,8 @@ jobs:
     plan:
       - get: instana-agent-docker-git
         passed: [ self-update ]
-        # this trigger is only needed to start this pipeline,
-        # after the latest deb/rpm package is released
-      - get: package-pipeline-trigger
+      - get: agent-version
         trigger: true
-        params:
-          skip_download: true
-      - put: agent-version
-        params: { bump: patch }
       - task: package-build-bundle
         config:
           platform: linux
@@ -1013,13 +996,13 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build ]
       - get: agent-version
+        trigger: true
         passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
       - get: agent-dynamic-amd64
         params:
           skip_download: true
         passed: [ verify-amd64-dynamic ]
       - get: agent-dynamic-amd64-j9
-        trigger: true # should be the latest verify task
         params:
           skip_download: true
         passed: [ verify-amd64-dynamic-j9 ]
