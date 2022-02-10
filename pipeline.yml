@@ -394,19 +394,6 @@ resources:
   #   type: docker-manifest
   #   icon: docker
   #   source: *redhat-release
-##############################################################
-# Docker.io registry images, release dynamic images & manifest
-  - name: agent-dynamic-release-docker
-    type: registry-image
-    icon: docker
-    source: &docker-release
-      repository: docker.io/instana/agent
-      username: ((dockerhub-instanacicd.user))
-      password: ((dockerhub-instanacicd.password))
-  - name: manifest-dynamic-release-docker
-    type: docker-manifest
-    icon: docker
-    source: *docker-release
 
 ########
 ########
@@ -1401,7 +1388,7 @@ jobs:
 ########################################################################
 # Release                                                              #
 # Build & publish image manifests                                      #
-# containers.instana.io + docker.io + icr.io + scan.connect.redhat.com #
+# containers.instana.io + icr.io + scan.connect.redhat.com             #
   - name: agent-release-trigger
     plan:
       - get: instana-agent-docker-git
@@ -1575,41 +1562,6 @@ jobs:
             additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-release-icr
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-dynamic-amd64/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-dynamic-arm64/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-dynamic-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-dynamic-ppc64le/digest
-
-      - in_parallel:
-        - put: agent-dynamic-release-docker
-          params:
-            image: agent-dynamic-amd64/image.tar
-            additional_tags: agent-dynamic-amd64/tag
-        - put: agent-dynamic-release-docker
-          params:
-            image: agent-dynamic-arm64/image.tar
-            additional_tags: agent-dynamic-arm64/tag
-        - put: agent-dynamic-release-docker
-          params:
-            image: agent-dynamic-s390x/image.tar
-            additional_tags: agent-dynamic-s390x/tag
-        - put: agent-dynamic-release-docker
-          params:
-            image: agent-dynamic-ppc64le/image.tar
-            additional_tags: agent-dynamic-ppc64le/tag
-
-      - put: manifest-dynamic-release-docker
         params:
           tag_file: version/manifest-tags
           manifests:
@@ -1806,41 +1758,6 @@ jobs:
             additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-release-icr
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-dynamic-amd64-j9/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-dynamic-arm64-j9/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-dynamic-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-dynamic-ppc64le/digest
-
-      - in_parallel:
-        - put: agent-dynamic-release-docker
-          params:
-            image: agent-dynamic-amd64-j9/image.tar
-            additional_tags: agent-dynamic-amd64-j9/tag
-        - put: agent-dynamic-release-docker
-          params:
-            image: agent-dynamic-arm64-j9/image.tar
-            additional_tags: agent-dynamic-arm64-j9/tag
-        - put: agent-dynamic-release-docker
-          params:
-            image: agent-dynamic-s390x/image.tar
-            additional_tags: agent-dynamic-s390x/tag
-        - put: agent-dynamic-release-docker
-          params:
-            image: agent-dynamic-ppc64le/image.tar
-            additional_tags: agent-dynamic-ppc64le/tag
-
-      - put: manifest-dynamic-release-docker
         params:
           tag_file: version/manifest-tags
           manifests:
