@@ -70,12 +70,10 @@ run:
       fi
 
       # Build Slack message:
-      DOCKER_RELEASE=""
       REDHAT_RELEASE=""
       ICR_RELEASE=""
       GCR_RELEASE=""
       if [ "${DYNAMIC_RELEASE}" = 'true' ]; then
-        DOCKER_RELEASE="* docker.io/instana/agent"
         REDHAT_RELEASE="* scan.connect.redhat.com/p608397615952a4600fdbf53550772c07c9533e46f/agent"
         ICR_RELEASE="* icr.io/instana/${RELEASE_TREE}/agent"
         GCR_RELEASE="* gcr.io/instana-public/instana-agent"
@@ -91,7 +89,6 @@ run:
       cat << EOF > message/text
       _${RELEASE_TREE} ${FLAVOR}_ images & manifest pushed with tags: ${TAG_LIST}
       * containers.instana.io/instana/$RELEASE_TREE/agent/$FLAVOR
-      ${DOCKER_RELEASE}
       ${ICR_RELEASE}
       ${GCR_RELEASE}
       ${REDHAT_RELEASE}
