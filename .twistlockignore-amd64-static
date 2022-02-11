@@ -2,4 +2,6 @@ CVE-2008-5358  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for 
 CVE-2008-5352  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
 CVE-2008-3103  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
 CVE-2007-3716  # Zulu JDK incorrectly detected as JRE 6, CVE not applicable for JDK 8
+CVE-2009-0723  # Zulu JDK incorrectly detected as older JRE, CVE not applicable for JDK 8
+CVE-2009-0733  # Zulu JDK incorrectly detected as older JRE, CVE not applicable for JDK 8
 CVE-2021-38297 # Based also on https://access.redhat.com/security/cve/cve-2021-38297, this CVE poses no actual vulnerability to our Agent
