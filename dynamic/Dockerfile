@@ -38,7 +38,7 @@ ARG DOWNLOAD_KEY
 # This is for backwards compatibility for end users that build their own images
 ARG FTP_PROXY
 
-RUN curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
+RUN microdnf update && curl -sSL https://packages.instana.io/Instana.gpg -o /tmp/Instana.gpg && \
     rpm --import /tmp/Instana.gpg && \
     export arch=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'x86_64' ;; 'linux/arm64') echo 'aarch64' ;; 'linux/s390x') echo 's390x' ;; 'linux/ppc64le') echo 'ppc64le' ;; esac) && \
     [[ -z "${FTP_PROXY}" ]] || DOWNLOAD_KEY="${FTP_PROXY}" && \
