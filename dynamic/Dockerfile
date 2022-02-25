@@ -7,11 +7,21 @@
 
 FROM --platform=linux/amd64 registry.access.redhat.com/ubi8/ubi-minimal:latest AS build-gomplate
 
-ENV LANG=C.UTF-8 \
-    GOMPLATE_VERSION="3.8.0" \
-    GOMPLATE_SHA256="d32817821a7b083b0aeadf29c2aea17e3384b6b619f3a6285150db1914b94c89  v3.8.0.tar.gz"
+ENV LANG=C.UTF-8
 
-RUN microdnf install tar gzip wget golang make findutils socat && \
+RUN export GO_VERSION="1.17.7" && \
+	export GO_SHAR256="02b111284bedbfa35a7e5b74a06082d18632eff824fd144312f6063943d49259 go${GO_VERSION}.linux-amd64.tar.gz" && \
+	export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
+	export GOMPLATE_VERSION="3.10.0" && \
+	export GOMPLATE_SHA256="f9a30d8e94b81eefbbe3455c21dc547ec0ebf0e010a809c72db617a4b37223a6  v${GOMPLATE_VERSION}.tar.gz" && \
+    microdnf install tar gzip wget make findutils socat && \
+    cd /tmp && \
+    wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" && \
+    echo "${GO_SHAR256}" | sha256sum --check && \
+	gunzip "${GO_BINARY}" && \
+	tar xf "${GO_BINARY//.gz/}" && \
+    mv go /usr/local/bin && \
+    rm -rf /tmp/* && \
     mkdir -p /root/go/src/github.com/hairyhenderson && \
     cd /root/go/src/github.com/hairyhenderson && \
     wget https://github.com/hairyhenderson/gomplate/archive/v${GOMPLATE_VERSION}.tar.gz && \
@@ -19,10 +29,10 @@ RUN microdnf install tar gzip wget golang make findutils socat && \
     tar xzf v${GOMPLATE_VERSION}.tar.gz && \
     mv gomplate-${GOMPLATE_VERSION} gomplate && \
     cd gomplate/ && \
-    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o gomplate_amd64 ./cmd/gomplate && \
-    GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o gomplate_arm64 ./cmd/gomplate && \
-    GOOS=linux GOARCH=s390x CGO_ENABLED=0 go build -o gomplate_s390x ./cmd/gomplate && \
-    GOOS=linux GOARCH=ppc64le CGO_ENABLED=0 go build -o gomplate_ppc64le ./cmd/gomplate && \
+    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_amd64 ./cmd/gomplate && \
+    GOOS=linux GOARCH=arm64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_arm64 ./cmd/gomplate && \
+    GOOS=linux GOARCH=s390x CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_s390x ./cmd/gomplate && \
+    GOOS=linux GOARCH=ppc64le CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_ppc64le ./cmd/gomplate && \
     mkdir -p /usr/bin/linux/{amd64,arm64,s390x,ppc64le} && \
     chmod u+x gomplate_* && \
     cp gomplate_amd64 /usr/bin/linux/amd64/gomplate && \
