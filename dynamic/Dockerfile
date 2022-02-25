@@ -82,16 +82,18 @@ RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' || "${TARGETPLATFORM}" = 'linux/ppc64
     )
 
 # containerd cli is only available for amd64
-RUN export CONTAINERD_VERSION=1.5.2 \
-    && export CONTAINERD_SHA256="1d6d53ce7f6f9b9b51e4898e2bd8126354854b7bb436fd73e13f12f798cb1431  containerd-1.5.2-linux-amd64.tar.gz" \
+RUN export CONTAINERD_BASE_URL="https://github.com/containerd/containerd/releases" \
     && [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
-        cd /tmp \
-        && curl -L --fail --show-error --silent https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz -o containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
-        && echo "${CONTAINERD_SHA256}" | sha256sum --check \
-        && tar -xzf containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz \
-        && mv bin/* /usr/local/bin \
-        && rm -rf /tmp/* \
-    )
+	   export CONTAINERD_VERSION=$(curl -w '\n' -L -s -H 'Accept: application/json' "${CONTAINERD_BASE_URL}/latest" | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
+	   && export CONTAINERD_BINARY="containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz" \
+	   && cd /tmp \
+	   && curl -L --fail --show-error --silent "${CONTAINERD_BASE_URL}/download/v${CONTAINERD_VERSION}/${CONTAINERD_BINARY}" --output "${CONTAINERD_BINARY}" \
+	   && echo $(curl -L --fail --show-error --silent "${CONTAINERD_BASE_URL}/download/v${CONTAINERD_VERSION}/${CONTAINERD_BINARY}.sha256sum" | awk '{print $1}') "${CONTAINERD_BINARY}" | sha256sum --check \
+	   && gunzip "${CONTAINERD_BINARY}" \
+	   && tar xf "${CONTAINERD_BINARY//.gz/}" \
+	&& mv bin/* /usr/local/bin \
+	&& rm -rf /tmp/* \
+)
 
 # On s390x, install docker ce, runc and containerd from docker static s390x build
 RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
