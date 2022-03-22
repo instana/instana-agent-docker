@@ -9,8 +9,8 @@ FROM --platform=linux/amd64 registry.access.redhat.com/ubi8/ubi-minimal:latest A
 
 ENV LANG=C.UTF-8
 
-RUN export GO_VERSION="1.17.7" && \
-	export GO_SHAR256="02b111284bedbfa35a7e5b74a06082d18632eff824fd144312f6063943d49259 go${GO_VERSION}.linux-amd64.tar.gz" && \
+RUN export GO_VERSION="1.17.8" && \
+	export GO_SHAR256="980e65a863377e69fd9b67df9d8395fd8e93858e7a24c9f55803421e453f4f99 go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GOMPLATE_VERSION="3.10.0" && \
 	export GOMPLATE_SHA256="f9a30d8e94b81eefbbe3455c21dc547ec0ebf0e010a809c72db617a4b37223a6  v${GOMPLATE_VERSION}.tar.gz" && \
@@ -29,6 +29,8 @@ RUN export GO_VERSION="1.17.7" && \
     tar xzf v${GOMPLATE_VERSION}.tar.gz && \
     mv gomplate-${GOMPLATE_VERSION} gomplate && \
     cd gomplate/ && \
+    /usr/local/bin/go/bin/go get -u golang.org/x/crypto && \
+    /usr/local/bin/go/bin/go get -u github.com/aws/aws-sdk-go && \
     GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_amd64 ./cmd/gomplate && \
     GOOS=linux GOARCH=arm64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_arm64 ./cmd/gomplate && \
     GOOS=linux GOARCH=s390x CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_s390x ./cmd/gomplate && \
@@ -72,8 +74,8 @@ LABEL name="instana-agent" \
 ARG TARGETPLATFORM='linux/amd64'
 
 RUN microdnf module enable container-tools \
-    && microdnf upgrade \
-    && microdnf install --nodocs hostname procps iproute util-linux runc python3 jq findutils less tar gzip \
+    && microdnf update \
+    && microdnf install --nodocs --noplugins hostname procps iproute util-linux runc python3 jq findutils less tar gzip \
     && rm -rf /tmp/* \
     && microdnf clean all
 
@@ -102,11 +104,11 @@ RUN export CONTAINERD_BASE_URL="https://github.com/containerd/containerd/release
 	   && echo $(curl -L --fail --show-error --silent "${CONTAINERD_BASE_URL}/download/v${CONTAINERD_VERSION}/${CONTAINERD_BINARY}.sha256sum" | awk '{print $1}') "${CONTAINERD_BINARY}" | sha256sum --check \
 	   && gunzip "${CONTAINERD_BINARY}" \
 	   && tar xf "${CONTAINERD_BINARY//.gz/}" \
-        && mv bin/* /usr/local/bin \
-        && rm -rf /tmp/* \
+	&& mv bin/* /usr/local/bin \
+	&& rm -rf /tmp/* \
 )
 
-# On s390x install docker ce, runc and containerd from docker static s390x build
+# On s390x, install docker ce, runc and containerd from docker static s390x build
 RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         cd /tmp \
         && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
@@ -196,7 +198,9 @@ RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'li
     && echo $(curl -L --fail --show-error --silent https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-${ARCH}.sha256sum) | sha256sum --check \
     && mv tini-${ARCH} /usr/local/bin/tini \
     && chmod +x /usr/local/bin/tini \
-    && rm -rf /tmp/*
+    && rm -rf /tmp/* \
+    && rm -rf /usr/libexec/docker/cli-plugins/*
+# Remove docker cli-plugins 'docker-scan' and 'docker-buildx'
 
 
 COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
