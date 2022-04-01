@@ -16,6 +16,7 @@ jobs:
       - get: instana-agent-docker-git
         trigger: true
       - task: build-s390x-dynamic
+        privileged: true # required by the concourse-oci-build-task
         file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
         input_mapping:
           source: instana-agent-docker-git
@@ -38,6 +39,7 @@ jobs:
       - get: instana-agent-docker-git
         trigger: true
       - task: build-ppcle64-dynamic
+        privileged: true
         file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
         input_mapping:
           source: instana-agent-docker-git
