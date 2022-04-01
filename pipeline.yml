@@ -14,8 +14,9 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
+        trigger: true
       - task: build-s390x-dynamic
-        file: ci/build-any-arch-docker-image-task.yml
+        file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
         input_mapping:
           source: instana-agent-docker-git
         vars:
@@ -35,8 +36,9 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
+        trigger: true
       - task: build-ppcle64-dynamic
-        file: ci/build-any-arch-docker-image-task.yml
+        file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
         input_mapping:
           source: instana-agent-docker-git
         vars:
