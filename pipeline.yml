@@ -405,6 +405,11 @@ jobs:
       - get: backend-version
       - put: agent-version
         params: { bump: minor }
+  - name: bump-patch-version-manual-pipeline-trigger
+    max_in_flight: 1
+    plan:
+      - put: agent-version
+        params: { bump: patch }
   - name: self-update
     max_in_flight: 1
     plan:
@@ -458,8 +463,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ prepare-build-bundle ]
       - get: build-bundle
-        trigger: true
         passed: [ prepare-build-bundle ]
+        trigger: true
       - load_var: s3-artifact-version
         file: build-bundle/version
         reveal: true
@@ -549,8 +554,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ prepare-build-bundle ]
       - get: build-bundle
-        trigger: true
         passed: [ prepare-build-bundle ]
+        trigger: true
       - get: agent-version
         passed: [ prepare-build-bundle ]
       - load_var: agent-version
@@ -640,8 +645,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ prepare-build-bundle ]
       - get: build-bundle
-        trigger: true
         passed: [ prepare-build-bundle ]
+        trigger: true
       - get: agent-version
         passed: [ prepare-build-bundle ]
       - load_var: agent-version
@@ -699,8 +704,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ prepare-build-bundle ]
       - get: build-bundle
-        trigger: true
         passed: [ prepare-build-bundle ]
+        trigger: true
       - get: agent-version
         passed: [ prepare-build-bundle ]
       - load_var: agent-version
@@ -757,12 +762,13 @@ jobs:
       - get: agent-static-amd64
         passed: [amd64-build]
       - get: agent-static-amd64-j9
-        trigger: true
         passed: [amd64-build]
+        trigger: true
       - get: agent-version
+        passed: [ amd64-build, arm64-build, s390x-build, ppc64le-build ]
       - get: instana-twistcli-build-artifacts
       - get: instana-agent-docker-git
-
+        passed: [ amd64-build, arm64-build, s390x-build, ppc64le-build ]
       - load_var: digest-amd64
         file: agent-static-amd64/digest
       - load_var: digest-amd64-j9
@@ -813,8 +819,8 @@ jobs:
       - get: agent-version
         passed: [ amd64-build ]
       - get: agent-static-amd64
-        trigger: true
         passed: [amd64-build]
+        trigger: true
       - load_var: digest
         file: agent-static-amd64/digest
       - task: start-vm
@@ -859,8 +865,8 @@ jobs:
       - get: agent-version
         passed: [ amd64-build ]
       - get: agent-static-amd64-j9
-        trigger: true
         passed: [amd64-build]
+        trigger: true
       - load_var: digest
         file: agent-static-amd64-j9/digest
       - task: start-vm
@@ -905,8 +911,8 @@ jobs:
       - get: agent-version
         passed: [ amd64-build ]
       - get: agent-dynamic-amd64
-        trigger: true
         passed: [amd64-build]
+        trigger: true
       - load_var: digest
         file: agent-dynamic-amd64/digest
       - task: start-vm
@@ -951,8 +957,8 @@ jobs:
       - get: agent-version
         passed: [ amd64-build ]
       - get: agent-dynamic-amd64-j9
-        trigger: true
         passed: [amd64-build]
+        trigger: true
       - load_var: digest
         file: agent-dynamic-amd64-j9/digest
       - task: start-vm
@@ -981,49 +987,57 @@ jobs:
   - name: verification-gate
     plan:
       - get: instana-agent-docker-git
-        passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build ]
+        passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build, twistlock-security-scan, verify-amd64-static, verify-amd64-dynamic, verify-amd64-static-j9, verify-amd64-dynamic-j9 ]
       - get: agent-version
+        passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build, twistlock-security-scan, verify-amd64-static, verify-amd64-dynamic, verify-amd64-static-j9, verify-amd64-dynamic-j9 ]
         trigger: true
-        passed: [ prepare-build-bundle, ppc64le-build, s390x-build, arm64-build, amd64-build, twistlock-security-scan ]
       - get: agent-dynamic-amd64
-        params:
-          skip_download: true
         passed: [ verify-amd64-dynamic ]
-      - get: agent-dynamic-amd64-j9
         params:
           skip_download: true
+      - get: agent-dynamic-amd64-j9
         passed: [ verify-amd64-dynamic-j9 ]
+        params:
+          skip_download: true
       - get: agent-dynamic-arm64
+        passed: [ arm64-build ]
         params:
           skip_download: true
       - get: agent-dynamic-arm64-j9
+        passed: [ arm64-build ]
         params:
           skip_download: true
       - get: agent-dynamic-s390x
+        passed: [ s390x-build ]
         params:
           skip_download: true
       - get: agent-dynamic-ppc64le
+        passed: [ ppc64le-build ]
         params:
           skip_download: true
 
       - get: agent-static-amd64
-        params:
-          skip_download: true
         passed: [ verify-amd64-static ]
-      - get: agent-static-amd64-j9
         params:
           skip_download: true
+      - get: agent-static-amd64-j9
         passed: [ verify-amd64-static-j9 ]
+        params:
+          skip_download: true
       - get: agent-static-arm64
+        passed: [ arm64-build ]
         params:
           skip_download: true
       - get: agent-static-arm64-j9
+        passed: [ arm64-build ]
         params:
           skip_download: true
       - get: agent-static-s390x
+        passed: [ s390x-build ]
         params:
           skip_download: true
       - get: agent-static-ppc64le
+        passed: [ ppc64le-build ]
         params:
           skip_download: true
 
@@ -1037,8 +1051,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ verification-gate ]
       - get: agent-version
-        trigger: true
         passed: [ verification-gate ]
+        trigger: true
 
       - load_var: agent-version
         file: agent-version/number
@@ -1064,21 +1078,21 @@ jobs:
 
       - in_parallel:
         - get: agent-dynamic-amd64
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-dynamic-s390x
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-dynamic-arm64
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-dynamic-ppc64le
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
 
       - in_parallel:
         - put: agent-dynamic-prerelease-instana
@@ -1125,8 +1139,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ verification-gate ]
       - get: agent-version
-        trigger: true
         passed: [ verification-gate ]
+        trigger: true
 
       - load_var: agent-version
         file: agent-version/number
@@ -1152,21 +1166,21 @@ jobs:
 
       - in_parallel:
         - get: agent-dynamic-amd64-j9
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-dynamic-s390x
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-dynamic-arm64-j9
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-dynamic-ppc64le
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
 
       - in_parallel:
         - put: agent-dynamic-prerelease-instana
@@ -1214,8 +1228,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ verification-gate ]
       - get: agent-version
-        trigger: true
         passed: [ verification-gate ]
+        trigger: true
 
       - load_var: agent-version
         file: agent-version/number
@@ -1241,21 +1255,21 @@ jobs:
 
       - in_parallel:
         - get: agent-static-amd64
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-static-s390x
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-static-arm64
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-static-ppc64le
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
 
       - in_parallel:
         - put: agent-static-prerelease-instana
@@ -1303,8 +1317,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ verification-gate ]
       - get: agent-version
-        trigger: true
         passed: [ verification-gate ]
+        trigger: true
 
       - load_var: agent-version
         file: agent-version/number
@@ -1330,21 +1344,21 @@ jobs:
 
       - in_parallel:
         - get: agent-static-amd64-j9
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-static-s390x
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-static-arm64-j9
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
         - get: agent-static-ppc64le
+          passed: [ verification-gate ]
           params:
             format: oci
-          passed: [ verification-gate ]
 
       - in_parallel:
         - put: agent-static-prerelease-instana
@@ -1392,36 +1406,49 @@ jobs:
   - name: agent-release-trigger
     plan:
       - get: instana-agent-docker-git
+        passed: [ prerelease-multiarch-dynamic, prerelease-multiarch-static, prerelease-multiarch-dynamic-j9, prerelease-multiarch-static-j9 ]
         params: &release-trigger-params
           skip_download: true
-        passed: [ prerelease-multiarch-dynamic, prerelease-multiarch-static, prerelease-multiarch-dynamic-j9, prerelease-multiarch-static-j9 ]
       - get: agent-version
+        passed: [ prerelease-multiarch-dynamic, prerelease-multiarch-static, prerelease-multiarch-dynamic-j9, prerelease-multiarch-static-j9 ]
         params: *release-trigger-params
 
       - get: agent-dynamic-amd64
+        passed: [ prerelease-multiarch-dynamic ]
         params: *release-trigger-params
       - get: agent-dynamic-amd64-j9
+        passed: [ prerelease-multiarch-dynamic-j9 ]
         params: *release-trigger-params
       - get: agent-dynamic-arm64
+        passed: [ prerelease-multiarch-dynamic ]
         params: *release-trigger-params
       - get: agent-dynamic-arm64-j9
+        passed: [ prerelease-multiarch-dynamic-j9 ]
         params: *release-trigger-params
       - get: agent-dynamic-s390x
+        passed: [ prerelease-multiarch-dynamic ]
         params: *release-trigger-params
       - get: agent-dynamic-ppc64le
+        passed: [ prerelease-multiarch-dynamic ]
         params: *release-trigger-params
 
       - get: agent-static-amd64
+        passed: [ prerelease-multiarch-static ]
         params: *release-trigger-params
       - get: agent-static-amd64-j9
+        passed: [ prerelease-multiarch-static-j9 ]
         params: *release-trigger-params
       - get: agent-static-arm64
+        passed: [ prerelease-multiarch-static ]
         params: *release-trigger-params
       - get: agent-static-arm64-j9
+        passed: [ prerelease-multiarch-static-j9 ]
         params: *release-trigger-params
       - get: agent-static-s390x
+        passed: [ prerelease-multiarch-static ]
         params: *release-trigger-params
       - get: agent-static-ppc64le
+        passed: [ prerelease-multiarch-static ]
         params: *release-trigger-params
 #
   - name: release-multiarch-dynamic
@@ -1430,8 +1457,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ agent-release-trigger ]
       - get: agent-version
-        trigger: true
         passed: [ agent-release-trigger ]
+        trigger: true
 
       - load_var: agent-version
         file: agent-version/number
@@ -1457,21 +1484,21 @@ jobs:
 
       - in_parallel:
         - get: agent-dynamic-amd64
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-dynamic-s390x
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-dynamic-arm64
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-dynamic-ppc64le
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
 
       - in_parallel:
         - put: agent-dynamic-release-instana
@@ -1626,8 +1653,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ agent-release-trigger ]
       - get: agent-version
-        trigger: true
         passed: [ agent-release-trigger ]
+        trigger: true
 
       - load_var: agent-version
         file: agent-version/number
@@ -1653,21 +1680,21 @@ jobs:
 
       - in_parallel:
         - get: agent-dynamic-amd64-j9
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-dynamic-s390x
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-dynamic-arm64-j9
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-dynamic-ppc64le
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
 
       - in_parallel:
         - put: agent-dynamic-release-instana
@@ -1827,8 +1854,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ agent-release-trigger ]
       - get: agent-version
-        trigger: true
         passed: [ agent-release-trigger ]
+        trigger: true
 
       - load_var: agent-version
         file: agent-version/number
@@ -1854,21 +1881,21 @@ jobs:
 
       - in_parallel:
         - get: agent-static-amd64
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-static-s390x
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-static-arm64
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-static-ppc64le
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
 
       - in_parallel:
         - put: agent-static-release-instana
@@ -1916,8 +1943,8 @@ jobs:
       - get: instana-agent-docker-git
         passed: [ agent-release-trigger ]
       - get: agent-version
-        trigger: true
         passed: [ agent-release-trigger ]
+        trigger: true
 
       - load_var: agent-version
         file: agent-version/number
@@ -1943,21 +1970,21 @@ jobs:
 
       - in_parallel:
         - get: agent-static-amd64-j9
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-static-s390x
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-static-arm64-j9
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
         - get: agent-static-ppc64le
+          passed: [ agent-release-trigger ]
           params:
             format: oci
-          passed: [ agent-release-trigger ]
 
       - in_parallel:
         - put: agent-static-release-instana
