@@ -186,6 +186,16 @@ RUN export IPTABLES_PPC64LE_SHA256="1eb70870bd717d010127a0d6a6bd61d1e621120b770d
         && microdnf clean all \
     )
 
+# Install latest runc from official github release:
+RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'linux/arm64') echo 'arm64' ;; 'linux/s390x') echo 's390x' ;; 'linux/ppc64le') echo 'ppc64le' ;; esac) \
+    && export RUNC_VERSION="1.1.1" \
+    && cd /tmp \
+    && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.${ARCH} -o runc.${ARCH} \
+    && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.sha256sum | grep runc.${ARCH} | sha256sum --check \
+    && mv runc.${ARCH} /usr/local/bin/runc \
+    && chmod +x /usr/local/bin/runc \
+    && rm -rf /tmp/*
+
 # Install Tini, to handle signals (SIGTERM / SIGKILL) correctly in our container since we need to run the Agent from a
 # script and cannot 'exec' to replace it. That would kill the container on restarts of the Agent.
 RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'linux/arm64') echo 'arm64' ;; 'linux/s390x') echo 's390x' ;; 'linux/ppc64le') echo 'ppc64le' ;; esac) \
