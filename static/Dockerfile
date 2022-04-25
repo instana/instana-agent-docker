@@ -71,9 +71,8 @@ LABEL name="instana-agent" \
 
 ARG TARGETPLATFORM='linux/amd64'
 
-RUN microdnf module enable container-tools \
-    && microdnf update \
-    && microdnf install --nodocs --noplugins hostname procps iproute util-linux runc python3 jq findutils less tar gzip \
+RUN microdnf upgrade \
+    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip \
     && rm -rf /tmp/* \
     && microdnf clean all
 
@@ -102,11 +101,11 @@ RUN export CONTAINERD_BASE_URL="https://github.com/containerd/containerd/release
 	   && echo $(curl -L --fail --show-error --silent "${CONTAINERD_BASE_URL}/download/v${CONTAINERD_VERSION}/${CONTAINERD_BINARY}.sha256sum" | awk '{print $1}') "${CONTAINERD_BINARY}" | sha256sum --check \
 	   && gunzip "${CONTAINERD_BINARY}" \
 	   && tar xf "${CONTAINERD_BINARY//.gz/}" \
-	&& mv bin/* /usr/local/bin \
-	&& rm -rf /tmp/* \
+	   && mv bin/* /usr/local/bin \
+	   && rm -rf /tmp/* \
 )
 
-# On s390x, install docker ce, runc and containerd from docker static s390x build
+# On s390x install docker ce and containerd from docker static s390x build
 RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         cd /tmp \
         && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/s390x/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
@@ -118,7 +117,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/s390x' ]] || ( \
         && rm -rf /tmp/* \
     )
 
-# On ppc64le, install docker ce, runc and containerd from docker static ppc64le build
+# On ppc64le, install docker ce and containerd from docker static ppc64le build
 RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
         cd /tmp \
         && curl -L --fail --show-error --silent https://download.docker.com/linux/static/stable/ppc64le/docker-18.06.3-ce.tgz -o /tmp/docker-18.06.3-ce.tgz \
