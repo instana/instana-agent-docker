@@ -29,6 +29,8 @@ RUN export GO_VERSION="1.17.9" && \
     tar xzf v${GOMPLATE_VERSION}.tar.gz && \
     mv gomplate-${GOMPLATE_VERSION} gomplate && \
     cd gomplate/ && \
+	/usr/local/bin/go/bin/go get -u golang.org/x/crypto && \
+	/usr/local/bin/go/bin/go get -u github.com/aws/aws-sdk-go && \
     GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_amd64 ./cmd/gomplate && \
     GOOS=linux GOARCH=arm64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_arm64 ./cmd/gomplate && \
     GOOS=linux GOARCH=s390x CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_s390x ./cmd/gomplate && \
