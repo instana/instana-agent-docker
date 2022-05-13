@@ -59,22 +59,10 @@ run:
       $COMMIT_SHA_TAG
       EOF
 
-      # Write Red Hat architecture-specific release-tag files to only have <version>(-j9)-<architecture> tag 
-      # "latest" tag is unsupported on Red Hat Container Registry.
-      if [ "${DYNAMIC_RELEASE}" = 'true' ]; then
-        RED_HAT_VERSION=${VERSION}${CLASSIFIER}
-        echo "${RED_HAT_VERSION}-amd64"   > version/redhat-tag-amd64
-        echo "${RED_HAT_VERSION}-arm64"   > version/redhat-tag-arm64
-        echo "${RED_HAT_VERSION}-s390x"   > version/redhat-tag-s390x
-        echo "${RED_HAT_VERSION}-ppcle64" > version/redhat-tag-ppc64le
-      fi
-
       # Build Slack message:
-      REDHAT_RELEASE=""
       ICR_RELEASE=""
       GCR_RELEASE=""
       if [ "${DYNAMIC_RELEASE}" = 'true' ]; then
-        REDHAT_RELEASE="* scan.connect.redhat.com/p608397615952a4600fdbf53550772c07c9533e46f/agent"
         ICR_RELEASE="* icr.io/instana/${RELEASE_TREE}/agent"
         GCR_RELEASE="* gcr.io/instana-public/instana-agent"
       fi
@@ -91,5 +79,4 @@ run:
       * containers.instana.io/instana/$RELEASE_TREE/agent/$FLAVOR
       ${ICR_RELEASE}
       ${GCR_RELEASE}
-      ${REDHAT_RELEASE}
       EOF

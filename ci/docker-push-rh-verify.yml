@@ -1,0 +1,57 @@
+---
+#
+# (c) Copyright IBM Corp. 2022
+# (c) Copyright Instana Inc.
+#
+
+# see https://concourse-ci.org/tasks.html
+platform: linux
+params:
+  TAG_NAME: ((tag_name))
+  RED_HAT_REGISTRY_PASSWORD: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.password))
+  RED_HAT_REGISTRY_USERNAME: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.user))
+  RED_HAT_API_TOKEN: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.api-token))
+inputs:
+  - name: image
+  - name: tag
+run:
+  path: /entrypoint.sh
+  args:
+  - bash
+  - -ceu
+  - |
+      set -e
+
+      # load docker file and read vars
+      pushd image
+      docker load -i image.tar
+      export OLD_TAG=$(cat tag)
+      export OLD_REPOSITORY=$(cat repository)
+      popd
+
+      # login to redhat
+      echo $RED_HAT_REGISTRY_PASSWORD | docker login -u $RED_HAT_REGISTRY_USERNAME --password-stdin https://scan.connect.redhat.com/v1/
+      export RED_HAT_REGISTRY="scan.connect.redhat.com/p608397615952a4600fdbf53550772c07c9533e46f/agent"
+
+      export DOCKER_CONFIG_REF="$HOME/.docker/config.json"
+
+      echo "---> re-tagging images for Red Hat Container Registry"
+
+      pushd tag
+      export NEW_TAG=$(cat "${TAG_NAME}")
+      docker tag "$OLD_REPOSITORY:$OLD_TAG" "$RED_HAT_REGISTRY:$NEW_TAG"
+
+
+      echo "---> pushing images to Red Hat Container Registry"
+      docker push "$RED_HAT_REGISTRY:$NEW_TAG"
+
+      echo "---> preflight check"
+      if ! preflight check container "$RED_HAT_REGISTRY:$NEW_TAG" --docker-config=$DOCKER_CONFIG_REF; then
+        echo "---> failed to execute preflight check"
+        exit 1
+      fi
+
+      preflight check container "$RED_HAT_REGISTRY:$NEW_TAG" --submit \
+      --pyxis-api-token=$RED_HAT_API_TOKEN \
+      --certification-project-id=5e9612d87512796c24e4aeef \
+      --docker-config=$DOCKER_CONFIG_REF
