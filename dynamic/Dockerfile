@@ -14,7 +14,7 @@ RUN export GO_VERSION="1.17.9" && \
 	export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GOMPLATE_VERSION="3.10.0" && \
 	export GOMPLATE_SHA256="f9a30d8e94b81eefbbe3455c21dc547ec0ebf0e010a809c72db617a4b37223a6  v${GOMPLATE_VERSION}.tar.gz" && \
-    microdnf install tar gzip wget make findutils socat && \
+    microdnf install tar gzip wget make findutils && \
     cd /tmp && \
     wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" && \
     echo "${GO_SHAR256}" | sha256sum --check && \
@@ -73,7 +73,7 @@ LABEL name="instana-agent" \
 ARG TARGETPLATFORM='linux/amd64'
 
 RUN microdnf upgrade \
-    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip \
+    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip socat \
     && rm -rf /tmp/* \
     && microdnf clean all
 
@@ -89,6 +89,7 @@ RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' || "${TARGETPLATFORM}" = 'linux/ppc64
         echo -e '[docker-ce-stable]\nname=Docker CE Stable - $basearch\nbaseurl=https://download.docker.com/linux/centos/8/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=https://download.docker.com/linux/centos/gpg' > /etc/yum.repos.d/docker.repo \
         && microdnf install --nodocs docker-ce-cli \
         && rm -rf /tmp/* /etc/yum.repos.d/docker.repo \
+        && rm -rf /usr/libexec/docker/cli-plugins/* \
         && microdnf clean all \
     )
 
@@ -206,10 +207,7 @@ RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'li
     && echo $(curl -L --fail --show-error --silent https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-${ARCH}.sha256sum) | sha256sum --check \
     && mv tini-${ARCH} /usr/local/bin/tini \
     && chmod +x /usr/local/bin/tini \
-    && rm -rf /tmp/* \
-    && rm -rf /usr/libexec/docker/cli-plugins/*
-# Remove docker cli-plugins 'docker-scan' and 'docker-buildx'
-
+    && rm -rf /tmp/*
 
 COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
 
