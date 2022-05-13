@@ -37,6 +37,10 @@ resource_types:
       repository: gcr.io/instana-agent-qa/concourse-docker-manifest-resource
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
+  - name: google-cloud-storage
+    type: registry-image
+    source:
+      repository: frodenas/gcs-resource
 
 #############
 # Resources #
@@ -292,6 +296,14 @@ resources:
       secret_access_key: ((codebuild-s3-user-devinfra-key.key_secret))
       region_name: us-west-2
 
+  ## Redhat OC sources
+  - name: agent-rh-sources
+    type: google-cloud-storage
+    source:
+      bucket: agent-rh-sources
+      json_key: ((gcloud-agent-ci-account-key))
+      regexp: oc-(.*).tar.gz
+
 #################
 # container.instana.io/instana images
 
@@ -381,19 +393,6 @@ resources:
     type: docker-manifest
     icon: docker
     source: *icr-io-release
-############################################################
-# Red Hat registry images, release dynamic images & manifest
-  - name: agent-dynamic-release-redhat
-    type: registry-image
-    icon: docker
-    source: &redhat-release
-      repository: scan.connect.redhat.com/p608397615952a4600fdbf53550772c07c9533e46f/agent
-      username: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.user))
-      password: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.password))
-  # - name: manifest-dynamic-release-redhat
-  #   type: docker-manifest
-  #   icon: docker
-  #   source: *redhat-release
 
 ########
 ########
@@ -1605,42 +1604,159 @@ jobs:
               os: linux
               digest_file: agent-dynamic-ppc64le/digest
 
+      - put: slack-alert
+        params:
+          channel: '#tech-agent-delivery'
+          text_file: message/text
+
+  - name: release-rh-dynamic
+    max_in_flight: 1
+    plan:
+      - get: instana-agent-docker-git
+        passed: [ agent-release-trigger ]
+      - get: agent-version
+        passed: [ agent-release-trigger ]
+        trigger: true
+      - get: agent-rh-sources
+      - load_var: agent-version
+        file: agent-version/number
+        reveal: true
+      - load_var: commit-sha
+        file: instana-agent-docker-git/.git/short_ref
+        reveal: true
+
+      # create "latest"/"latest-j9", "<version>"/"<version>-j9"
+      # and "<commit-sha>"/"<commit-sha>-j9" tags for the manifest in version/manifest-tags
+      - task: dynamic-multiarch-manifest-tags
+        privileged: true
+        file: instana-agent-docker-git/ci/create-tag-file-rh.yml
+        output_mapping:
+          message: message
+          version: version
+        vars:
+          flavor: dynamic
+          classifier: ''
+          commit-sha: ((.:commit-sha))
+          version: ((.:agent-version))
+          release-tree: 'release'
+      - task: prepare-docker-context
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: registry.access.redhat.com/ubi8/ubi-minimal
+          inputs:
+            - name: instana-agent-docker-git
+            - name: agent-rh-sources
+          outputs:
+            - name: context
+          run:
+            path: bash
+            args:
+            - -ceu
+            - |
+              # install git
+              microdnf install tar gzip unzip git
+
+              # copy Dockerfile
+              cp instana-agent-docker-git/ci/rh-preflight/Dockerfile context
+              cp instana-agent-docker-git/ci/rh-preflight/entrypoint.sh context
+
+              # extract oc
+              mv agent-rh-sources/oc-4.10.6-linux.tar.gz .
+              tar -xvf oc-4.10.6-linux.tar.gz
+              cp oc kubectl context
+
+              echo "latest" > context/tags
+      - task: redhat-preflight-image-build
+        privileged: true
+        output_mapping: {image: redhat-preflight}
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: context
+          outputs:
+            - name: image
+          params:
+            CONTEXT: context
+            UNPACK_ROOTFS: true
+          run:
+            path: build
+      - in_parallel:
+        - get: agent-dynamic-amd64
+          passed: [ agent-release-trigger ]
+          params:
+            format: oci
+        - get: agent-dynamic-s390x
+          passed: [ agent-release-trigger ]
+          params:
+            format: oci
+        - get: agent-dynamic-arm64
+          passed: [ agent-release-trigger ]
+          params:
+            format: oci
+        - get: agent-dynamic-ppc64le
+          passed: [ agent-release-trigger ]
+          params:
+            format: oci
+        - get: agent-dynamic-amd64-j9
+          passed: [ agent-release-trigger ]
+          params:
+            format: oci
+
       # Docker manifest is currently usupported by Red Hat container registry
       # latest tag is not allowed during image certification
       - in_parallel:
-        - put: agent-dynamic-release-redhat
-          params:
-            image: agent-dynamic-amd64/image.tar
-            additional_tags: version/redhat-tag-amd64
-        - put: agent-dynamic-release-redhat
-          params:
-            image: agent-dynamic-arm64/image.tar
-            additional_tags: version/redhat-tag-arm64
-        - put: agent-dynamic-release-redhat
-          params:
-            image: agent-dynamic-s390x/image.tar
-            additional_tags: version/redhat-tag-s390x
-        - put: agent-dynamic-release-redhat
-          params:
-            image: agent-dynamic-ppc64le/image.tar
-            additional_tags: version/redhat-tag-ppc64le
-
-      # - put: manifest-dynamic-release-redhat
-      #   params:
-      #     tag_file: version/manifest-tags
-      #     manifests:
-      #       - arch: amd64
-      #         os: linux
-      #         digest_file: agent-dynamic-amd64/digest
-      #       - arch: arm64
-      #         os: linux
-      #         digest_file: agent-dynamic-arm64/digest
-      #       - arch: s390x
-      #         os: linux
-      #         digest_file: agent-dynamic-s390x/digest
-      #       - arch: ppc64le
-      #         os: linux
-      #         digest_file: agent-dynamic-ppc64le/digest
+        - task: agent-dynamic-release-redhat-amd64
+          image: redhat-preflight
+          privileged: true
+          file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          input_mapping:
+            image: agent-dynamic-amd64
+            tag: version
+          vars:
+            tag_name: redhat-tag-amd64
+        - task: agent-dynamic-release-redhat-arm64
+          image: redhat-preflight
+          privileged: true
+          file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          input_mapping:
+            image: agent-dynamic-arm64
+            tag: version
+          vars:
+            tag_name: redhat-tag-arm64
+        - task: agent-dynamic-release-redhat-s390x
+          image: redhat-preflight
+          privileged: true
+          file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          input_mapping:
+            image: agent-dynamic-s390x
+            tag: version
+          vars:
+            tag_name: redhat-tag-s390x
+        - task: agent-dynamic-release-redhat-ppc64le
+          image: redhat-preflight
+          privileged: true
+          file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          input_mapping:
+            image: agent-dynamic-ppc64le
+            tag: version
+          vars:
+            tag_name: redhat-tag-ppc64le
+        - task: agent-dynamic-release-redhat-amd64-j9
+          image: redhat-preflight
+          privileged: true
+          file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          input_mapping:
+            image: agent-dynamic-amd64-j9
+            tag: version
+          vars:
+            tag_name: redhat-tag-amd64-j9
 
       - put: slack-alert
         params:
@@ -1683,15 +1799,7 @@ jobs:
           passed: [ agent-release-trigger ]
           params:
             format: oci
-        - get: agent-dynamic-s390x
-          passed: [ agent-release-trigger ]
-          params:
-            format: oci
         - get: agent-dynamic-arm64-j9
-          passed: [ agent-release-trigger ]
-          params:
-            format: oci
-        - get: agent-dynamic-ppc64le
           passed: [ agent-release-trigger ]
           params:
             format: oci
@@ -1705,14 +1813,6 @@ jobs:
           params:
             image: agent-dynamic-arm64-j9/image.tar
             additional_tags: agent-dynamic-arm64-j9/tag
-        - put: agent-dynamic-release-instana
-          params:
-            image: agent-dynamic-s390x/image.tar
-            additional_tags: agent-dynamic-s390x/tag
-        - put: agent-dynamic-release-instana
-          params:
-            image: agent-dynamic-ppc64le/image.tar
-            additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-release-instana
         params:
@@ -1724,12 +1824,6 @@ jobs:
             - arch: arm64
               os: linux
               digest_file: agent-dynamic-arm64-j9/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-dynamic-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-dynamic-ppc64le/digest
 
       - in_parallel:
           - put: agent-dynamic-release-gcr-instana-public
@@ -1740,14 +1834,6 @@ jobs:
             params:
               image: agent-dynamic-arm64-j9/image.tar
               additional_tags: agent-dynamic-arm64-j9/tag
-          - put: agent-dynamic-release-gcr-instana-public
-            params:
-              image: agent-dynamic-s390x/image.tar
-              additional_tags: agent-dynamic-s390x/tag
-          - put: agent-dynamic-release-gcr-instana-public
-            params:
-              image: agent-dynamic-ppc64le/image.tar
-              additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-release-gcr-instana-public
         params:
@@ -1759,12 +1845,6 @@ jobs:
             - arch: arm64
               os: linux
               digest_file: agent-dynamic-arm64-j9/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-dynamic-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-dynamic-ppc64le/digest
 
       - in_parallel:
         - put: agent-dynamic-release-icr
@@ -1775,14 +1855,6 @@ jobs:
           params:
             image: agent-dynamic-arm64-j9/image.tar
             additional_tags: agent-dynamic-arm64-j9/tag
-        - put: agent-dynamic-release-icr
-          params:
-            image: agent-dynamic-s390x/image.tar
-            additional_tags: agent-dynamic-s390x/tag
-        - put: agent-dynamic-release-icr
-          params:
-            image: agent-dynamic-ppc64le/image.tar
-            additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-release-icr
         params:
@@ -1794,54 +1866,6 @@ jobs:
             - arch: arm64
               os: linux
               digest_file: agent-dynamic-arm64-j9/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-dynamic-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-dynamic-ppc64le/digest
-
-      # Docker manifest is currently usupported by Red Hat container registry
-      # latest tag is not allowed during image certification
-      - put: agent-dynamic-release-redhat
-        params:
-          image: agent-dynamic-amd64-j9/image.tar
-          additional_tags: version/redhat-tag-amd64
-      # - in_parallel:
-      #   - put: agent-dynamic-release-redhat
-      #     params:
-      #       image: agent-dynamic-amd64-j9/image.tar
-      #       additional_tags: agent-dynamic-amd64-j9/tag
-      #   - put: agent-dynamic-release-redhat
-      #     params:
-      #       image: agent-dynamic-arm64-j9/image.tar
-      #       additional_tags: agent-dynamic-arm64-j9/tag
-      #   - put: agent-dynamic-release-redhat
-      #     params:
-      #       image: agent-dynamic-s390x/image.tar
-      #       additional_tags: agent-dynamic-s390x/tag
-      #   - put: agent-dynamic-release-redhat
-      #     params:
-      #       image: agent-dynamic-ppc64le/image.tar
-      #       additional_tags: agent-dynamic-ppc64le/tag
-
-
-      # - put: manifest-dynamic-release-redhat
-      #   params:
-      #     tag_file: version/manifest-tags
-      #     manifests:
-      #       - arch: amd64
-      #         os: linux
-      #         digest_file: agent-dynamic-amd64-j9/digest
-      #       - arch: arm64
-      #         os: linux
-      #         digest_file: agent-dynamic-arm64-j9/digest
-      #       - arch: s390x
-      #         os: linux
-      #         digest_file: agent-dynamic-s390x/digest
-      #       - arch: ppc64le
-      #         os: linux
-      #         digest_file: agent-dynamic-ppc64le/digest
 
       - put: slack-alert
         params:
