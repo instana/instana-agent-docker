@@ -10,7 +10,7 @@ var_sources:
     type: dummy
     config:
       vars:
-        instana-twistcli-version: '0.3.1'
+        instana-twistcli-version: '1.0.1'
 resource_types:
   - name: codebuild
     type: registry-image
@@ -779,7 +779,6 @@ jobs:
         file: instana-agent-docker-git/ci/prepare-instana-twistcli-inputs-task.yml
         vars:
           instana-twistcli-version: ((local-vars:instana-twistcli-version))
-
       - in_parallel:
           steps:
           - task: scan-image-amd64-static
