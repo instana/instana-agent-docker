@@ -780,24 +780,24 @@ jobs:
         vars:
           instana-twistcli-version: ((local-vars:instana-twistcli-version))
 
-      #- in_parallel:
-      #    steps:
-      #    - task: scan-image-amd64-static
-      #      privileged: true
-      #      file: instana-twistcli-inputs/scan-image.yml
-      #      vars:
-      #        target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
-      #        docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-      #        ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
-      #        min-vuln-severity: ''
-      #    - task: scan-image-amd64-j9-static
-      #      privileged: true
-      #      file: instana-twistcli-inputs/scan-image.yml
-      #     vars:
-      #        target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
-      #        docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-      #        ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
-      #        min-vuln-severity: ''
+      - in_parallel:
+          steps:
+          - task: scan-image-amd64-static
+            privileged: true
+            file: instana-twistcli-inputs/scan-image.yml
+            vars:
+              target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
+              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+              ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
+              min-vuln-severity: ''
+          - task: scan-image-amd64-j9-static
+            privileged: true
+            file: instana-twistcli-inputs/scan-image.yml
+            vars:
+              target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
+              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+              ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
+              min-vuln-severity: ''
 
   - name: verify-amd64-static
     max_in_flight: 1
