@@ -78,9 +78,7 @@ RUN microdnf upgrade \
     && rm -rf /tmp/* \
     && microdnf clean all
 
-# Upgrade pip to 20.3.4 to get all the latest features
-# NOTE: 20.3.4 is the last version to support both Python 2.x & 3.x
-RUN pip3 install pip==20.3.4
+RUN pip3 install pip
 
 # !! NOTE: the following sections contain inverse IF-statements to make sure commands succeed
 # when not applicable but breaks when any command fails. The regular " IF ... && <command> || true " won't work.
