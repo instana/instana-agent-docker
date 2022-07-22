@@ -786,21 +786,19 @@ jobs:
             file: instana-twistcli-inputs/scan-image.yml
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
-              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
               ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
               min-vuln-severity: ''
             params:
-              DOCKER_JSON_KEY: ((concourse-artifacts-service-account))
+              DOCKER_JSON_KEY: ((project-berlin-tests-gcp-instana-qa))
           - task: scan-image-amd64-j9-static
             privileged: true
             file: instana-twistcli-inputs/scan-image.yml
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
-              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
               ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
               min-vuln-severity: ''
             params:
-              DOCKER_JSON_KEY: ((concourse-artifacts-service-account))
+              DOCKER_JSON_KEY: ((project-berlin-tests-gcp-instana-qa))
   - name: verify-amd64-static
     max_in_flight: 1
     on_abort: &destroy-amd64-static-vm
