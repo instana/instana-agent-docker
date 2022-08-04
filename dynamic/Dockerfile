@@ -269,5 +269,5 @@ COPY org.ops4j.pax.logging.cfg.tmpl \
 ADD run.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent
-
+VOLUME ["/opt/instana/agent/etc/instana"]
 ENTRYPOINT ["/usr/local/bin/tini", "-s", "-g", "--", "./bin/run.sh"]
