@@ -10,7 +10,7 @@ var_sources:
     type: dummy
     config:
       vars:
-        instana-twistcli-version: '1.0.1'
+        instana-twistcli-version: '1.1.1'
 resource_types:
   - name: codebuild
     type: registry-image
@@ -790,6 +790,7 @@ jobs:
               min-vuln-severity: ''
             params:
               DOCKER_JSON_KEY: ((project-berlin-tests-gcp-instana-qa))
+              SAVE_SCAN_RESULTS: "true"
           - task: scan-image-amd64-j9-static
             privileged: true
             file: instana-twistcli-inputs/scan-image.yml
@@ -799,6 +800,7 @@ jobs:
               min-vuln-severity: ''
             params:
               DOCKER_JSON_KEY: ((project-berlin-tests-gcp-instana-qa))
+              SAVE_SCAN_RESULTS: "true"
   - name: verify-amd64-static
     max_in_flight: 1
     on_abort: &destroy-amd64-static-vm
