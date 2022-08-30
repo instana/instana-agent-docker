@@ -243,8 +243,10 @@ ENV LANG=C.UTF-8 \
     INSTANA_LOG_LEVEL=""
 
 COPY org.ops4j.pax.logging.cfg.tmpl \
-    configuration.yaml \
     com.instana.agent.main.sender.Backend-1.cfg.tmpl \
+    /opt/instana/agent/etc/
+
+COPY configuration.yaml \
     /root/
 
 ADD run.sh /opt/instana/agent/bin
