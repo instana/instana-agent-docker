@@ -257,11 +257,13 @@ ENV LANG=C.UTF-8 \
 
 COPY org.ops4j.pax.logging.cfg.tmpl \
     org.ops4j.pax.url.mvn.cfg.tmpl \
-    configuration.yaml \
     com.instana.agent.main.sender.Backend-1.cfg.tmpl \
     com.instana.agent.main.config.UpdateManager.cfg.tmpl \
     com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl \
     mvn-settings.xml.tmpl \
+    /opt/instana/agent/etc/
+
+COPY configuration.yaml \
     /root/
 
 ADD run.sh /opt/instana/agent/bin
