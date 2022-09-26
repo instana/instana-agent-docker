@@ -10,10 +10,10 @@ FROM --platform=linux/amd64 registry.access.redhat.com/ubi8/ubi-minimal:latest A
 ENV LANG=C.UTF-8
 
 RUN export GO_VERSION="1.18.6" && \
-	export GO_SHAR256="9dacf782028fdfc79120576c872dee488b81257b1c48e9032d122cfdb379cca6 go${GO_VERSION}.linux-amd64.tar.gz" && \
+	export GO_SHAR256="bb05f179a773fed60c6a454a24141aaa7e71edfd0f2d465ad610a3b8f1dc7fe8 go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GOMPLATE_VERSION="3.11.3" && \
-	export GOMPLATE_SHA256="bb05f179a773fed60c6a454a24141aaa7e71edfd0f2d465ad610a3b8f1dc7fe8  v${GOMPLATE_VERSION}.tar.gz" && \
+	export GOMPLATE_SHA256="ab8b331b516cfc4bd075d042fb18ee4fa4d13058  v${GOMPLATE_VERSION}.tar.gz" && \
     microdnf install tar gzip wget make findutils && \
     cd /tmp && \
     wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" && \
