@@ -13,7 +13,7 @@ RUN export GO_VERSION="1.18.6" && \
 	export GO_SHAR256="bb05f179a773fed60c6a454a24141aaa7e71edfd0f2d465ad610a3b8f1dc7fe8 go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GOMPLATE_VERSION="3.11.3" && \
-	export GOMPLATE_SHA256="ab8b331b516cfc4bd075d042fb18ee4fa4d13058  v${GOMPLATE_VERSION}.tar.gz" && \
+	export GOMPLATE_SHA256="4f26895921e52e0515b273659508802676aafa4765cc3751c383b27eb0e9dca1  v${GOMPLATE_VERSION}.tar.gz" && \
     microdnf install tar gzip wget make findutils && \
     cd /tmp && \
     wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" && \
