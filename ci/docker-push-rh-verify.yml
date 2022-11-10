@@ -8,9 +8,9 @@
 platform: linux
 params:
   TAG_NAME: ((tag_name))
-  RED_HAT_REGISTRY_PASSWORD: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.password))
-  RED_HAT_REGISTRY_USERNAME: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.user))
-  RED_HAT_API_TOKEN: ((redhat-container-registry-ospid-608397615952a4600fdbf53550772c07c9533e46f.api-token))
+  RED_HAT_REGISTRY_PASSWORD: ((redhat-container-registry-5e9612d87512796c24e4aeef.password))
+  RED_HAT_REGISTRY_USERNAME: ((redhat-container-registry-5e9612d87512796c24e4aeef.user))
+  RED_HAT_API_TOKEN: ((redhat-container-registry-5e9612d87512796c24e4aeef.api-token))
 inputs:
   - name: image
   - name: tag
@@ -30,8 +30,8 @@ run:
       popd
 
       # login to redhat
-      echo $RED_HAT_REGISTRY_PASSWORD | docker login -u $RED_HAT_REGISTRY_USERNAME --password-stdin https://scan.connect.redhat.com/v1/
-      export RED_HAT_REGISTRY="scan.connect.redhat.com/p608397615952a4600fdbf53550772c07c9533e46f/agent"
+      echo $RED_HAT_REGISTRY_PASSWORD | docker login -u $RED_HAT_REGISTRY_USERNAME --password-stdin quay.io
+      export RED_HAT_REGISTRY="quay.io/redhat-isv-containers/5e9612d87512796c24e4aeef"
 
       export DOCKER_CONFIG_REF="$HOME/.docker/config.json"
 
