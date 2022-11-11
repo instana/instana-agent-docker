@@ -46,11 +46,6 @@ run:
       docker push "$RED_HAT_REGISTRY:$NEW_TAG"
 
       echo "---> preflight check"
-      if ! preflight check container "$RED_HAT_REGISTRY:$NEW_TAG" --docker-config=$DOCKER_CONFIG_REF; then
-        echo "---> failed to execute preflight check"
-        exit 1
-      fi
-
       preflight check container "$RED_HAT_REGISTRY:$NEW_TAG" --submit \
       --pyxis-api-token=$RED_HAT_API_TOKEN \
       --certification-project-id=5e9612d87512796c24e4aeef \
