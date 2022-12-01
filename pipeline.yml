@@ -301,14 +301,6 @@ resources:
       secret_access_key: ((codebuild-s3-user-devinfra-key.key_secret))
       region_name: us-west-2
 
-  ## Redhat OC sources
-  - name: agent-rh-sources
-    type: google-cloud-storage
-    source:
-      bucket: agent-rh-sources
-      json_key: ((gcloud-agent-ci-account-key))
-      regexp: oc-(.*).tar.gz
-
 #################
 # container.instana.io/instana images
 
@@ -1624,7 +1616,6 @@ jobs:
       - get: agent-version
         passed: [ agent-release-trigger ]
         trigger: true
-      - get: agent-rh-sources
       - load_var: agent-version
         file: agent-version/number
         reveal: true
