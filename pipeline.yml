@@ -1672,7 +1672,6 @@ jobs:
             globs:
               - preflight-linux-amd64
       # Docker manifest is currently usupported by Red Hat container registry
-      # latest tag is not allowed during image certification
       - in_parallel:
         - load_var: redhat-tag-amd64
           file: version/redhat-tag-amd64
