@@ -43,7 +43,6 @@ run:
 
 
       # Write Red Hat architecture-specific release-tag files to only have <version>(-j9)-<architecture> tag 
-      # "latest" tag is unsupported on Red Hat Container Registry.
       if [ "${DYNAMIC_RELEASE}" = 'true' ]; then
         RED_HAT_VERSION=${VERSION}
         echo "${RED_HAT_VERSION}-amd64"      > version/redhat-tag-amd64

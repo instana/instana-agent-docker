@@ -6,14 +6,20 @@
 
 # see https://concourse-ci.org/tasks.html
 platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: registry.access.redhat.com/ubi8/ubi-minimal
 params:
+  OLD_TAG: ((old_tag))
+  NEW_TAG: ((new_tag))
   TAG_NAME: ((tag_name))
   RED_HAT_REGISTRY_PASSWORD: ((redhat-container-registry-5e9612d87512796c24e4aeef.password))
   RED_HAT_REGISTRY_USERNAME: ((redhat-container-registry-5e9612d87512796c24e4aeef.user))
   RED_HAT_API_TOKEN: ((redhat-container-registry-5e9612d87512796c24e4aeef.api-token))
 inputs:
   - name: image
-  - name: tag
+  - name: preflight
 run:
   path: /entrypoint.sh
   args:
@@ -25,7 +31,6 @@ run:
       # load docker file and read vars
       pushd image
       docker load -i image.tar
-      export OLD_TAG=$(cat tag)
       export OLD_REPOSITORY=$(cat repository)
       popd
 
@@ -37,16 +42,16 @@ run:
 
       echo "---> re-tagging images for Red Hat Container Registry"
 
-      pushd tag
-      export NEW_TAG=$(cat "${TAG_NAME}")
       docker tag "$OLD_REPOSITORY:$OLD_TAG" "$RED_HAT_REGISTRY:$NEW_TAG"
-
 
       echo "---> pushing images to Red Hat Container Registry"
       docker push "$RED_HAT_REGISTRY:$NEW_TAG"
 
+      pushd preflight
+      chmod +x preflight-linux-amd64
+
       echo "---> preflight check"
-      preflight check container "$RED_HAT_REGISTRY:$NEW_TAG" --submit \
+      ./preflight-linux-amd64 check container "$RED_HAT_REGISTRY:$NEW_TAG" --submit \
       --pyxis-api-token=$RED_HAT_API_TOKEN \
       --certification-project-id=5e9612d87512796c24e4aeef \
       --docker-config=$DOCKER_CONFIG_REF

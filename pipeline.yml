@@ -81,6 +81,11 @@ resources:
       secret_access_key: ((codebuild-key.key_secret))
       region_name: us-west-2
       skip_download: true
+  - name: preflight
+    type: github-release
+    source:
+      owner: redhat-openshift-ecosystem
+      repository: openshift-preflight
 #############
 # Codebuild #
   - name: codebuild-dynamic-amd64
@@ -1641,54 +1646,6 @@ jobs:
           commit-sha: ((.:commit-sha))
           version: ((.:agent-version))
           release-tree: 'release'
-      - task: prepare-docker-context
-        config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: registry.access.redhat.com/ubi8/ubi-minimal
-          inputs:
-            - name: instana-agent-docker-git
-            - name: agent-rh-sources
-          outputs:
-            - name: context
-          run:
-            path: bash
-            args:
-            - -ceu
-            - |
-              # install git
-              microdnf install tar gzip unzip git
-
-              # copy Dockerfile
-              cp instana-agent-docker-git/ci/rh-preflight/Dockerfile context
-              cp instana-agent-docker-git/ci/rh-preflight/entrypoint.sh context
-
-              # extract oc
-              mv agent-rh-sources/oc-4.10.6-linux.tar.gz .
-              tar -xvf oc-4.10.6-linux.tar.gz
-              cp oc kubectl context
-
-              echo "latest" > context/tags
-      - task: redhat-preflight-image-build
-        privileged: true
-        output_mapping: {image: redhat-preflight}
-        config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: concourse/oci-build-task
-          inputs:
-            - name: context
-          outputs:
-            - name: image
-          params:
-            CONTEXT: context
-            UNPACK_ROOTFS: true
-          run:
-            path: build
       - in_parallel:
         - get: agent-dynamic-amd64
           passed: [ agent-release-trigger ]
@@ -1710,55 +1667,66 @@ jobs:
           passed: [ agent-release-trigger ]
           params:
             format: oci
-
+        - get: preflight
+          params:
+            globs:
+              - preflight-linux-amd64
       # Docker manifest is currently usupported by Red Hat container registry
       # latest tag is not allowed during image certification
       - in_parallel:
+        - load_var: redhat-tag-amd64
+          file: version/redhat-tag-amd64
+        - load_var: redhat-tag-arm64
+          file: version/redhat-tag-arm64
+        - load_var: redhat-tag-s390x
+          file: version/redhat-tag-s390x
+        - load_var: redhat-tag-ppc64le
+          file: version/redhat-tag-ppc64le
+        - load_var: redhat-tag-amd64-j9
+          file: version/redhat-tag-amd64-j9
+       - in_parallel:
         - task: agent-dynamic-release-redhat-amd64
-          image: redhat-preflight
-          privileged: true
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-amd64
-            tag: version
+            preflight: preflight
           vars:
-            tag_name: redhat-tag-amd64
+            tag_name: ((redhat-tag-amd64))
+        - task: agent-dynamic-release-redhat-amd64
+          file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          input_mapping:
+            image: agent-dynamic-amd64
+            preflight: preflight
+          vars:
+            tag_name: latest
         - task: agent-dynamic-release-redhat-arm64
-          image: redhat-preflight
-          privileged: true
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-arm64
-            tag: version
+            preflight: preflight
           vars:
-            tag_name: redhat-tag-arm64
+            tag_name: ((redhat-tag-arm64))
         - task: agent-dynamic-release-redhat-s390x
-          image: redhat-preflight
-          privileged: true
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-s390x
-            tag: version
+            preflight: preflight
           vars:
-            tag_name: redhat-tag-s390x
+            tag_name: ((redhat-tag-s390x))
         - task: agent-dynamic-release-redhat-ppc64le
-          image: redhat-preflight
-          privileged: true
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-ppc64le
-            tag: version
+            preflight: preflight
           vars:
-            tag_name: redhat-tag-ppc64le
+            tag_name: ((redhat-tag-ppc64le))
         - task: agent-dynamic-release-redhat-amd64-j9
-          image: redhat-preflight
-          privileged: true
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-amd64-j9
-            tag: version
+            preflight: preflight
           vars:
-            tag_name: redhat-tag-amd64-j9
+            tag_name: ((redhat-tag-amd64-j9))
 
       - put: slack-alert
         params:
