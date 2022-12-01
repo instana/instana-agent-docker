@@ -1691,42 +1691,42 @@ jobs:
             image: agent-dynamic-amd64
             preflight: preflight
           vars:
-            tag_name: ((redhat-tag-amd64))
+            new_tag: ((redhat-tag-amd64))
         - task: agent-dynamic-release-redhat-amd64
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-amd64
             preflight: preflight
           vars:
-            tag_name: latest
+            new_tag: latest
         - task: agent-dynamic-release-redhat-arm64
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-arm64
             preflight: preflight
           vars:
-            tag_name: ((redhat-tag-arm64))
+            new_tag: ((redhat-tag-arm64))
         - task: agent-dynamic-release-redhat-s390x
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-s390x
             preflight: preflight
           vars:
-            tag_name: ((redhat-tag-s390x))
+            new_tag: ((redhat-tag-s390x))
         - task: agent-dynamic-release-redhat-ppc64le
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-ppc64le
             preflight: preflight
           vars:
-            tag_name: ((redhat-tag-ppc64le))
+            new_tag: ((redhat-tag-ppc64le))
         - task: agent-dynamic-release-redhat-amd64-j9
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-amd64-j9
             preflight: preflight
           vars:
-            tag_name: ((redhat-tag-amd64-j9))
+            new_tag: ((redhat-tag-amd64-j9))
 
       - put: slack-alert
         params:

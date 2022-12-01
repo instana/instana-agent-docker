@@ -11,9 +11,7 @@ image_resource:
   source:
     repository: registry.access.redhat.com/ubi8/ubi-minimal
 params:
-  OLD_TAG: ((old_tag))
   NEW_TAG: ((new_tag))
-  TAG_NAME: ((tag_name))
   RED_HAT_REGISTRY_PASSWORD: ((redhat-container-registry-5e9612d87512796c24e4aeef.password))
   RED_HAT_REGISTRY_USERNAME: ((redhat-container-registry-5e9612d87512796c24e4aeef.user))
   RED_HAT_API_TOKEN: ((redhat-container-registry-5e9612d87512796c24e4aeef.api-token))
@@ -31,6 +29,7 @@ run:
       # load docker file and read vars
       pushd image
       docker load -i image.tar
+      export OLD_TAG=$(cat tag)
       export OLD_REPOSITORY=$(cat repository)
       popd
 
