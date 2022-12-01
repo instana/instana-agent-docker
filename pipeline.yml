@@ -1683,7 +1683,7 @@ jobs:
           file: version/redhat-tag-ppc64le
         - load_var: redhat-tag-amd64-j9
           file: version/redhat-tag-amd64-j9
-       - in_parallel:
+      - in_parallel:
         - task: agent-dynamic-release-redhat-amd64
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
