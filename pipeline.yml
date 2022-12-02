@@ -1605,6 +1605,8 @@ jobs:
               os: linux
               digest_file: agent-dynamic-ppc64le/digest
 
+      
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
@@ -1681,46 +1683,49 @@ jobs:
       - in_parallel:
         - task: agent-dynamic-release-redhat-amd64
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          privileged: true
           input_mapping:
             image: agent-dynamic-amd64
             preflight: preflight
           vars:
             new_tag: ((.:redhat-tag-amd64))
-        - task: agent-dynamic-release-redhat-amd64
-          file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
-          input_mapping:
-            image: agent-dynamic-amd64
-            preflight: preflight
-          vars:
-            new_tag: latest
+            latest: true
         - task: agent-dynamic-release-redhat-arm64
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          privileged: true
           input_mapping:
             image: agent-dynamic-arm64
             preflight: preflight
           vars:
             new_tag: ((.:redhat-tag-arm64))
+            latest: true
         - task: agent-dynamic-release-redhat-s390x
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          privileged: true
           input_mapping:
             image: agent-dynamic-s390x
             preflight: preflight
           vars:
             new_tag: ((.:redhat-tag-s390x))
+            latest: true
         - task: agent-dynamic-release-redhat-ppc64le
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          privileged: true
           input_mapping:
             image: agent-dynamic-ppc64le
             preflight: preflight
           vars:
             new_tag: ((.:redhat-tag-ppc64le))
+            latest: true
         - task: agent-dynamic-release-redhat-amd64-j9
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
+          privileged: true
           input_mapping:
             image: agent-dynamic-amd64-j9
             preflight: preflight
           vars:
             new_tag: ((.:redhat-tag-amd64-j9))
+            latest: false
 
       - put: slack-alert
         params:
