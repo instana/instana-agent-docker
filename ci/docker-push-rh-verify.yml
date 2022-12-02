@@ -9,7 +9,7 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: registry.access.redhat.com/ubi8/ubi-minimal
+    repository: registry.access.redhat.com/ubi8/ubi
 params:
   NEW_TAG: ((new_tag))
   RED_HAT_REGISTRY_PASSWORD: ((redhat-container-registry-5e9612d87512796c24e4aeef.password))
@@ -21,8 +21,7 @@ inputs:
 run:
   path: /bin/bash
   args:
-  - bash
-  - -ceu
+  - -exc
   - |
       set -e
 
