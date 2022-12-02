@@ -1666,14 +1666,19 @@ jobs:
       - in_parallel:
         - load_var: redhat-tag-amd64
           file: version/redhat-tag-amd64
+          reveal: true
         - load_var: redhat-tag-arm64
           file: version/redhat-tag-arm64
+          reveal: true
         - load_var: redhat-tag-s390x
           file: version/redhat-tag-s390x
+          reveal: true
         - load_var: redhat-tag-ppc64le
           file: version/redhat-tag-ppc64le
+          reveal: true
         - load_var: redhat-tag-amd64-j9
           file: version/redhat-tag-amd64-j9
+          reveal: true
       - in_parallel:
         - task: agent-dynamic-release-redhat-amd64
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
@@ -1681,7 +1686,7 @@ jobs:
             image: agent-dynamic-amd64
             preflight: preflight
           vars:
-            new_tag: ((redhat-tag-amd64))
+            new_tag: ((.:redhat-tag-amd64))
         - task: agent-dynamic-release-redhat-amd64
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
@@ -1695,28 +1700,28 @@ jobs:
             image: agent-dynamic-arm64
             preflight: preflight
           vars:
-            new_tag: ((redhat-tag-arm64))
+            new_tag: ((.:redhat-tag-arm64))
         - task: agent-dynamic-release-redhat-s390x
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-s390x
             preflight: preflight
           vars:
-            new_tag: ((redhat-tag-s390x))
+            new_tag: ((.:redhat-tag-s390x))
         - task: agent-dynamic-release-redhat-ppc64le
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-ppc64le
             preflight: preflight
           vars:
-            new_tag: ((redhat-tag-ppc64le))
+            new_tag: ((.:redhat-tag-ppc64le))
         - task: agent-dynamic-release-redhat-amd64-j9
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           input_mapping:
             image: agent-dynamic-amd64-j9
             preflight: preflight
           vars:
-            new_tag: ((redhat-tag-amd64-j9))
+            new_tag: ((.:redhat-tag-amd64-j9))
 
       - put: slack-alert
         params:

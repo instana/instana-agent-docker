@@ -19,7 +19,7 @@ inputs:
   - name: image
   - name: preflight
 run:
-  path: /entrypoint.sh
+  path: /bin/bash
   args:
   - bash
   - -ceu
