@@ -41,6 +41,7 @@ resource_types:
     type: registry-image
     source:
       repository: frodenas/gcs-resource
+      tag: latest
 
 #############
 # Resources #
@@ -82,10 +83,11 @@ resources:
       region_name: us-west-2
       skip_download: true
   - name: preflight
-    type: github-release
+    type: google-cloud-storage
     source:
-      owner: redhat-openshift-ecosystem
-      repository: openshift-preflight
+      bucket: redhat-preflight
+      json_key: ((gcloud-agent-ci-account-key))
+      versioned_file: preflight-linux-amd64
 #############
 # Codebuild #
   - name: codebuild-dynamic-amd64
@@ -1659,9 +1661,6 @@ jobs:
           params:
             format: oci
         - get: preflight
-          params:
-            globs:
-              - preflight-linux-amd64
       # Docker manifest is currently usupported by Red Hat container registry
       - in_parallel:
         - load_var: redhat-tag-amd64
