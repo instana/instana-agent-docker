@@ -9,19 +9,24 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: registry.access.redhat.com/ubi8/ubi
+    repository: gcr.io/k8s-brewery/instana/concourse-dind
+    tag: ubi8-min
+    username: _json_key
+    password: ((gcloud-agent-ci-account-key))
 params:
   NEW_TAG: ((new_tag))
   RED_HAT_REGISTRY_PASSWORD: ((redhat-container-registry-5e9612d87512796c24e4aeef.password))
   RED_HAT_REGISTRY_USERNAME: ((redhat-container-registry-5e9612d87512796c24e4aeef.user))
   RED_HAT_API_TOKEN: ((redhat-container-registry-5e9612d87512796c24e4aeef.api-token))
+  LATEST: ((latest))
 inputs:
   - name: image
   - name: preflight
 run:
-  path: /bin/bash
+  path: entrypoint.sh
   args:
-  - -exc
+  - bash
+  - -ceu
   - |
       set -e
 
@@ -41,6 +46,7 @@ run:
       echo "---> re-tagging images for Red Hat Container Registry"
 
       docker tag "$OLD_REPOSITORY:$OLD_TAG" "$RED_HAT_REGISTRY:$NEW_TAG"
+      docker tag "$OLD_REPOSITORY:$OLD_TAG" "$RED_HAT_REGISTRY:$OLD_TAG"
 
       echo "---> pushing images to Red Hat Container Registry"
       docker push "$RED_HAT_REGISTRY:$NEW_TAG"
@@ -49,7 +55,13 @@ run:
       chmod +x preflight-linux-amd64
 
       echo "---> preflight check"
-      ./preflight-linux-amd64 check container "$RED_HAT_REGISTRY:$NEW_TAG" --submit \
-      --pyxis-api-token=$RED_HAT_API_TOKEN \
-      --certification-project-id=5e9612d87512796c24e4aeef \
-      --docker-config=$DOCKER_CONFIG_REF
+      rm -rf artifacts/ &&./preflight-linux-amd64 check container "$RED_HAT_REGISTRY:$NEW_TAG" --submit \
+        --pyxis-api-token=$RED_HAT_API_TOKEN \
+        --certification-project-id=5e9612d87512796c24e4aeef \
+        --docker-config=$DOCKER_CONFIG_REF
+
+      docker push "$RED_HAT_REGISTRY:$OLD_TAG"
+      if [ "${LATEST}" = 'true' ]; then
+        docker tag "$OLD_REPOSITORY:$OLD_TAG" "$RED_HAT_REGISTRY:latest"
+        docker push "$RED_HAT_REGISTRY:latest"
+      fi
