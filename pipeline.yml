@@ -1698,7 +1698,7 @@ jobs:
             preflight: preflight
           vars:
             new_tag: ((.:redhat-tag-arm64))
-            latest: true
+            latest: false
         - task: agent-dynamic-release-redhat-s390x
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           privileged: true
@@ -1707,7 +1707,7 @@ jobs:
             preflight: preflight
           vars:
             new_tag: ((.:redhat-tag-s390x))
-            latest: true
+            latest: false
         - task: agent-dynamic-release-redhat-ppc64le
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           privileged: true
@@ -1716,7 +1716,7 @@ jobs:
             preflight: preflight
           vars:
             new_tag: ((.:redhat-tag-ppc64le))
-            latest: true
+            latest: false
         - task: agent-dynamic-release-redhat-amd64-j9
           file: instana-agent-docker-git/ci/docker-push-rh-verify.yml
           privileged: true
