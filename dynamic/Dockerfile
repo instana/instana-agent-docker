@@ -9,8 +9,8 @@ FROM --platform=linux/amd64 registry.access.redhat.com/ubi8/ubi-minimal:latest A
 
 ENV LANG=C.UTF-8
 
-RUN export GO_VERSION="1.18.6" && \
-	export GO_SHAR256="bb05f179a773fed60c6a454a24141aaa7e71edfd0f2d465ad610a3b8f1dc7fe8 go${GO_VERSION}.linux-amd64.tar.gz" && \
+RUN export GO_VERSION="1.19.4" && \
+    export GO_SHAR256="c9c08f783325c4cf840a94333159cc937f05f75d36a8b307951d5bd959cf2ab8 go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
 	export GOMPLATE_VERSION="3.11.3" && \
 	export GOMPLATE_SHA256="4f26895921e52e0515b273659508802676aafa4765cc3751c383b27eb0e9dca1  v${GOMPLATE_VERSION}.tar.gz" && \
