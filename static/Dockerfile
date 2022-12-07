@@ -95,15 +95,16 @@ RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' || "${TARGETPLATFORM}" = 'linux/ppc64
 # containerd cli is only available for amd64
 RUN export CONTAINERD_BASE_URL="https://github.com/containerd/containerd/releases" \
     && [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
-	   export CONTAINERD_VERSION=$(curl -w '\n' -L -s -H 'Accept: application/json' "${CONTAINERD_BASE_URL}/latest" | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
-	   && export CONTAINERD_BINARY="containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz" \
-	   && cd /tmp \
-	   && curl -L --fail --show-error --silent "${CONTAINERD_BASE_URL}/download/v${CONTAINERD_VERSION}/${CONTAINERD_BINARY}" --output "${CONTAINERD_BINARY}" \
-	   && echo $(curl -L --fail --show-error --silent "${CONTAINERD_BASE_URL}/download/v${CONTAINERD_VERSION}/${CONTAINERD_BINARY}.sha256sum" | awk '{print $1}') "${CONTAINERD_BINARY}" | sha256sum --check \
-	   && gunzip "${CONTAINERD_BINARY}" \
-	   && tar xf "${CONTAINERD_BINARY//.gz/}" \
-	   && mv bin/* /usr/local/bin \
-	   && rm -rf /tmp/* \
+       export CONTAINERD_VERSION=$(curl -w '\n' -L -s -H 'Accept: application/json' "${CONTAINERD_BASE_URL}/latest" | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
+       && export CONTAINERD_BINARY="containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz" \
+       && echo "Containerd version: ${CONTAINERD_VERSION}" \
+       && cd /tmp \
+       && curl -L --fail --show-error --silent "${CONTAINERD_BASE_URL}/download/v${CONTAINERD_VERSION}/${CONTAINERD_BINARY}" --output "${CONTAINERD_BINARY}" \
+       && echo $(curl -L --fail --show-error --silent "${CONTAINERD_BASE_URL}/download/v${CONTAINERD_VERSION}/${CONTAINERD_BINARY}.sha256sum" | awk '{print $1}') "${CONTAINERD_BINARY}" | sha256sum --check \
+       && gunzip "${CONTAINERD_BINARY}" \
+       && tar xf "${CONTAINERD_BINARY//.gz/}" \
+       && mv bin/* /usr/local/bin \
+       && rm -rf /tmp/* \
 )
 
 # On s390x install docker ce and containerd from docker static s390x build
@@ -135,6 +136,7 @@ RUN [[ "${TARGETPLATFORM}" != 'linux/ppc64le' ]] || ( \
 RUN export ARCH=${TARGETPLATFORM//\//-} \
     && export CRICTL_VERSION=v$(curl -w '\n' -L -s -H 'Accept: application/json' https://github.com/kubernetes-sigs/cri-tools/releases/latest | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
     && export CRICTL_BINARY="crictl-${CRICTL_VERSION}-${ARCH}.tar.gz" \
+    && echo "Crictl version: ${CRICTL_VERSION}" \
     && cd /tmp \
     && curl -L --fail --show-error --silent https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/${CRICTL_BINARY} --output crictl.tar.gz \
     && echo $(curl -L --fail --show-error --silent https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/${CRICTL_BINARY}.sha256 | awk '{print $1}') crictl.tar.gz | sha256sum --check \
@@ -189,7 +191,9 @@ RUN export IPTABLES_PPC64LE_SHA256="1eb70870bd717d010127a0d6a6bd61d1e621120b770d
 
 # Install latest runc from official github release:
 RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'linux/arm64') echo 'arm64' ;; 'linux/s390x') echo 's390x' ;; 'linux/ppc64le') echo 'ppc64le' ;; esac) \
-    && export RUNC_VERSION="1.1.2" \
+    && export RUNC_VERSION_BASE_URL="https://github.com/opencontainers/runc/releases" \
+    && export RUNC_VERSION=$(curl -w '\n' -L -s -H 'Accept: application/json' "${RUNC_VERSION_BASE_URL}/latest" | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
+    && echo "Runc version: ${RUNC_VERSION}" \
     && cd /tmp \
     && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.${ARCH} -o runc.${ARCH} \
     && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.sha256sum | grep runc.${ARCH} | sha256sum --check \
@@ -201,6 +205,7 @@ RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'li
 # script and cannot 'exec' to replace it. That would kill the container on restarts of the Agent.
 RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'linux/arm64') echo 'arm64' ;; 'linux/s390x') echo 's390x' ;; 'linux/ppc64le') echo 'ppc64le' ;; esac) \
     && export TINI_VERSION=$(curl -L -s -H 'Accept: application/json' https://github.com/krallin/tini/releases/latest | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
+    && echo "Tini version: ${TINI_VERSION}" \
     && cd /tmp \
     && curl -L --fail --show-error --silent https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-${ARCH} -o tini-${ARCH} \
     && echo $(curl -L --fail --show-error --silent https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-${ARCH}.sha256sum) | sha256sum --check \
