@@ -11,15 +11,15 @@ ENV LANG=C.UTF-8
 
 RUN export GO_VERSION="1.19.4" && \
     export GO_SHAR256="c9c08f783325c4cf840a94333159cc937f05f75d36a8b307951d5bd959cf2ab8 go${GO_VERSION}.linux-amd64.tar.gz" && \
-	export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
-	export GOMPLATE_VERSION="3.11.3" && \
-	export GOMPLATE_SHA256="4f26895921e52e0515b273659508802676aafa4765cc3751c383b27eb0e9dca1  v${GOMPLATE_VERSION}.tar.gz" && \
+    export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
+    export GOMPLATE_VERSION="3.11.3" && \
+    export GOMPLATE_SHA256="4f26895921e52e0515b273659508802676aafa4765cc3751c383b27eb0e9dca1  v${GOMPLATE_VERSION}.tar.gz" && \
     microdnf install tar gzip wget make findutils && \
     cd /tmp && \
     wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" && \
     echo "${GO_SHAR256}" | sha256sum --check && \
-	gunzip "${GO_BINARY}" && \
-	tar xf "${GO_BINARY//.gz/}" && \
+    gunzip "${GO_BINARY}" && \
+    tar xf "${GO_BINARY//.gz/}" && \
     mv go /usr/local/bin && \
     rm -rf /tmp/* && \
     mkdir -p /root/go/src/github.com/hairyhenderson && \
@@ -29,8 +29,8 @@ RUN export GO_VERSION="1.19.4" && \
     tar xzf v${GOMPLATE_VERSION}.tar.gz && \
     mv gomplate-${GOMPLATE_VERSION} gomplate && \
     cd gomplate/ && \
-	/usr/local/bin/go/bin/go get -u golang.org/x/crypto && \
-	/usr/local/bin/go/bin/go get -u github.com/aws/aws-sdk-go && \
+    /usr/local/bin/go/bin/go get -u golang.org/x/crypto && \
+    /usr/local/bin/go/bin/go get -u github.com/aws/aws-sdk-go && \
     GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_amd64 ./cmd/gomplate && \
     GOOS=linux GOARCH=arm64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_arm64 ./cmd/gomplate && \
     GOOS=linux GOARCH=s390x CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_s390x ./cmd/gomplate && \
