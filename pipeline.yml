@@ -309,8 +309,8 @@ resources:
 # We don't need to differentiate different arch tags on those resources since
 # this is push-only. We don't run other jobs/tasks depending on those images.
 
-# Dynamic pre-release images will be pushed to containers.instana.io & icr.io.
-# Static pre-release images will only be pushed to containers.instana.io due to the lack
+# Dynamic pre-release images will be pushed to containers.instana.io, icr.io and delivery-instana.
+# Static pre-release images will only be pushed to containers.instana.io and delivery-instana due to the lack
 # of authorisation on icr.io.
 
 # pre-release dynamic images & manifest:
@@ -364,6 +364,64 @@ resources:
     type: docker-manifest
     icon: docker
     source: *containers-instana-io-release-static
+
+#################
+# delivery-instana images
+
+# We don't need to differentiate different arch tags on those resources since
+# this is push-only. We don't run other jobs/tasks depending on those images.
+
+# pre-release dynamic images & manifest:
+  - name: agent-dynamic-prerelease-delivery-instana
+    type: registry-image
+    icon: docker
+    source: &delivery-instana-io-prerelease
+      repository: ((delivery-artifactory-docker-agent-prerelease-url))/agent/dynamic
+      username: ((delivery-instana-io-release-project-artifact-read-writer-creds.username))
+      password: ((delivery-instana-io-release-project-artifact-read-writer-creds.password))
+  - name: manifest-dynamic-prerelease-delivery-instana
+    type: docker-manifest
+    icon: docker
+    source: *delivery-instana-io-prerelease
+
+# pre-release static images & manifest:
+  - name: agent-static-prerelease-delivery-instana
+    type: registry-image
+    icon: docker
+    source: &delivery-instana-io-prerelease-static
+      repository: ((delivery-artifactory-docker-agent-prerelease-url))/agent/static
+      username: ((delivery-instana-io-release-project-artifact-read-writer-creds.username))
+      password: ((delivery-instana-io-release-project-artifact-read-writer-creds.password))
+  - name: manifest-static-prerelease-delivery-instana
+    type: docker-manifest
+    icon: docker
+    source: *delivery-instana-io-prerelease-static
+
+# release dynamic images & manifest:
+  - name: agent-dynamic-release-delivery-instana
+    type: registry-image
+    icon: docker
+    source: &delivery-instana-io-release
+      repository: ((delivery-artifactory-docker-agent-release-url))/agent/dynamic
+      username: ((delivery-instana-io-release-project-artifact-read-writer-creds.username))
+      password: ((delivery-instana-io-release-project-artifact-read-writer-creds.password))
+  - name: manifest-dynamic-release-delivery-instana
+    type: docker-manifest
+    icon: docker
+    source: *delivery-instana-io-release
+
+# release static images & manifest:
+  - name: agent-static-release-delivery-instana
+    type: registry-image
+    icon: docker
+    source: &delivery-instana-io-release-static
+      repository: ((delivery-artifactory-docker-agent-release-url))/agent/static
+      username: ((delivery-instana-io-release-project-artifact-read-writer-creds.username))
+      password: ((delivery-instana-io-release-project-artifact-read-writer-creds.password))
+  - name: manifest-static-release-delivery-instana
+    type: docker-manifest
+    icon: docker
+    source: *delivery-instana-io-release-static
 
 #################
 # gcr.io/instana-public images, release dynamic images & manifest:
@@ -1045,6 +1103,7 @@ jobs:
 # Pre-release                     #
 # Build & publish image manifests #
 # containers.instana.io           #
+# delivery-instana                #
   - name: prerelease-multiarch-dynamic
     max_in_flight: 1
     plan:
@@ -1128,6 +1187,42 @@ jobs:
             - arch: ppc64le
               os: linux
               digest_file: agent-dynamic-ppc64le/digest
+
+      - in_parallel:
+        - put: agent-dynamic-prerelease-delivery-instana
+          params:
+            image: agent-dynamic-amd64/image.tar
+            additional_tags: agent-dynamic-amd64/tag
+        - put: agent-dynamic-prerelease-delivery-instana
+          params:
+            image: agent-dynamic-arm64/image.tar
+            additional_tags: agent-dynamic-arm64/tag
+        - put: agent-dynamic-prerelease-delivery-instana
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-prerelease-delivery-instana
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-prerelease-delivery-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
@@ -1201,6 +1296,41 @@ jobs:
             additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-prerelease-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      - in_parallel:
+        - put: agent-dynamic-prerelease-delivery-instana
+          params:
+            image: agent-dynamic-amd64-j9/image.tar
+            additional_tags: agent-dynamic-amd64-j9/tag
+        - put: agent-dynamic-prerelease-delivery-instana
+          params:
+            image: agent-dynamic-arm64-j9/image.tar
+            additional_tags: agent-dynamic-arm64-j9/tag
+        - put: agent-dynamic-prerelease-delivery-instana
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-prerelease-delivery-instana
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-prerelease-delivery-instana
         params:
           tag_file: version/manifest-tags
           manifests:
@@ -1306,6 +1436,41 @@ jobs:
               os: linux
               digest_file: agent-static-ppc64le/digest
 
+      - in_parallel:
+        - put: agent-static-prerelease-delivery-instana
+          params:
+            image: agent-static-amd64/image.tar
+            additional_tags: agent-static-amd64/tag
+        - put: agent-static-prerelease-delivery-instana
+          params:
+            image: agent-static-arm64/image.tar
+            additional_tags: agent-static-arm64/tag
+        - put: agent-static-prerelease-delivery-instana
+          params:
+            image: agent-static-s390x/image.tar
+            additional_tags: agent-static-s390x/tag
+        - put: agent-static-prerelease-delivery-instana
+          params:
+            image: agent-static-ppc64le/image.tar
+            additional_tags: agent-static-ppc64le/tag
+
+      - put: manifest-static-prerelease-delivery-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-static-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-static-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-static-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-static-ppc64le/digest
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
@@ -1395,14 +1560,52 @@ jobs:
               os: linux
               digest_file: agent-static-ppc64le/digest
 
+      - in_parallel:
+        - put: agent-static-prerelease-delivery-instana
+          params:
+            image: agent-static-amd64-j9/image.tar
+            additional_tags: agent-static-amd64-j9/tag
+        - put: agent-static-prerelease-delivery-instana
+          params:
+            image: agent-static-arm64-j9/image.tar
+            additional_tags: agent-static-arm64-j9/tag
+        - put: agent-static-prerelease-delivery-instana
+          params:
+            image: agent-static-s390x/image.tar
+            additional_tags: agent-static-s390x/tag
+        - put: agent-static-prerelease-delivery-instana
+          params:
+            image: agent-static-ppc64le/image.tar
+            additional_tags: agent-static-ppc64le/tag
+
+      - put: manifest-static-prerelease-delivery-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-static-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-static-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-static-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-static-ppc64le/digest
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
           text_file: message/text
-########################################################################
-# Release                                                              #
-# Build & publish image manifests                                      #
-# containers.instana.io + icr.io + scan.connect.redhat.com             #
+####################################
+# Release                          #
+# Build & publish image manifests  #
+# containers.instana.io            #
+# delivery-instana                 #
+# icr.io                           #
+# scan.connect.redhat.com          #
   - name: agent-release-trigger
     plan:
       - get: instana-agent-docker-git
@@ -1519,6 +1722,41 @@ jobs:
             additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-release-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-dynamic-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-dynamic-ppc64le/digest
+
+      - in_parallel:
+        - put: agent-dynamic-release-delivery-instana
+          params:
+            image: agent-dynamic-amd64/image.tar
+            additional_tags: agent-dynamic-amd64/tag
+        - put: agent-dynamic-release-delivery-instana
+          params:
+            image: agent-dynamic-arm64/image.tar
+            additional_tags: agent-dynamic-arm64/tag
+        - put: agent-dynamic-release-delivery-instana
+          params:
+            image: agent-dynamic-s390x/image.tar
+            additional_tags: agent-dynamic-s390x/tag
+        - put: agent-dynamic-release-delivery-instana
+          params:
+            image: agent-dynamic-ppc64le/image.tar
+            additional_tags: agent-dynamic-ppc64le/tag
+
+      - put: manifest-dynamic-release-delivery-instana
         params:
           tag_file: version/manifest-tags
           manifests:
@@ -1795,6 +2033,27 @@ jobs:
               digest_file: agent-dynamic-arm64-j9/digest
 
       - in_parallel:
+        - put: agent-dynamic-release-delivery-instana
+          params:
+            image: agent-dynamic-amd64-j9/image.tar
+            additional_tags: agent-dynamic-amd64-j9/tag
+        - put: agent-dynamic-release-delivery-instana
+          params:
+            image: agent-dynamic-arm64-j9/image.tar
+            additional_tags: agent-dynamic-arm64-j9/tag
+
+      - put: manifest-dynamic-release-delivery-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-dynamic-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-dynamic-arm64-j9/digest
+
+      - in_parallel:
           - put: agent-dynamic-release-gcr-instana-public
             params:
               image: agent-dynamic-amd64-j9/image.tar
@@ -1925,6 +2184,41 @@ jobs:
               os: linux
               digest_file: agent-static-ppc64le/digest
 
+      - in_parallel:
+        - put: agent-static-release-delivery-instana
+          params:
+            image: agent-static-amd64/image.tar
+            additional_tags: agent-static-amd64/tag
+        - put: agent-static-release-delivery-instana
+          params:
+            image: agent-static-arm64/image.tar
+            additional_tags: agent-static-arm64/tag
+        - put: agent-static-release-delivery-instana
+          params:
+            image: agent-static-s390x/image.tar
+            additional_tags: agent-static-s390x/tag
+        - put: agent-static-release-delivery-instana
+          params:
+            image: agent-static-ppc64le/image.tar
+            additional_tags: agent-static-ppc64le/tag
+
+      - put: manifest-static-release-delivery-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-static-amd64/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-static-arm64/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-static-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-static-ppc64le/digest
+
       - put: slack-alert
         params:
           channel: '#tech-agent-delivery'
@@ -1998,6 +2292,41 @@ jobs:
             additional_tags: agent-static-ppc64le/tag
 
       - put: manifest-static-release-instana
+        params:
+          tag_file: version/manifest-tags
+          manifests:
+            - arch: amd64
+              os: linux
+              digest_file: agent-static-amd64-j9/digest
+            - arch: arm64
+              os: linux
+              digest_file: agent-static-arm64-j9/digest
+            - arch: s390x
+              os: linux
+              digest_file: agent-static-s390x/digest
+            - arch: ppc64le
+              os: linux
+              digest_file: agent-static-ppc64le/digest
+
+      - in_parallel:
+        - put: agent-static-release-delivery-instana
+          params:
+            image: agent-static-amd64-j9/image.tar
+            additional_tags: agent-static-amd64-j9/tag
+        - put: agent-static-release-delivery-instana
+          params:
+            image: agent-static-arm64-j9/image.tar
+            additional_tags: agent-static-arm64-j9/tag
+        - put: agent-static-release-delivery-instana
+          params:
+            image: agent-static-s390x/image.tar
+            additional_tags: agent-static-s390x/tag
+        - put: agent-static-release-delivery-instana
+          params:
+            image: agent-static-ppc64le/image.tar
+            additional_tags: agent-static-ppc64le/tag
+
+      - put: manifest-static-release-delivery-instana
         params:
           tag_file: version/manifest-tags
           manifests:
