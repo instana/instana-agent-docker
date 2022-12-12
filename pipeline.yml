@@ -377,8 +377,8 @@ resources:
     icon: docker
     source: &delivery-instana-io-prerelease
       repository: ((delivery-artifactory-docker-agent-prerelease-url))/agent/dynamic
-      username: ((delivery-instana-io-release-project-artifact-read-writer-creds.username))
-      password: ((delivery-instana-io-release-project-artifact-read-writer-creds.password))
+      username: ((delivery-instana-io-internal-project-artifact-read-writer-creds.username))
+      password: ((delivery-instana-io-internal-project-artifact-read-writer-creds.password))
   - name: manifest-dynamic-prerelease-delivery-instana
     type: docker-manifest
     icon: docker
@@ -390,8 +390,8 @@ resources:
     icon: docker
     source: &delivery-instana-io-prerelease-static
       repository: ((delivery-artifactory-docker-agent-prerelease-url))/agent/static
-      username: ((delivery-instana-io-release-project-artifact-read-writer-creds.username))
-      password: ((delivery-instana-io-release-project-artifact-read-writer-creds.password))
+      username: ((delivery-instana-io-internal-project-artifact-read-writer-creds.username))
+      password: ((delivery-instana-io-internal-project-artifact-read-writer-creds.password))
   - name: manifest-static-prerelease-delivery-instana
     type: docker-manifest
     icon: docker
