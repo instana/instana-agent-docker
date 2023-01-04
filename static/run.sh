@@ -89,11 +89,9 @@ if [ ! -S "${CANONICAL_DOCKER_SOCKET_PATH}" ]; then
 fi
 
 rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
-  /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg  \
   /opt/instana/agent/etc/instana/configuration.yaml \
   /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 
-cp /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg.template /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg
 touch /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 
 ln -s /root/configuration.yaml /opt/instana/agent/etc/instana/configuration.yaml
