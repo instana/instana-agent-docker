@@ -441,19 +441,15 @@ jobs:
             - put: agent-dynamic-amd64
               params:
                   image: image-dynamic-amd64/image.tar
-                  additional_tags: image-dynamic-amd64/tag
             - put: agent-static-amd64
               params:
                   image: image-static-amd64/image.tar
-                  additional_tags: image-static-amd64/tag
             - put: agent-dynamic-amd64-j9
               params:
                   image: image-dynamic-amd64-j9/image.tar
-                  additional_tags: image-dynamic-amd64-j9/tag
             - put: agent-static-amd64-j9
               params:
                   image: image-static-amd64-j9/image.tar
-                  additional_tags: image-static-amd64-j9/tag
 
   - name: arm64-build
     max_in_flight: 1
@@ -534,19 +530,15 @@ jobs:
             - put: agent-dynamic-arm64
               params:
                   image: image-dynamic-arm64/image.tar
-                  additional_tags: image-dynamic-arm64/tag
             - put: agent-static-arm64
               params:
                   image: image-static-arm64/image.tar
-                  additional_tags: image-static-arm64/tag
             - put: agent-dynamic-arm64-j9
               params:
                   image: image-dynamic-arm64-j9/image.tar
-                  additional_tags: image-dynamic-arm64-j9/tag
             - put: agent-static-arm64-j9
               params:
                   image: image-static-arm64-j9/image.tar
-                  additional_tags: image-static-arm64-j9/tag
 
   - name: s390x-build
     max_in_flight: 1
@@ -599,18 +591,15 @@ jobs:
             - put: agent-dynamic-s390x
               params:
                   image: image-dynamic-s390x/image.tar
-                  additional_tags: image-dynamic-s390x/tag
             - put: agent-static-s390x
               params:
                   image: image-static-s390x/image.tar
-                  additional_tags: image-static-s390x/tag
 
   - name: ppc64le-build
     max_in_flight: 1
     public: true
     plan:
       - get: instana-agent-docker-git
-        passed: [ self-update ]
       - get: agent-version
         trigger: true
       - load_var: agent-version
@@ -656,11 +645,9 @@ jobs:
             - put: agent-dynamic-ppc64le
               params:
                   image: image-dynamic-ppc64le/image.tar
-                  additional_tags: image-dynamic-ppc64le/tag
             - put: agent-static-ppc64le
               params:
                   image: image-static-ppc64le/image.tar
-                  additional_tags: image-static-ppc64le/tag
 
   - name: twistlock-security-scan
     max_in_flight: 1
