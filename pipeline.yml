@@ -600,6 +600,7 @@ jobs:
     public: true
     plan:
       - get: instana-agent-docker-git
+        passed: [ self-update ]
       - get: agent-version
         trigger: true
       - load_var: agent-version
