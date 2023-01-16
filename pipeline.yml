@@ -413,7 +413,7 @@ jobs:
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
-                image: image-dynamic-amd64-j9
+                image: image-static-amd64-j9
               vars:
                 flavor: static
                 target-platform: linux/amd64
@@ -502,7 +502,7 @@ jobs:
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
-                image: image-dynamic-arm64-j9
+                image: image-static-arm64-j9
               vars:
                 flavor: static
                 target-platform: linux/arm64
