@@ -1,0 +1,34 @@
+# task that builds docker images with an option to specify a target platform.
+
+# To test this task outside a pipeline, run the following command while at the root of this repo:
+  #  fly -t dev execute -c ci/build-any-arch-docker-image-task.yml -p -i source=. --var target-platform=linux/s390x --var docker-context=dynamic --var agent-download-key=YOUR_AGENT_DOWNLOAD_KEY -o image=image
+
+# After that command runs, you should have an `image/image.tar` oci image that you can test with:
+  # docker load -i image/image.tar
+  # docker tag LOADED_IMAGE_ID instana-agent-docker-s390x:local
+  # docker run --rm -it --entrypoint sh instana-agent-docker-s390x:local # this won't run if you are not on an s390x machine.
+
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: containers.instana.io/infra/concourse-oci-build-task
+    tag: 0.9
+    username: ((containers-instana-io-creds.username))
+    password: ((containers-instana-io-creds.password))
+inputs:
+  - name: source
+outputs:
+  - name: image
+params:
+  CONTEXT: source/((flavor))
+  IMAGE_PLATFORM: ((target-platform)) # This param tells the `concourse-oci-build-task` task which architecture to build the image for.
+  BUILD_ARG_TARGETPLATFORM: ((target-platform)) # the instana-agent-docker Dockerfile requires a TARGETPLATFORM build arg.
+  BUILD_ARG_DOWNLOAD_KEY: ((agent-download-key)) # required by the instana-agent-docker Dockerfile
+  BUILD_ARG_FLAVOR: ((flavor)) # required by the instana-agent-docker Dockerfile
+  BUILD_ARG_CLASSIFIER: ((classifier)) # required by the instana-agent-docker Dockerfile
+  BUILD_ARG_VERSION: ((version)) # required by the instana-agent-docker Dockerfile
+  BUILD_ARG_BRANCH: ((commit-sha)) # required by the instana-agent-docker Dockerfile
+  BUILD_ARG_COMMIT_SHA: ((commit-sha)) # required by the instana-agent-docker Dockerfile
+run:
+  path: build
