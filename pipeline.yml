@@ -368,6 +368,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
       - get: agent-version
+        trigger: true
       - load_var: agent-version
         file: agent-version/number
         reveal: true
@@ -459,6 +460,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
       - get: agent-version
+        trigger: true
       - load_var: agent-version
         file: agent-version/number
         reveal: true
@@ -550,6 +552,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
       - get: agent-version
+        trigger: true
       - load_var: agent-version
         file: agent-version/number
         reveal: true
@@ -605,6 +608,7 @@ jobs:
     plan:
       - get: instana-agent-docker-git
       - get: agent-version
+        trigger: true
       - load_var: agent-version
         file: agent-version/number
         reveal: true
