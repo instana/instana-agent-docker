@@ -381,7 +381,7 @@ jobs:
           steps:
             - task: build-amd64-static
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -395,7 +395,7 @@ jobs:
                 commit-sha: ((.:commit-sha))
             - task: build-amd64-dynamic
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -409,7 +409,7 @@ jobs:
                 commit-sha: ((.:commit-sha))
             - task: build-amd64-static-j9
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -423,7 +423,7 @@ jobs:
                 commit-sha: ((.:commit-sha))
             - task: build-amd64-dynamic-j9
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -470,7 +470,7 @@ jobs:
           steps:
             - task: build-arm64-static
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -484,7 +484,7 @@ jobs:
                 commit-sha: ((.:commit-sha))
             - task: build-arm64-dynamic
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -498,7 +498,7 @@ jobs:
                 commit-sha: ((.:commit-sha))
             - task: build-arm64-static-j9
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -512,7 +512,7 @@ jobs:
                 commit-sha: ((.:commit-sha))
             - task: build-arm64-dynamic-j9
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -559,7 +559,7 @@ jobs:
           steps:
             - task: build-s390x-static
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -573,7 +573,7 @@ jobs:
                 commit-sha: ((.:commit-sha))
             - task: build-s390x-dynamic
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -614,7 +614,7 @@ jobs:
           steps:
             - task: build-ppc64le-static
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
@@ -628,7 +628,7 @@ jobs:
                 commit-sha: ((.:commit-sha))
             - task: build-ppc64le-dynamic
               privileged: true
-              file: instana-agent-docker-git/ci/build-any-arch-docker-image-task.yml
+              file: instana-agent-docker-git/ci/container-image-build-task.yml
               input_mapping:
                 source: instana-agent-docker-git
               output_mapping: 
