@@ -13,7 +13,7 @@ image_resource:
   type: registry-image
   source:
     repository: containers.instana.io/infra/concourse-oci-build-task
-    tag: 0.11.0
+    tag: 0.9
     username: ((containers-instana-io-creds.username))
     password: ((containers-instana-io-creds.password))
 inputs:
