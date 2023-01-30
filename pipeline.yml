@@ -401,7 +401,7 @@ jobs:
               output_mapping: 
                 image: image-dynamic-amd64
               vars:
-                flavor: static
+                flavor: dynamic
                 target-platform: linux/amd64
                 agent-download-key: ((qa-instana-agent-key))
                 classifier: ''
@@ -429,7 +429,7 @@ jobs:
               output_mapping: 
                 image: image-dynamic-amd64-j9
               vars:
-                flavor: static
+                flavor: dynamic
                 target-platform: linux/amd64
                 agent-download-key: ((qa-instana-agent-key))
                 classifier: -j9
@@ -490,7 +490,7 @@ jobs:
               output_mapping: 
                 image: image-dynamic-arm64
               vars:
-                flavor: static
+                flavor: dynamic
                 target-platform: linux/arm64
                 agent-download-key: ((qa-instana-agent-key))
                 classifier: ''
@@ -518,7 +518,7 @@ jobs:
               output_mapping: 
                 image: image-dynamic-arm64-j9
               vars:
-                flavor: static
+                flavor: dynamic
                 target-platform: linux/arm64
                 agent-download-key: ((qa-instana-agent-key))
                 classifier: -j9
@@ -579,7 +579,7 @@ jobs:
               output_mapping: 
                 image: image-dynamic-s390x
               vars:
-                flavor: static
+                flavor: dynamic
                 target-platform: linux/s390x
                 agent-download-key: ((qa-instana-agent-key))
                 classifier: ''
@@ -634,7 +634,7 @@ jobs:
               output_mapping: 
                 image: image-dynamic-ppc64le
               vars:
-                flavor: static
+                flavor: dynamic
                 target-platform: linux/ppc64le
                 agent-download-key: ((qa-instana-agent-key))
                 classifier: ''
