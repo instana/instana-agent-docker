@@ -43,5 +43,5 @@ run:
 
       echo $GOOGLE_SERVICE_ACCOUNT_JSON > credentials.json
       gcloud auth activate-service-account --key-file=credentials.json
-      gcloud compute ssh "((instance-name))" --force-key-file-overwrite --ssh-key-expire-after=5m --command="/usr/bin/docker exec instana-agent /bin/bash -c 'command -v iptables && command -v nsenter && command -v docker && command -v containerd && command -v runc'"
+      gcloud compute ssh "((instance-name))" --force-key-file-overwrite --ssh-key-expire-after=5m --command="/usr/bin/docker exec instana-agent /bin/bash -c 'command -v iptables && command -v nsenter && command -v docker && command -v runc'"
 
