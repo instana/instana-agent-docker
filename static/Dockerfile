@@ -74,7 +74,10 @@ LABEL name="instana-agent" \
 ARG TARGETPLATFORM='linux/amd64'
 
 RUN microdnf upgrade \
-    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip socat \
+    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip socat libseccomp \
+    && cd /tmp/ \
+    && microdnf download runc \
+    && rpm -i runc*.rpm --nodeps \
     && rm -rf /tmp/* \
     && microdnf clean all
 
@@ -188,18 +191,6 @@ RUN export IPTABLES_PPC64LE_SHA256="1eb70870bd717d010127a0d6a6bd61d1e621120b770d
         && rm -rf /tmp/* \
         && microdnf clean all \
     )
-
-# Install latest runc from official github release:
-RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'linux/arm64') echo 'arm64' ;; 'linux/s390x') echo 's390x' ;; 'linux/ppc64le') echo 'ppc64le' ;; esac) \
-    && export RUNC_VERSION_BASE_URL="https://github.com/opencontainers/runc/releases" \
-    && export RUNC_VERSION=$(curl -w '\n' -L -s -H 'Accept: application/json' "${RUNC_VERSION_BASE_URL}/latest" | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
-    && echo "Runc version: ${RUNC_VERSION}" \
-    && cd /tmp \
-    && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.${ARCH} -o runc.${ARCH} \
-    && curl -L --fail --show-error --silent https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.sha256sum | grep runc.${ARCH} | sha256sum --check \
-    && mv runc.${ARCH} /usr/local/bin/runc \
-    && chmod +x /usr/local/bin/runc \
-    && rm -rf /tmp/*
 
 # Install Tini, to handle signals (SIGTERM / SIGKILL) correctly in our container since we need to run the Agent from a
 # script and cannot 'exec' to replace it. That would kill the container on restarts of the Agent.
