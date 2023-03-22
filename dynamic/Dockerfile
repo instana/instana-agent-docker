@@ -95,9 +95,11 @@ RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' || "${TARGETPLATFORM}" = 'linux/ppc64
     )
 
 # containerd cli is only available for amd64
+# We are fixing the ctr version to v1.6.19 to avoid breaking changes in the future.
+# Fetching the latest version can be done: $(curl -w '\n' -L -s -H 'Accept: application/json' "${CONTAINERD_BASE_URL}/latest" | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/')
 RUN export CONTAINERD_BASE_URL="https://github.com/containerd/containerd/releases" \
     && [[ "${TARGETPLATFORM}" != 'linux/amd64' ]] || ( \
-       export CONTAINERD_VERSION=$(curl -w '\n' -L -s -H 'Accept: application/json' "${CONTAINERD_BASE_URL}/latest" | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/') \
+       export CONTAINERD_VERSION="1.6.19" \
        && export CONTAINERD_BINARY="containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz" \
        && echo "Containerd version: ${CONTAINERD_VERSION}" \
        && cd /tmp \
