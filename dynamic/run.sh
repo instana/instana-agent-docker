@@ -51,7 +51,7 @@ if  [ -z "${INSTANA_LOG_LEVEL}" ]; then
 fi
 if [ -n "${INSTANA_LOG_LEVEL}" ]; then
   case ${INSTANA_LOG_LEVEL} in
-    INFO|DEBUG|TRACE|ERROR|OFF)
+    INFO|DEBUG|TRACE|WARN|ERROR|OFF)
       ;;
     *)
       echo "Log level is set to '${INSTANA_LOG_LEVEL}' which is unsupported, falling back to 'INFO'"
