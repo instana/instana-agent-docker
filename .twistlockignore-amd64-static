@@ -1,1 +1,2 @@
 CVE-2022-1471 # awaiting jackson-dataformat-yaml 2.15 release
+CVE-2023-24538 # we are not affected by html templating
