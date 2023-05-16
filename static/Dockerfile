@@ -74,7 +74,7 @@ LABEL name="instana-agent" \
 ARG TARGETPLATFORM='linux/amd64'
 
 RUN microdnf upgrade \
-    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip socat libseccomp \
+    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip socat \
     && cd /tmp/ \
     && microdnf download runc \
     && rpm -i runc*.rpm --nodeps \
