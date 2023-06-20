@@ -188,68 +188,6 @@ resources:
       region_name: us-west-2
 
 #################
-# container.instana.io/instana images
-
-# We don't need to differentiate different arch tags on those resources since
-# this is push-only. We don't run other jobs/tasks depending on those images.
-
-# Dynamic pre-release images will be pushed to containers.instana.io, icr.io and delivery-instana.
-# Static pre-release images will only be pushed to containers.instana.io and delivery-instana due to the lack
-# of authorisation on icr.io.
-
-# pre-release dynamic images & manifest:
-  - name: agent-dynamic-prerelease-instana
-    type: registry-image
-    icon: docker
-    source: &containers-instana-io-prerelease
-      repository: containers.instana.io/instana/prerelease/agent/dynamic
-      username: ((containers-instana-io-creds.username))
-      password: ((containers-instana-io-creds.password))
-  - name: manifest-dynamic-prerelease-instana
-    type: docker-manifest
-    icon: docker
-    source: *containers-instana-io-prerelease
-
-# pre-release static images & manifest:
-  - name: agent-static-prerelease-instana
-    type: registry-image
-    icon: docker
-    source: &containers-instana-io-prerelease-static
-      repository: containers.instana.io/instana/prerelease/agent/static
-      username: ((containers-instana-io-creds.username))
-      password: ((containers-instana-io-creds.password))
-  - name: manifest-static-prerelease-instana
-    type: docker-manifest
-    icon: docker
-    source: *containers-instana-io-prerelease-static
-#
-# release dynamic images & manifest:
-  - name: agent-dynamic-release-instana
-    type: registry-image
-    icon: docker
-    source: &containers-instana-io-release
-      repository: containers.instana.io/instana/release/agent/dynamic
-      username: ((containers-instana-io-creds.username))
-      password: ((containers-instana-io-creds.password))
-  - name: manifest-dynamic-release-instana
-    type: docker-manifest
-    icon: docker
-    source: *containers-instana-io-release
-
-# release static images & manifest:
-  - name: agent-static-release-instana
-    type: registry-image
-    icon: docker
-    source: &containers-instana-io-release-static
-      repository: containers.instana.io/instana/release/agent/static
-      username: ((containers-instana-io-creds.username))
-      password: ((containers-instana-io-creds.password))
-  - name: manifest-static-release-instana
-    type: docker-manifest
-    icon: docker
-    source: *containers-instana-io-release-static
-
-#################
 # delivery-instana images
 
 # We don't need to differentiate different arch tags on those resources since
@@ -939,7 +877,6 @@ jobs:
 ###################################
 # Pre-release                     #
 # Build & publish image manifests #
-# containers.instana.io           #
 # delivery-instana                #
   - name: prerelease-multiarch-dynamic
     max_in_flight: 1
@@ -989,24 +926,6 @@ jobs:
           passed: [ verification-gate ]
           params:
             format: oci
-
-      - in_parallel:
-        - put: agent-dynamic-prerelease-instana
-          params:
-            image: agent-dynamic-amd64/image.tar
-            additional_tags: agent-dynamic-amd64/tag
-        - put: agent-dynamic-prerelease-instana
-          params:
-            image: agent-dynamic-arm64/image.tar
-            additional_tags: agent-dynamic-arm64/tag
-        - put: agent-dynamic-prerelease-instana
-          params:
-            image: agent-dynamic-s390x/image.tar
-            additional_tags: agent-dynamic-s390x/tag
-        - put: agent-dynamic-prerelease-instana
-          params:
-            image: agent-dynamic-ppc64le/image.tar
-            additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-prerelease-instana
         params:
@@ -1114,24 +1033,6 @@ jobs:
           params:
             format: oci
 
-      - in_parallel:
-        - put: agent-dynamic-prerelease-instana
-          params:
-            image: agent-dynamic-amd64-j9/image.tar
-            additional_tags: agent-dynamic-amd64-j9/tag
-        - put: agent-dynamic-prerelease-instana
-          params:
-            image: agent-dynamic-arm64-j9/image.tar
-            additional_tags: agent-dynamic-arm64-j9/tag
-        - put: agent-dynamic-prerelease-instana
-          params:
-            image: agent-dynamic-s390x/image.tar
-            additional_tags: agent-dynamic-s390x/tag
-        - put: agent-dynamic-prerelease-instana
-          params:
-            image: agent-dynamic-ppc64le/image.tar
-            additional_tags: agent-dynamic-ppc64le/tag
-
       - put: manifest-dynamic-prerelease-instana
         params:
           tag_file: version/manifest-tags
@@ -1237,24 +1138,6 @@ jobs:
           passed: [ verification-gate ]
           params:
             format: oci
-
-      - in_parallel:
-        - put: agent-static-prerelease-instana
-          params:
-            image: agent-static-amd64/image.tar
-            additional_tags: agent-static-amd64/tag
-        - put: agent-static-prerelease-instana
-          params:
-            image: agent-static-arm64/image.tar
-            additional_tags: agent-static-arm64/tag
-        - put: agent-static-prerelease-instana
-          params:
-            image: agent-static-s390x/image.tar
-            additional_tags: agent-static-s390x/tag
-        - put: agent-static-prerelease-instana
-          params:
-            image: agent-static-ppc64le/image.tar
-            additional_tags: agent-static-ppc64le/tag
 
       - put: manifest-static-prerelease-instana
         params:
@@ -1362,24 +1245,6 @@ jobs:
           params:
             format: oci
 
-      - in_parallel:
-        - put: agent-static-prerelease-instana
-          params:
-            image: agent-static-amd64-j9/image.tar
-            additional_tags: agent-static-amd64-j9/tag
-        - put: agent-static-prerelease-instana
-          params:
-            image: agent-static-arm64-j9/image.tar
-            additional_tags: agent-static-arm64-j9/tag
-        - put: agent-static-prerelease-instana
-          params:
-            image: agent-static-s390x/image.tar
-            additional_tags: agent-static-s390x/tag
-        - put: agent-static-prerelease-instana
-          params:
-            image: agent-static-ppc64le/image.tar
-            additional_tags: agent-static-ppc64le/tag
-
       - put: manifest-static-prerelease-instana
         params:
           tag_file: version/manifest-tags
@@ -1439,7 +1304,6 @@ jobs:
 ####################################
 # Release                          #
 # Build & publish image manifests  #
-# containers.instana.io            #
 # delivery-instana                 #
 # icr.io                           #
 # scan.connect.redhat.com          #
@@ -1539,24 +1403,6 @@ jobs:
           passed: [ agent-release-trigger ]
           params:
             format: oci
-
-      - in_parallel:
-        - put: agent-dynamic-release-instana
-          params:
-            image: agent-dynamic-amd64/image.tar
-            additional_tags: agent-dynamic-amd64/tag
-        - put: agent-dynamic-release-instana
-          params:
-            image: agent-dynamic-arm64/image.tar
-            additional_tags: agent-dynamic-arm64/tag
-        - put: agent-dynamic-release-instana
-          params:
-            image: agent-dynamic-s390x/image.tar
-            additional_tags: agent-dynamic-s390x/tag
-        - put: agent-dynamic-release-instana
-          params:
-            image: agent-dynamic-ppc64le/image.tar
-            additional_tags: agent-dynamic-ppc64le/tag
 
       - put: manifest-dynamic-release-instana
         params:
@@ -1848,16 +1694,6 @@ jobs:
           params:
             format: oci
 
-      - in_parallel:
-        - put: agent-dynamic-release-instana
-          params:
-            image: agent-dynamic-amd64-j9/image.tar
-            additional_tags: agent-dynamic-amd64-j9/tag
-        - put: agent-dynamic-release-instana
-          params:
-            image: agent-dynamic-arm64-j9/image.tar
-            additional_tags: agent-dynamic-arm64-j9/tag
-
       - put: manifest-dynamic-release-instana
         params:
           tag_file: version/manifest-tags
@@ -1986,24 +1822,6 @@ jobs:
           params:
             format: oci
 
-      - in_parallel:
-        - put: agent-static-release-instana
-          params:
-            image: agent-static-amd64/image.tar
-            additional_tags: agent-static-amd64/tag
-        - put: agent-static-release-instana
-          params:
-            image: agent-static-arm64/image.tar
-            additional_tags: agent-static-arm64/tag
-        - put: agent-static-release-instana
-          params:
-            image: agent-static-s390x/image.tar
-            additional_tags: agent-static-s390x/tag
-        - put: agent-static-release-instana
-          params:
-            image: agent-static-ppc64le/image.tar
-            additional_tags: agent-static-ppc64le/tag
-
       - put: manifest-static-release-instana
         params:
           tag_file: version/manifest-tags
@@ -2109,24 +1927,6 @@ jobs:
           passed: [ agent-release-trigger ]
           params:
             format: oci
-
-      - in_parallel:
-        - put: agent-static-release-instana
-          params:
-            image: agent-static-amd64-j9/image.tar
-            additional_tags: agent-static-amd64-j9/tag
-        - put: agent-static-release-instana
-          params:
-            image: agent-static-arm64-j9/image.tar
-            additional_tags: agent-static-arm64-j9/tag
-        - put: agent-static-release-instana
-          params:
-            image: agent-static-s390x/image.tar
-            additional_tags: agent-static-s390x/tag
-        - put: agent-static-release-instana
-          params:
-            image: agent-static-ppc64le/image.tar
-            additional_tags: agent-static-ppc64le/tag
 
       - put: manifest-static-release-instana
         params:

@@ -76,7 +76,6 @@ run:
       # Write Slack message:
       cat << EOF > message/text
       _${RELEASE_TREE} ${FLAVOR}_ images & manifest pushed with tags: ${TAG_LIST}
-      * containers.instana.io/instana/$RELEASE_TREE/agent/$FLAVOR
       ${ICR_RELEASE}
       ${GCR_RELEASE}
       EOF
