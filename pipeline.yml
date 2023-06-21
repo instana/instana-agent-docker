@@ -927,23 +927,6 @@ jobs:
           params:
             format: oci
 
-      - put: manifest-dynamic-prerelease-instana
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-dynamic-amd64/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-dynamic-arm64/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-dynamic-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-dynamic-ppc64le/digest
-
       - in_parallel:
         - put: agent-dynamic-prerelease-delivery-instana
           params:
@@ -1032,23 +1015,6 @@ jobs:
           passed: [ verification-gate ]
           params:
             format: oci
-
-      - put: manifest-dynamic-prerelease-instana
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-dynamic-amd64-j9/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-dynamic-arm64-j9/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-dynamic-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-dynamic-ppc64le/digest
 
       - in_parallel:
         - put: agent-dynamic-prerelease-delivery-instana
@@ -1139,23 +1105,6 @@ jobs:
           params:
             format: oci
 
-      - put: manifest-static-prerelease-instana
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-static-amd64/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-static-arm64/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-static-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-static-ppc64le/digest
-
       - in_parallel:
         - put: agent-static-prerelease-delivery-instana
           params:
@@ -1244,23 +1193,6 @@ jobs:
           passed: [ verification-gate ]
           params:
             format: oci
-
-      - put: manifest-static-prerelease-instana
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-static-amd64-j9/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-static-arm64-j9/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-static-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-static-ppc64le/digest
 
       - in_parallel:
         - put: agent-static-prerelease-delivery-instana
@@ -1403,23 +1335,6 @@ jobs:
           passed: [ agent-release-trigger ]
           params:
             format: oci
-
-      - put: manifest-dynamic-release-instana
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-dynamic-amd64/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-dynamic-arm64/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-dynamic-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-dynamic-ppc64le/digest
 
       - in_parallel:
         - put: agent-dynamic-release-delivery-instana
@@ -1694,17 +1609,6 @@ jobs:
           params:
             format: oci
 
-      - put: manifest-dynamic-release-instana
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-dynamic-amd64-j9/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-dynamic-arm64-j9/digest
-
       - in_parallel:
         - put: agent-dynamic-release-delivery-instana
           params:
@@ -1822,23 +1726,6 @@ jobs:
           params:
             format: oci
 
-      - put: manifest-static-release-instana
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-static-amd64/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-static-arm64/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-static-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-static-ppc64le/digest
-
       - in_parallel:
         - put: agent-static-release-delivery-instana
           params:
@@ -1927,23 +1814,6 @@ jobs:
           passed: [ agent-release-trigger ]
           params:
             format: oci
-
-      - put: manifest-static-release-instana
-        params:
-          tag_file: version/manifest-tags
-          manifests:
-            - arch: amd64
-              os: linux
-              digest_file: agent-static-amd64-j9/digest
-            - arch: arm64
-              os: linux
-              digest_file: agent-static-arm64-j9/digest
-            - arch: s390x
-              os: linux
-              digest_file: agent-static-s390x/digest
-            - arch: ppc64le
-              os: linux
-              digest_file: agent-static-ppc64le/digest
 
       - in_parallel:
         - put: agent-static-release-delivery-instana
