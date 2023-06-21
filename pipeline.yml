@@ -177,16 +177,6 @@ resources:
       username: _json_key
       password: ((project-berlin-tests-gcp-instana-qa))
 
-  - name: instana-twistcli-build-artifacts
-    type: s3
-    icon: zip-disk
-    source:
-      bucket: instana-twistcli-build-artifacts
-      versioned_file: instana-twistcli-((local-vars:instana-twistcli-version)).tar.gz
-      access_key_id: ((codebuild-s3-user-devinfra-key.key_id))
-      secret_access_key: ((codebuild-s3-user-devinfra-key.key_secret))
-      region_name: us-west-2
-
 #################
 # delivery-instana images
 
@@ -599,7 +589,6 @@ jobs:
         trigger: true
       - get: agent-version
         passed: [ amd64-build, arm64-build, s390x-build, ppc64le-build ]
-      - get: instana-twistcli-build-artifacts
       - get: instana-agent-docker-git
         passed: [ amd64-build, arm64-build, s390x-build, ppc64le-build ]
       - load_var: digest-amd64
@@ -609,30 +598,24 @@ jobs:
       - load_var: agent-version
         file: agent-version/number
         reveal: true
-      - task: prepare-instana-twistcli-inputs
-        file: instana-agent-docker-git/ci/prepare-instana-twistcli-inputs-task.yml
-        vars:
-          instana-twistcli-version: ((local-vars:instana-twistcli-version))
       - in_parallel:
           steps:
           - task: scan-image-amd64-static
             privileged: true
-            file: instana-twistcli-inputs/scan-image.yml
+            file: instana-agent-docker-git/ci/scan-image.yml
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
-            params:
-              DOCKER_JSON_KEY: ((project-berlin-tests-gcp-instana-qa))
-              IGNOREFILE: instana-twistcli-inputs/.twistlockignore-amd64-static
-              SAVE_SCAN_RESULTS: "true"
+              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+              ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
+              save-scan-results: "true"
           - task: scan-image-amd64-j9-static
             privileged: true
-            file: instana-twistcli-inputs/scan-image.yml
+            file: instana-agent-docker-git/ci/scan-image.yml
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
-            params:
-              DOCKER_JSON_KEY: ((project-berlin-tests-gcp-instana-qa))
-              IGNOREFILE: instana-twistcli-inputs/.twistlockignore-amd64-static
-              SAVE_SCAN_RESULTS: "true"
+              docker-json-key: ((project-berlin-tests-gcp-instana-qa))
+              ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
+              save-scan-results: "true"
   - name: verify-amd64-static
     max_in_flight: 1
     on_abort: &destroy-amd64-static-vm
