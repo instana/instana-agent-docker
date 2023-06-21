@@ -1,0 +1,81 @@
+image_resource:
+  source:
+    password: ((delivery-instana-io-internal-project-artifact-read-writer-creds.password))
+    repository: delivery.instana.io/int-docker-private-virtual/instana-twistcli/instana-twistcli
+    tag: v2.0.1
+    username: ((delivery-instana-io-internal-project-artifact-read-writer-creds.username))
+  type: registry-image
+inputs:
+- name: instana-twistcli-inputs
+params:
+  DOCKER_JSON_KEY: ((docker-json-key))
+  SAVE_SCAN_RESULTS: ((save-scan-results))
+  GITHUB_ACCESS_TOKEN: ((ibm-github-e-api-token))
+  IGNOREFILE: ((ignorefile))
+  GRACE_PERIOD: ''
+  IGNORE_BREAKING_CVES: ''
+  MIN_VULN_SEVERITY: ''
+  DETAILED_RESULTS: ''
+  DO_NOT_IGNORE_UNFIXABLE: ''
+platform: linux
+run:
+  args:
+  - bash
+  - -ceu
+  - |
+    set -e
+
+    if [[ ((target-image)) == gcr.io* ]]; then
+      if [[ -z $DOCKER_JSON_KEY ]]; then
+        echo "---> Please provide a json-key for authenticating to gcr.io"
+        exit 1
+      fi
+      echo "---> Authenticating with gcr.io"
+      echo $DOCKER_JSON_KEY > key.json
+      cat key.json | docker login -u _json_key --password-stdin https://gcr.io
+    elif [[ ((target-image)) == containers.instana.io* ]]; then
+      echo "---> Authenticating with containers.instana.io"
+      echo "((containers-instana-io-creds.password))" | docker login -u ((containers-instana-io-creds.username)) --password-stdin https://containers.instana.io
+    elif [[ ((target-image)) == delivery.instana.io* ]]; then
+      echo "---> Authenticating with delivery.instana.io"
+      # todo create a generic read-only account that can access both projects and use that instead of promoter here lest people get crazy ideas!
+      echo "((delivery-instana-io-artifact-promoter-creds.password))" | docker login -u ((delivery-instana-io-artifact-promoter-creds.username)) --password-stdin https://delivery.instana.io
+    fi
+
+    echo "---> Pulling ((target-image))"
+    docker pull ((target-image))
+
+    export TWISTLOCK_INSTANA_IO_USER="((twistlock-instana-io-creds.username))"
+    export TWISTLOCK_INSTANA_IO_PASSWORD="((twistlock-instana-io-creds.password))"
+
+    ADDITIONAL_ARGS=''
+    if [[ ! -z ${IGNOREFILE} ]]; then
+      ADDITIONAL_ARGS="--ignorefile=${PWD}/${IGNOREFILE}"
+    fi
+    if [[ ! -z ${MIN_VULN_SEVERITY} ]]; then
+      ADDITIONAL_ARGS="${ADDITIONAL_ARGS} --min-vuln-severity=${MIN_VULN_SEVERITY}"
+    fi
+    if [[ -n "${GRACE_PERIOD}" ]]; then
+      ADDITIONAL_ARGS="${ADDITIONAL_ARGS} --grace-period=${GRACE_PERIOD}"
+    fi
+    if [[ -n "${DO_NOT_IGNORE_UNFIXABLE}" ]]; then
+      ADDITIONAL_ARGS="${ADDITIONAL_ARGS} --do-not-ignore-unfixable"
+    fi
+    if [[ -n "${SAVE_SCAN_RESULTS}" ]]; then
+      echo '((image-scan-results-writer-sa-key-json))' > /tmp/image-scan-writer-sa.json
+      export GOOGLE_APPLICATION_CREDENTIALS="/tmp/image-scan-writer-sa.json"
+      ADDITIONAL_ARGS="${ADDITIONAL_ARGS} --save-scan-results"
+    fi
+    if [[ -n "${IGNORE_BREAKING_CVES}" ]]; then
+      ADDITIONAL_ARGS="${ADDITIONAL_ARGS} --ignore-breaking-cves"
+    fi
+    if [[ -n "${DETAILED_RESULTS}" ]]; then
+      ADDITIONAL_ARGS="${ADDITIONAL_ARGS} --detailed-results"
+    fi
+
+    if [[ ! -z ${ADDITIONAL_ARGS} ]]; then
+      cli.py scan ${ADDITIONAL_ARGS} ((target-image))
+    else
+      cli.py scan ((target-image))
+    fi
+  path: entrypoint.sh
