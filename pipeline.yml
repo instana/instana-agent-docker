@@ -281,7 +281,8 @@ jobs:
     max_in_flight: 1
     plan:
       - get: backend-version
-        trigger: true
+        # temporarily disable this step
+        # trigger: true
       - put: agent-version
         params: { bump: minor }
   - name: bump-patch-version-manual-pipeline-trigger
