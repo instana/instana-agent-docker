@@ -5,13 +5,11 @@ image_resource:
     tag: v2.0.1
     username: ((delivery-instana-io-internal-project-artifact-read-writer-creds.username))
   type: registry-image
-inputs:
-- name: instana-twistcli-inputs
 params:
   DOCKER_JSON_KEY: ((docker-json-key))
   SAVE_SCAN_RESULTS: ((save-scan-results))
   GITHUB_ACCESS_TOKEN: ((ibm-github-e-api-token))
-  IGNOREFILE: ((ignorefile))
+  IGNOREFILE: ''
   GRACE_PERIOD: ''
   IGNORE_BREAKING_CVES: ''
   MIN_VULN_SEVERITY: ''
