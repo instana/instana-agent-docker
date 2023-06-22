@@ -39,7 +39,7 @@ run:
     elif [[ ((target-image)) == delivery.instana.io* ]]; then
       echo "---> Authenticating with delivery.instana.io"
       # todo create a generic read-only account that can access both projects and use that instead of promoter here lest people get crazy ideas!
-      echo "((delivery-instana-io-artifact-promoter-creds.password))" | docker login -u ((delivery-instana-io-artifact-promoter-creds.username)) --password-stdin https://delivery.instana.io
+      echo "((delivery-instana-io-internal-project-artifact-read-writer-creds.password))" | docker login -u ((delivery-instana-io-internal-project-artifact-read-writer-creds.username)) --password-stdin https://delivery.instana.io
     fi
 
     echo "---> Pulling ((target-image))"
