@@ -606,7 +606,6 @@ jobs:
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-              ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
               save-scan-results: "true"
           - task: scan-image-amd64-j9-static
             privileged: true
@@ -614,7 +613,6 @@ jobs:
             vars:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
-              ignorefile: instana-twistcli-inputs/.twistlockignore-amd64-static
               save-scan-results: "true"
   - name: verify-amd64-static
     max_in_flight: 1
