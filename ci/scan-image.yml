@@ -2,7 +2,7 @@ image_resource:
   source:
     password: ((delivery-instana-io-internal-project-artifact-read-writer-creds.password))
     repository: delivery.instana.io/int-docker-private-virtual/instana-twistcli/instana-twistcli
-    tag: v2.0.1
+    tag: v2.0.0-pre
     username: ((delivery-instana-io-internal-project-artifact-read-writer-creds.username))
   type: registry-image
 params:
@@ -72,8 +72,8 @@ run:
     fi
 
     if [[ ! -z ${ADDITIONAL_ARGS} ]]; then
-      cli.py scan ${ADDITIONAL_ARGS} ((target-image))
+      instana-twistcli scan ${ADDITIONAL_ARGS} ((target-image))
     else
-      cli.py scan ((target-image))
+      instana-twistcli scan ((target-image))
     fi
   path: entrypoint.sh
