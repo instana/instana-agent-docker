@@ -9,7 +9,7 @@ params:
   DOCKER_JSON_KEY: ((docker-json-key))
   SAVE_SCAN_RESULTS: ((save-scan-results))
   GITHUB_ACCESS_TOKEN: ((ibm-github-e-api-token))
-  IGNOREFILE: ''
+  IGNOREFILE: ((ignorefile))
   GRACE_PERIOD: ''
   IGNORE_BREAKING_CVES: ''
   MIN_VULN_SEVERITY: ''

@@ -614,6 +614,7 @@ jobs:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64-j9))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
               save-scan-results: "true"
+              ignorefile: instana-agent-docker-git/.twistlockignore-amd64-static
   - name: verify-amd64-static
     max_in_flight: 1
     on_abort: &destroy-amd64-static-vm
