@@ -607,6 +607,7 @@ jobs:
               target-image: gcr.io/instana-agent-qa/instana-agent-docker@((.:digest-amd64))
               docker-json-key: ((project-berlin-tests-gcp-instana-qa))
               save-scan-results: "true"
+              ignorefile: instana-agent-docker-git/.twistlockignore-amd64-static
           - task: scan-image-amd64-j9-static
             privileged: true
             file: instana-agent-docker-git/ci/scan-image.yml
