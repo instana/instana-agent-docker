@@ -6,7 +6,7 @@ It may require proxy settings for egress access to:
 * the `${INSTANA_AGENT_ENDPOINT}`, which may either be for your self-hosted Instana installation or for the Instana SaaS
 * the [Instana Artifactory repository](https://artifact-public.instana.io/), unless you set up a mirror and use the `INSTANA_MVN_REPOSITORY_URL` to direct the Instana Agent to use it
 
-Additional documentation about the usage of this image is available on the [Installing the Host Agent on Docker](https://www.instana.com/docs/setup_and_manage/host_agent/on/docker) documentation.
+Additional documentation about the usage of this image is available on the [Installing the Host Agent on Docker](https://www.ibm.com/docs/en/instana-observability/current?topic=agents-installing-host-agent-docker) documentation.
 
 ## Building
 
