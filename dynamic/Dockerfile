@@ -94,10 +94,10 @@ RUN [[ "${TARGETPLATFORM}" = 'linux/s390x' || "${TARGETPLATFORM}" = 'linux/ppc64
         && microdnf clean all \
     )
 
-# We are fixing the ctr version to v1.6.19 to avoid breaking changes in the future.
+# We are fixing the ctr version to v1.6.22 to avoid breaking changes in the future.
 # Fetching the latest version can be done: $(curl -w '\n' -L -s -H 'Accept: application/json' "${CONTAINERD_BASE_URL}/latest" | sed -e 's/.*"tag_name":"v\([0-9\.]*\)".*/\1/')
 RUN [[ "${TARGETPLATFORM}" != 'linux/amd64' && "${TARGETPLATFORM}" != 'linux/ppc64le' && "${TARGETPLATFORM}" != 'linux/arm64' ]] || ( \
-   export CONTAINERD_VERSION="1.6.19" \
+   export CONTAINERD_VERSION="1.6.22" \
    && export ARCH=${TARGETPLATFORM//\//-} \
    && export CONTAINERD_BASE_URL="https://github.com/containerd/containerd/releases" \
    && export CONTAINERD_BINARY="containerd-${CONTAINERD_VERSION}-${ARCH}.tar.gz" \
