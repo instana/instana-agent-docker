@@ -65,11 +65,14 @@ RUN microdnf update && curl -sSL https://packages.instana.io/Instana.gpg -o /tmp
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
+ARG VERSION
+
 LABEL name="instana-agent" \
       vendor="Instana Inc." \
       release="1" \
       summary="Instana APM agent" \
-      description="Instana APM agent"
+      description="Instana APM agent" \
+      version="$VERSION"
 
 ARG TARGETPLATFORM='linux/amd64'
 
