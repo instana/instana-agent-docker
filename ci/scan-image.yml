@@ -78,4 +78,7 @@ run:
     else
       instana-twistcli scan ((target-image))
     fi
+
+    echo "Critical CVEs:"
+    cat report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "critical")'
   path: entrypoint.sh
