@@ -79,9 +79,11 @@ run:
       instana-twistcli scan ((target-image))
     fi
 
+    export OUTPUT_DIR=$(ls | grep tt-output)
+
     echo "Critical CVEs:"
-    cat report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "critical") | {cve,severity,status,packagePath,packageName,packageVersion,link}'
+    cat $OUTPUT_DIR/report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "critical") | {cve,severity,status,packagePath,packageName,packageVersion,link}'
 
     echo "High CVEs:"
-    cat report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "high") | {cve,severity,status,packagePath,packageName,packageVersion,link}'
+    cat $OUTPUT_DIR/report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "high") | {cve,severity,status,packagePath,packageName,packageVersion,link}'
   path: entrypoint.sh
