@@ -73,11 +73,14 @@ run:
       ADDITIONAL_ARGS="${ADDITIONAL_ARGS} --detailed-results"
     fi
 
+    export EXIT_CODE
+    set +e
     if [[ ! -z ${ADDITIONAL_ARGS} ]]; then
-      instana-twistcli scan ${ADDITIONAL_ARGS} ((target-image))
+       EXIT_CODE=$(instana-twistcli scan ${ADDITIONAL_ARGS} ((target-image)))
     else
-      instana-twistcli scan ((target-image))
+      EXIT_CODE=$(instana-twistcli scan ((target-image)))
     fi
+    set -e
 
     export OUTPUT_DIR=$(ls | grep tt-output)
 
@@ -86,4 +89,6 @@ run:
 
     echo "High CVEs:"
     cat $OUTPUT_DIR/report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "high") | {cve,severity,status,packagePath,packageName,packageVersion,link}'
+
+    exit $EXIT_CODE
   path: entrypoint.sh
