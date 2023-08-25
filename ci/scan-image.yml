@@ -82,7 +82,7 @@ run:
     fi
     set -e
 
-    export OUTPUT_DIR=$(ls | grep tt-output)
+    export OUTPUT_DIR=$(realpath *tt-output*)
 
     echo "Critical CVEs:"
     cat $OUTPUT_DIR/report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "critical") | {cve,severity,status,packagePath,packageName,packageVersion,link}'
