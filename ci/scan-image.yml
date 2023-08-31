@@ -76,9 +76,11 @@ run:
     export EXIT_CODE
     set +e
     if [[ ! -z ${ADDITIONAL_ARGS} ]]; then
-       EXIT_CODE=$(instana-twistcli scan ${ADDITIONAL_ARGS} ((target-image)))
+       instana-twistcli scan ${ADDITIONAL_ARGS} ((target-image))
+       EXIT_CODE=$(echo $?)
     else
-      EXIT_CODE=$(instana-twistcli scan ((target-image)))
+      instana-twistcli scan ((target-image))
+      EXIT_CODE=$(echo $?)
     fi
     set -e
 
