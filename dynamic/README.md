@@ -18,12 +18,16 @@ features](https://github.com/docker/cli/blob/master/experimental/README.md) need
 export TARGETPLATFORM=linux/s390x
 export DOWNLOAD_KEY=my-key
 
+echo "${DOWNLOAD_KEY}" > ${HOME}/.INSTANA_DOWNLOAD_KEY
+
 docker buildx build --no-cache \
-  --build-arg DOWNLOAD_KEY="${DOWNLOAD_KEY}" \
+  --secret id=DOWNLOAD_KEY,src=${HOME}/.INSTANA_DOWNLOAD_KEY \
   --platform="${TARGETPLATFORM}" \
   --build-arg "TARGETPLATFORM=${TARGETPLATFORM}" \
   -t instana/agent \
   .
+
+rm -f ${HOME}/.INSTANA_DOWNLOAD_KEY
 ```
 
 Supported values of `<PLATFORM>`:
