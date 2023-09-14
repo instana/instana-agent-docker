@@ -24,7 +24,7 @@ params:
   CONTEXT: source/((flavor))
   IMAGE_PLATFORM: ((target-platform)) # This param tells the `concourse-oci-build-task` task which architecture to build the image for.
   BUILD_ARG_TARGETPLATFORM: ((target-platform)) # the instana-agent-docker Dockerfile requires a TARGETPLATFORM build arg.
-  BUILD_ARG_DOWNLOAD_KEY: ((agent-download-key)) # required by the instana-agent-docker Dockerfile
+  BUILDKIT_SECRETTEXT_DOWNLOAD_KEY: ((agent-download-key)) # required by the instana-agent-docker Dockerfile
   BUILD_ARG_FLAVOR: ((flavor)) # required by the instana-agent-docker Dockerfile
   BUILD_ARG_CLASSIFIER: ((classifier)) # required by the instana-agent-docker Dockerfile
   BUILD_ARG_VERSION: ((version)) # required by the instana-agent-docker Dockerfile
