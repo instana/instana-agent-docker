@@ -4,3 +4,4 @@ CVE-2023-24540 # we do not do any whitespace cleaning
 CVE-2023-29402 # we are not in control of the building pipeline for external components
 CVE-2023-29404 # we are not in control of the building pipeline for external components
 CVE-2023-29405 # we are not in control of the building pipeline for external components
+CVE-2023-39323 # we are not in control of the building pipeline for external components
