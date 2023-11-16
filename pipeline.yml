@@ -947,7 +947,7 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
 
   - name: prerelease-multiarch-dynamic-j9
@@ -1036,7 +1036,7 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
 
   - name: prerelease-multiarch-static
@@ -1125,7 +1125,7 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
 
   - name: prerelease-multiarch-static-j9
@@ -1214,7 +1214,7 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
 ####################################
 # Release                          #
@@ -1428,7 +1428,7 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
 
   - name: release-rh-dynamic
@@ -1548,7 +1548,7 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
 
   - name: release-multiarch-dynamic-j9
@@ -1657,7 +1657,7 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
 
   - name: release-multiarch-static
@@ -1746,7 +1746,7 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
 
   - name: release-multiarch-static-j9
@@ -1835,5 +1835,5 @@ jobs:
 
       - put: slack-alert
         params:
-          channel: '#tech-agent-delivery'
+          channel: '#tech-agent-delivery-notifications'
           text_file: message/text
