@@ -9,15 +9,15 @@ FROM --platform=linux/amd64 registry.access.redhat.com/ubi8/ubi-minimal:latest A
 
 ENV LANG=C.UTF-8
 
-RUN export GO_VERSION="1.19.12" && \
-    export GO_SHAR256="48e4fcfb6abfdaa01aaf1429e43bdd49cea5e4687bd5f5b96df1e193fcfd3e7e go${GO_VERSION}.linux-amd64.tar.gz" && \
+RUN export GO_VERSION="1.21.4" && \
+    export GO_SHA256="73cac0215254d0c7d1241fa40837851f3b9a8a742d0b54714cbdfb3feaf8f0af go${GO_VERSION}.linux-amd64.tar.gz" && \
     export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
-    export GOMPLATE_VERSION="3.11.3" && \
-    export GOMPLATE_SHA256="4f26895921e52e0515b273659508802676aafa4765cc3751c383b27eb0e9dca1  v${GOMPLATE_VERSION}.tar.gz" && \
+    export GOMPLATE_VERSION="3.11.6" && \
+    export GOMPLATE_SHA256="fba514c022e8d797a950b43e3d4e47bf5a546ed95492651a22d95cdf2f614bfd  v${GOMPLATE_VERSION}.tar.gz" && \
     microdnf install tar gzip wget make findutils && \
     cd /tmp && \
     wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" && \
-    echo "${GO_SHAR256}" | sha256sum --check && \
+    echo "${GO_SHA256}" | sha256sum --check && \
     gunzip "${GO_BINARY}" && \
     tar xf "${GO_BINARY//.gz/}" && \
     mv go /usr/local/bin && \
