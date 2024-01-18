@@ -73,6 +73,13 @@ resources:
       bucket: redhat-preflight
       json_key: ((gcloud-agent-ci-account-key))
       versioned_file: preflight-linux-amd64
+  - name: agent-system-tests-git
+    type: git
+    source:
+      uri: https://github.ibm.com/instana/agent-system-tests.git
+      branch: ((branch))
+      ignore_paths:
+        - README.md
 
 #################
 # gcr.io images #
@@ -661,6 +668,9 @@ jobs:
           instance-name: instana-agent-amd64-static
           gcp-project: instana-agent-qa
           gcp-zone: europe-west3-c
+      - get: agent-system-tests-git
+      - task: verify-docker-based-java-app-attachment
+        file: concourse/pipeline_template.yml
 
   - name: verify-amd64-static-j9
     max_in_flight: 1
