@@ -28,8 +28,16 @@
 log4j2.logger.instana.name = com.instana
 log4j2.logger.instana.level = {{ getenv "INSTANA_LOG_LEVEL" }}
 
+# Configuration of the Netty SSL logger. Changes will be hot-reloaded.
+log4j2.logger.netty_ssl.name = io.netty.handler.ssl
+log4j2.logger.netty_ssl.level = DEBUG
+
+# Configuration of the Instana HTTP2 Trace Logger. Requires TRACE level to show logs. Changes will be hot-reloaded.
+log4j2.logger.agent_http_framelogger.name = com.instana.backend.client.Http2FrameLogger
+log4j2.logger.agent_http_framelogger.level = INFO
+
 # Root logger - Only change on request by support.
-log4j2.rootLogger.level = ERROR
+log4j2.rootLogger.level = INFO
 log4j2.rootLogger.appenderRef.RollingFile.ref = RollingFile
 log4j2.rootLogger.appenderRef.PaxOsgi.ref = PaxOsgi
 log4j2.rootLogger.appenderRef.Console.ref = Console
