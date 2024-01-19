@@ -5,43 +5,6 @@
 # (c) Copyright Instana Inc.
 #
 
-FROM --platform=linux/amd64 registry.access.redhat.com/ubi8/ubi-minimal:latest AS build-gomplate
-
-ENV LANG=C.UTF-8
-
-RUN export GO_VERSION="1.21.4" && \
-    export GO_SHA256="73cac0215254d0c7d1241fa40837851f3b9a8a742d0b54714cbdfb3feaf8f0af go${GO_VERSION}.linux-amd64.tar.gz" && \
-    export GO_BINARY="go${GO_VERSION}.linux-amd64.tar.gz" && \
-    export GOMPLATE_VERSION="3.11.6" && \
-    export GOMPLATE_SHA256="fba514c022e8d797a950b43e3d4e47bf5a546ed95492651a22d95cdf2f614bfd  v${GOMPLATE_VERSION}.tar.gz" && \
-    microdnf install tar gzip wget make findutils && \
-    cd /tmp && \
-    wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" && \
-    echo "${GO_SHA256}" | sha256sum --check && \
-    gunzip "${GO_BINARY}" && \
-    tar xf "${GO_BINARY//.gz/}" && \
-    mv go /usr/local/bin && \
-    rm -rf /tmp/* && \
-    mkdir -p /root/go/src/github.com/hairyhenderson && \
-    cd /root/go/src/github.com/hairyhenderson && \
-    wget https://github.com/hairyhenderson/gomplate/archive/v${GOMPLATE_VERSION}.tar.gz && \
-    echo "${GOMPLATE_SHA256}" | sha256sum --check && \
-    tar xzf v${GOMPLATE_VERSION}.tar.gz && \
-    mv gomplate-${GOMPLATE_VERSION} gomplate && \
-    cd gomplate/ && \
-    /usr/local/bin/go/bin/go get -u golang.org/x/crypto && \
-    /usr/local/bin/go/bin/go get -u github.com/aws/aws-sdk-go && \
-    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_amd64 ./cmd/gomplate && \
-    GOOS=linux GOARCH=arm64 CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_arm64 ./cmd/gomplate && \
-    GOOS=linux GOARCH=s390x CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_s390x ./cmd/gomplate && \
-    GOOS=linux GOARCH=ppc64le CGO_ENABLED=0 /usr/local/bin/go/bin/go build -o gomplate_ppc64le ./cmd/gomplate && \
-    mkdir -p /usr/bin/linux/{amd64,arm64,s390x,ppc64le} && \
-    chmod u+x gomplate_* && \
-    cp gomplate_amd64 /usr/bin/linux/amd64/gomplate && \
-    cp gomplate_arm64 /usr/bin/linux/arm64/gomplate && \
-    cp gomplate_s390x /usr/bin/linux/s390x/gomplate && \
-    cp gomplate_ppc64le /usr/bin/linux/ppc64le/gomplate
-
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS instana-agent
 
 ARG TARGETPLATFORM='linux/amd64'
@@ -215,8 +178,6 @@ RUN export ARCH=$(case "${TARGETPLATFORM}" in 'linux/amd64') echo 'amd64' ;; 'li
     && chmod +x /usr/local/bin/tini \
     && rm -rf /tmp/*
 
-COPY --from=build-gomplate /usr/bin/${TARGETPLATFORM}/gomplate /usr/bin/gomplate
-
 # Dynamic & static agent start to diverge here:
 
 # The content of the help file is different
@@ -257,6 +218,7 @@ COPY configuration.yaml \
     /root/
 
 ADD run.sh /opt/instana/agent/bin
+ADD ../templater/templater.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent
 VOLUME ["/opt/instana/agent/etc/instana"]

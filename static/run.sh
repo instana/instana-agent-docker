@@ -95,8 +95,8 @@ rm -rf /tmp/* /opt/instana/agent/etc/org.ops4j.pax.logging.cfg \
 touch /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg
 
 ln -s /root/configuration.yaml /opt/instana/agent/etc/instana/configuration.yaml
-gomplate < /opt/instana/agent/etc/org.ops4j.pax.logging.cfg.tmpl > /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
-gomplate < /opt/instana/agent/etc/com.instana.agent.main.sender.Backend-1.cfg.tmpl > \
+./templater.sh -t /opt/instana/agent/etc/org.ops4j.pax.logging.cfg.tmpl /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
+./templater.sh -t /opt/instana/agent/etc/com.instana.agent.main.sender.Backend-1.cfg.tmpl \
   /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
 
 if [ -n "${INSTANA_AGENT_HTTP_LISTEN}" ]; then

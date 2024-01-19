@@ -32,21 +32,21 @@
        uncomment the proxies section and insert proxy details. -->
   <!-- https://maven.apache.org/guides/mini/guide-proxies.html -->
 
-{{if ne (getenv "INSTANA_REPOSITORY_PROXY_HOST") "" }}
+{{ if getenv "INSTANA_REPOSITORY_PROXY_HOST" }}
   <proxies>
     <proxy>
       <active>true</active>
       <host>{{ getenv "INSTANA_REPOSITORY_PROXY_HOST" }}</host>
-  {{ if ne (getenv "INSTANA_REPOSITORY_PROXY_PORT") "" }}
+  {{ if getenv "INSTANA_REPOSITORY_PROXY_PORT" }}
       <port>{{ getenv "INSTANA_REPOSITORY_PROXY_PORT" }}</port>
   {{end}}
-  {{ if ne (getenv "INSTANA_REPOSITORY_PROXY_USER") "" }}
+  {{ if getenv "INSTANA_REPOSITORY_PROXY_USER" }}
       <username>{{ getenv "INSTANA_REPOSITORY_PROXY_USER" }}</username>
   {{end}}
-  {{ if ne (getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL") "" }}
+  {{ if getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL" }}
       <protocol>{{ getenv "INSTANA_REPOSITORY_PROXY_PROTOCOL" }}</protocol>
   {{end}}
-  {{ if ne (getenv "INSTANA_REPOSITORY_PROXY_PASSWORD") "" }}
+  {{ if getenv "INSTANA_REPOSITORY_PROXY_PASSWORD" }}
       <password>{{ getenv "INSTANA_REPOSITORY_PROXY_PASSWORD" }}</password>
   {{end}}
     </proxy>
