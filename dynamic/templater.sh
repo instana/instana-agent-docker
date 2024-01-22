@@ -89,7 +89,7 @@ evaluate_template() {
             my ($line) = @_;
             my $replacement = "";
             
-            while ($line =~ /\{\{\s*getenv\s*"([^"]+)"\s*(?:,\s*"([^"]+)")?\s*\}\}/) {
+            while ($line =~ /\{\{\s*getenv\s*"([^"]+)"(?:\s*"([^"]*)")?\s*\}\}/) {
                 my $key = $1;
                 my $default_value = $2;
 
@@ -101,7 +101,7 @@ evaluate_template() {
                 $replacement = defined $env_value && $env_value ne "" ? $env_value : (defined $default_value ? $default_value : "");
 
                 # Replace the matched substring with the calculated replacement
-                $line =~ s/\{\{\s*getenv\s*"$key"\s*(?:,\s*"$default_value")?\s*\}\}/$replacement/;
+                $line =~ s/\{\{\s*getenv\s*"$key"\s*(?:\s*"$default_value")?\s*\}\}/$replacement/;
             }
             
             return $line;
@@ -110,28 +110,29 @@ evaluate_template() {
         BEGIN { $in_block = 1; @in_block_stack = (); }
         
         sub check_in_block {
-            my ($variable) = @_;
+            my ($variable, $in_block_outer) = @_;
             my $env_value = qx(test -n "\$$variable" && echo -n "\$$variable");
             chomp($env_value);
-            my $in_block = defined $env_value && $env_value ne "";
+            my $in_block = defined $env_value && $env_value ne "" && $in_block_outer;
             push @in_block_stack, $in_block;
             return $in_block;
         }
 
         sub pop_in_block {
             pop @in_block_stack;
-            return $in_block_stack[-1];
+            return !@in_block_stack || $in_block_stack[-1];
         }
+
         if (/^\s*\{\{-?\s*if\s*getenv\s*"([^"]+)"\s*}}\s*$/) {
             $variable = $1;
-            $in_block = check_in_block($variable);
+            $in_block = check_in_block($variable, $in_block);
         } elsif (/^\s*\{\{-?\s*else\s*}}\s*$/) {
             $in_block = !$in_block;
         } elsif (/^\s*\{\{-?\s*end\s*}}\s*$/) {
             $in_block = pop_in_block();
         } elsif ($in_block) {
-            $_ = replace_getenv($_);
-            print;
+            $line = replace_getenv($_);  # Handle replacements for lines outside if blocks
+            print $line;
         }
 EOF
 )" "$input_file" > "$output_file"
@@ -142,8 +143,3 @@ parse_params "$@"
 setup_colors
 check_if_template_exists
 evaluate_template ${template} "${args[0]}"
-
-
-msg "${RED}Read parameters:${NOFORMAT}"
-msg "- template: ${template}"
-msg "- arguments: ${args[*]-}"
