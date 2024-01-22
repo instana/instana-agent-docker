@@ -85,10 +85,12 @@ evaluate_template() {
     local output_file="$2"
 
     perl -ne "$(cat <<'EOF'
+        # Function to replace {{ getenv "KEY" }} and {{ getenv "KEY" "default" }} in a line
         sub replace_getenv {
             my ($line) = @_;
             my $replacement = "";
-            
+
+            # Loop to find all occurrences of {{ getenv "KEY" }} or {{ getenv "KEY" "default" }}
             while ($line =~ /\{\{\s*getenv\s*"([^"]+)"(?:\s*"([^"]*)")?\s*\}\}/) {
                 my $key = $1;
                 my $default_value = $2;
@@ -103,35 +105,50 @@ evaluate_template() {
                 # Replace the matched substring with the calculated replacement
                 $line =~ s/\{\{\s*getenv\s*"$key"\s*(?:\s*"$default_value")?\s*\}\}/$replacement/;
             }
-            
+
             return $line;
         }
 
+        # Initialize variables
         BEGIN { $in_block = 1; @in_block_stack = (); }
         
+        # Function to check if a variable is defined and not empty within an if block
         sub check_in_block {
             my ($variable, $in_block_outer) = @_;
             my $env_value = qx(test -n "\$$variable" && echo -n "\$$variable");
             chomp($env_value);
+
+            # Set $in_block to true if the variable is defined, not empty, and $in_block_outer is true
             my $in_block = defined $env_value && $env_value ne "" && $in_block_outer;
+            
+            # Push the current $in_block state onto the stack
             push @in_block_stack, $in_block;
+
             return $in_block;
         }
 
+        # Function to pop the last value from the in_block stack
         sub pop_in_block {
             pop @in_block_stack;
+            
+            # Return true if the stack is empty or the last value on the stack is true
             return !@in_block_stack || $in_block_stack[-1];
         }
 
+        # Main processing loop
         if (/^\s*\{\{-?\s*if\s*getenv\s*"([^"]+)"\s*}}\s*$/) {
+            # Handle the start of an if block
             $variable = $1;
             $in_block = check_in_block($variable, $in_block);
         } elsif (/^\s*\{\{-?\s*else\s*}}\s*$/) {
+            # Handle the else part of an if block
             $in_block = !$in_block;
         } elsif (/^\s*\{\{-?\s*end\s*}}\s*$/) {
+            # Handle the end of an if block
             $in_block = pop_in_block();
         } elsif ($in_block) {
-            $line = replace_getenv($_);  # Handle replacements for lines outside if blocks
+            # Handle replacements for lines of an active if block and outside if blocks
+            $line = replace_getenv($_);
             print $line;
         }
 EOF
