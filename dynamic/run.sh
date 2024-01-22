@@ -127,13 +127,13 @@ cp /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg.templa
 
 ln -s /root/configuration.yaml /opt/instana/agent/etc/instana/configuration.yaml
 
-./templater.sh -t /opt/instana/agent/etc/org.ops4j.pax.logging.cfg.tmpl /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
-./templater.sh -t /opt/instana/agent/etc/com.instana.agent.main.sender.Backend-1.cfg.tmpl /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
+./bin/templater.sh -t /opt/instana/agent/etc/org.ops4j.pax.logging.cfg.tmpl /opt/instana/agent/etc/org.ops4j.pax.logging.cfg
+./bin/templater.sh -t /opt/instana/agent/etc/com.instana.agent.main.sender.Backend-1.cfg.tmpl /opt/instana/agent/etc/instana/com.instana.agent.main.sender.Backend-1.cfg
 
-./templater.sh -t /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg.tmpl /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg
-./templater.sh -t /opt/instana/agent/etc/mvn-settings.xml.tmpl /opt/instana/agent/etc/mvn-settings.xml
-./templater.sh -t /opt/instana/agent/etc/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
-./templater.sh -t /opt/instana/agent/etc/com.instana.agent.main.config.UpdateManager.cfg.tmpl /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg
+./bin/templater.sh -t /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg.tmpl /opt/instana/agent/etc/org.ops4j.pax.url.mvn.cfg
+./bin/templater.sh -t /opt/instana/agent/etc/mvn-settings.xml.tmpl /opt/instana/agent/etc/mvn-settings.xml
+./bin/templater.sh -t /opt/instana/agent/etc/com.instana.agent.bootstrap.AgentBootstrap.cfg.tmpl /opt/instana/agent/etc/instana/com.instana.agent.bootstrap.AgentBootstrap.cfg
+./bin/templater.sh -t /opt/instana/agent/etc/com.instana.agent.main.config.UpdateManager.cfg.tmpl /opt/instana/agent/etc/instana/com.instana.agent.main.config.UpdateManager.cfg
 
 if [ -n "${INSTANA_AGENT_HTTP_LISTEN}" ]; then
   echo -e "\nhttp.listen = ${INSTANA_AGENT_HTTP_LISTEN}" >> /opt/instana/agent/etc/instana/com.instana.agent.main.config.Agent.cfg

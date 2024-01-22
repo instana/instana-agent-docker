@@ -39,7 +39,7 @@ LABEL name="instana-agent" \
 ARG TARGETPLATFORM='linux/amd64'
 
 RUN microdnf upgrade \
-    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip socat \
+    && microdnf install --nodocs --noplugins hostname procps iproute util-linux python3 jq findutils less tar gzip socat perl \
     && rm -rf /tmp/* \
     && microdnf clean all
 
@@ -234,7 +234,7 @@ COPY configuration.yaml \
     /root/
 
 ADD run.sh /opt/instana/agent/bin
-ADD ../templater/templater.sh /opt/instana/agent/bin
+ADD templater.sh /opt/instana/agent/bin
 
 WORKDIR /opt/instana/agent
 VOLUME ["/opt/instana/agent/etc/instana"]
