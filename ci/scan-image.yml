@@ -92,5 +92,9 @@ run:
     echo "High CVEs:"
     cat $OUTPUT_DIR/report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "high") | {cve,severity,status,packagePath,packageName,packageVersion,link}'
 
+    echo "Medium CVEs:"
+    cat $OUTPUT_DIR/report.json | jq '.results[0].entityInfo.vulnerabilities[] | select(.severity == "medium") | {cve,severity,status,packagePath,packageName,packageVersion,link}'
+
+
     exit $EXIT_CODE
   path: entrypoint.sh
