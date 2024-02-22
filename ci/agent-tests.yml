@@ -1,0 +1,50 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: delivery.instana.io/int-docker-agent-local/agent-system-tests
+    username: ((delivery-instana-io-internal-project-artifact-read-writer-creds.username))
+    password: ((delivery-instana-io-internal-project-artifact-read-writer-creds.password))
+inputs:
+  - name: build-repo
+  - name: metadata
+params:
+  GOOGLE_APPLICATION_CREDENTIALS_BASE64: ((agent-test-runner-service-account-key-base64))
+  TAGS: ((tags))
+  GCP_LABELS: ((gcp-labels))
+  APPROVING_MANAGER: ((approving-manager))
+  FILENAME_PATTERN: build-repo/((filename-pattern))
+  URL_PARAMETER: ((url-parameter))
+  ARTIFACTORY_USERNAME: ((delivery-instana-io-internal-project-artifact-read-writer-creds.username))
+  ARTIFACTORY_PASSWORD: ((delivery-instana-io-internal-project-artifact-read-writer-creds.password))
+run:
+  path: /bin/sh
+  args:
+    - -evc
+    - |
+      echo "${GOOGLE_APPLICATION_CREDENTIALS_BASE64}" > /root/agent-test-runner-service-account-key.base64
+      base64 -d /root/agent-test-runner-service-account-key.base64 > /root/agent-test-runner-service-account-key.json
+      export GOOGLE_APPLICATION_CREDENTIALS=/root/agent-test-runner-service-account-key.json
+
+      export PACKAGE_PATH=$(ls $FILENAME_PATTERN | xargs realpath)
+      export URL="file://${PACKAGE_PATH}"
+
+      echo "using tags ${TAGS}"
+      # injecting concourse metadata to be added as labels
+      export BUILD_PIPELINE_NAME="$(cat metadata/build_pipeline_name)"
+      export BUILD_JOB_NAME="$(cat metadata/build_job_name)"
+      export BUILD_NAME="$(cat metadata/build_name)"
+      export BUILD_ID="$(cat metadata/build_id)"
+
+      java -cp '/opt/agent-system-tests/*' \
+      -Djunit.jupiter.execution.parallel.enabled=true \
+      -Djunit.jupiter.execution.parallel.mode.default=concurrent \
+      -Djunit.jupiter.execution.parallel.config.strategy=fixed \
+      -Djunit.jupiter.execution.parallel.config.fixed.parallelism=4 \
+      -Djunit.jupiter.execution.parallel.config.fixed.max-pool-size=4 \
+      -D$URL_PARAMETER=$URL \
+      -Dcom.instana.agent.tests.artifactoryUsername=$ARTIFACTORY_USERNAME \
+      -Dcom.instana.agent.tests.artifactoryPassword=$ARTIFACTORY_PASSWORD \
+      org.junit.platform.console.ConsoleLauncher \
+      --select-package com.instana.agent.tests \
+      -t "$TAGS"
